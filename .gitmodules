@@ -1,3 +1,6 @@
 [submodule "game/3rdparty/glfw"]
 	path = game/3rdparty/glfw
 	url = https://github.com/glfw/glfw.git
+[submodule "game/3rdparty/glm"]
+	path = game/3rdparty/glm
+	url = https://github.com/g-truc/glm.git
