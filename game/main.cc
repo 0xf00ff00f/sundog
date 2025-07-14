@@ -3,78 +3,81 @@
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
 
 #include <cassert>
 #include <stdio.h>
 
 import glhelpers;
+import mesh;
+
 import std;
 
-class Mesh
+struct Orbit
 {
-public:
-    Mesh();
-    ~Mesh();
-
-    Mesh(Mesh &&other);
-    Mesh &operator=(Mesh &&other);
-
-    Mesh(const Mesh &) = delete;
-    Mesh &operator=(const Mesh &) = delete;
-
-    enum class Type : GLenum
-    {
-        Float = GL_FLOAT
-    };
-    struct VertexAttribute
-    {
-        std::size_t size;
-        Type type;
-        std::size_t offset;
-    };
-    void setVertexAttributes(std::span<const VertexAttribute> attributes, std::size_t stride);
-    void setVertexData(std::span<const std::byte> vertexData);
-    void draw(std::size_t firstVertex, std::size_t vertexCount);
-
-private:
-    gl::Buffer m_vertexBuffer;
-    gl::VertexArray m_vertexArray;
+    float semiMajorAxis = 1.0;
+    float eccentricity = 0.0;
 };
 
-Mesh::Mesh()
-    : m_vertexBuffer(gl::Buffer::Target::ArrayBuffer)
+struct Body
 {
+public:
+    Body();
+
+    void setOrbit(const Orbit &orbit);
+    void renderOrbit() const;
+
+private:
+    void initializeOrbitMesh();
+
+    static constexpr auto kOrbitVertexCount = 30;
+
+    Orbit m_orbit;
+    Mesh m_orbitMesh;
+};
+
+Body::Body()
+{
+    initializeOrbitMesh();
 }
 
-Mesh::~Mesh() = default;
-
-Mesh::Mesh(Mesh &&other) = default;
-
-Mesh &Mesh::operator=(Mesh &&other) = default;
-
-void Mesh::setVertexAttributes(std::span<const VertexAttribute> attributes, std::size_t stride)
+void Body::setOrbit(const Orbit &orbit)
 {
-    m_vertexArray.bind();
-    m_vertexBuffer.bind();
-    // where's std::views::enumerate?
-    for (const auto &&[index, attribute] : std::views::zip(std::views::iota(0), attributes))
+    m_orbit = orbit;
+    initializeOrbitMesh();
+}
+
+void Body::initializeOrbitMesh()
+{
+    const auto semiMajorAxis = m_orbit.semiMajorAxis;
+    const auto semiMinorAxis = semiMajorAxis * std::sqrt(1.0 - m_orbit.eccentricity);
+
+    struct Vertex
     {
-        glEnableVertexAttribArray(index);
-        glVertexAttribPointer(index, attribute.size, static_cast<GLenum>(attribute.type), GL_FALSE, stride,
-                              reinterpret_cast<const void *>(attribute.offset));
-    }
+        glm::vec2 position;
+    };
+    // clang-format off
+    const std::vector<Vertex> verts =
+        std::views::iota(0, kOrbitVertexCount)
+        | std::views::transform([semiMajorAxis, semiMinorAxis](const std::size_t i) -> Vertex {
+              const auto t = i * 2.0f * glm::pi<float>() / kOrbitVertexCount;
+              const auto x = semiMajorAxis * glm::cos(t);
+              const auto y = semiMinorAxis * glm::sin(t);
+              return Vertex{.position = glm::vec2{x, y}};
+          })
+        | std::ranges::to<std::vector>();
+    // clang-format on
+    m_orbitMesh.setVertexData(std::as_bytes(std::span{verts}));
+
+    const std::array<Mesh::VertexAttribute, 1> attributes = {
+        Mesh::VertexAttribute{2, Mesh::Type::Float, offsetof(Vertex, position)},
+    };
+    m_orbitMesh.setVertexAttributes(attributes, sizeof(Vertex));
 }
 
-void Mesh::setVertexData(std::span<const std::byte> vertexData)
+void Body::renderOrbit() const
 {
-    m_vertexBuffer.bind();
-    m_vertexBuffer.data(vertexData, gl::Buffer::Usage::StaticDraw);
-}
-
-void Mesh::draw(std::size_t firstVertex, std::size_t vertexCount)
-{
-    m_vertexArray.bind();
-    glDrawArrays(GL_TRIANGLES, firstVertex, vertexCount);
+    m_orbitMesh.draw(Mesh::Primitive::LineLoop, 0, kOrbitVertexCount);
 }
 
 int main(int argc, char *argv[])
@@ -132,23 +135,19 @@ int main(int argc, char *argv[])
         mesh.setVertexAttributes(attributes, sizeof(Vertex));
 
         const char *vertexShader = R"(
-layout(location=0) in vec3 position;
-layout(location=1) in vec3 color;
+layout(location=0) in vec2 position;
 
 out vec3 vs_color;
 
 void main() {
-    vs_color = color;
-    gl_Position = vec4(position, 1.0);
+    gl_Position = vec4(position, 0.0, 1.0);
 }
 )";
         const char *fragmentShader = R"(
-in vec3 vs_color;
-
 out vec4 fragColor;
 
 void main() {
-    fragColor = vec4(vs_color, 1.0);
+    fragColor = vec4(1.0);
 }
 )";
         ShaderProgram program;
@@ -168,15 +167,18 @@ void main() {
             return 1;
         }
 
+        Body body;
+        body.setOrbit(Orbit{.semiMajorAxis = 0.75f, .eccentricity = 0.75f});
+
         while (!glfwWindowShouldClose(window))
         {
             glfwPollEvents();
 
-            glClearColor(1.0, 0.0, 0.0, 1.0);
+            glClearColor(0.0, 0.0, 0.0, 1.0);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             program.use();
-            mesh.draw(0, 3);
+            body.renderOrbit();
 
             glfwSwapBuffers(window);
         }
