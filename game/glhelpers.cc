@@ -2,6 +2,9 @@ module;
 
 #include <glad/gl.h>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <print>
 #include <ranges>
 #include <span>
@@ -88,6 +91,15 @@ public:
     bool attachShader(ShaderType type, std::string_view source) const;
     bool link() const;
     void use() const;
+
+    int uniformLocation(std::string_view uniform) const;
+
+    void setUniform(int location, float value) const;
+    void setUniform(int location, const glm::vec2 &value) const;
+    void setUniform(int location, const glm::vec3 &value) const;
+    void setUniform(int location, const glm::vec4 &value) const;
+    void setUniform(int location, const glm::mat3 &value) const;
+    void setUniform(int location, const glm::mat4 &value) const;
 
 private:
     GLuint m_handle = 0;
@@ -245,6 +257,41 @@ bool ShaderProgram::link() const
 void ShaderProgram::use() const
 {
     glUseProgram(m_handle);
+}
+
+int ShaderProgram::uniformLocation(std::string_view uniform) const
+{
+    return glGetUniformLocation(m_handle, std::string(uniform).c_str());
+}
+
+void ShaderProgram::setUniform(int location, float value) const
+{
+    glUniform1f(location, value);
+}
+
+void ShaderProgram::setUniform(int location, const glm::vec2 &value) const
+{
+    glUniform2fv(location, 1, glm::value_ptr(value));
+}
+
+void ShaderProgram::setUniform(int location, const glm::vec3 &value) const
+{
+    glUniform3fv(location, 1, glm::value_ptr(value));
+}
+
+void ShaderProgram::setUniform(int location, const glm::vec4 &value) const
+{
+    glUniform4fv(location, 1, glm::value_ptr(value));
+}
+
+void ShaderProgram::setUniform(int location, const glm::mat3 &value) const
+{
+    glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(value));
+}
+
+void ShaderProgram::setUniform(int location, const glm::mat4 &value) const
+{
+    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
 }
 
 } // namespace gl
