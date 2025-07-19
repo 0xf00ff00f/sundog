@@ -39,10 +39,10 @@ using Days = std::chrono::duration<float, std::ratio<60 * 60 * 24>>;
 
 Days daysSinceEpoch(std::chrono::time_point<std::chrono::system_clock> t)
 {
-    using namespace std::chrono_literals;
     using namespace std::chrono;
-    const auto startEpoch = 2000y / January / 0;
-    return duration_cast<Days>(sys_days{std::chrono::floor<days>(t)} - sys_days{startEpoch});
+    using namespace std::chrono_literals;
+    static const auto startEpoch = 2000y / January / 0;
+    return duration_cast<Days>(sys_days{floor<days>(t)} - sys_days{startEpoch});
 }
 
 struct Body
@@ -118,9 +118,8 @@ glm::vec3 Body::position(Days day) const
     const auto y = a * (std::sqrt(1.0 - e * e) * std::sin(E));
 
     const auto position = orbitRotationMatrix() * glm::vec3(x, y, 0.0);
-    std::println("position={}", glm::to_string(position));
 
-#if 1
+#if 0
     {
         const auto w = glm::radians(m_orbit.longitudePerihelion - m_orbit.longitudeAscendingNode);
         const auto i = glm::radians(m_orbit.inclination);
@@ -132,7 +131,7 @@ glm::vec3 Body::position(Days day) const
         const auto yh = r * (std::sin(N) * std::cos(v + w) + std::cos(N) * std::sin(v + w) * std::cos(i));
         const auto zh = r * std::sin(v + w) * std::sin(i);
 
-        std::println("expected={}", glm::to_string(glm::vec3(xh, yh, zh)));
+        std::println("position={} expected={}", glm::to_string(position), glm::to_string(glm::vec3(xh, yh, zh)));
     }
 #endif
 
@@ -188,6 +187,18 @@ void Body::renderOrbit() const
     m_orbitMesh.draw(Mesh::Primitive::LineLoop, 0, kOrbitVertexCount);
 }
 
+std::optional<gl::ShaderProgram> initializeShaderProgram(const char *vertexShader, const char *fragmentShader)
+{
+    gl::ShaderProgram program;
+    if (!program.attachShader(gl::ShaderProgram::ShaderType::FragmentShader, fragmentShader))
+        return {};
+    if (!program.attachShader(gl::ShaderProgram::ShaderType::VertexShader, vertexShader))
+        return {};
+    if (!program.link())
+        return {};
+    return program;
+}
+
 int main(int argc, char *argv[])
 {
     if (!glfwInit())
@@ -223,17 +234,33 @@ int main(int argc, char *argv[])
     {
         using namespace gl;
 
-        const char *vertexShader = R"(
+        const char *orbitVertexShader = R"(
 layout(location=0) in vec3 position;
 
 uniform mat4 mvp;
-
-out vec3 vs_color;
 
 void main() {
     gl_Position = mvp * vec4(position, 1.0);
 }
 )";
+        const char *billboardVertexShader = R"(
+layout(location=0) in vec2 position;
+
+uniform mat4 mvp;
+uniform mat4 modelMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+
+void main() {
+    vec3 cameraRight = vec3(viewMatrix[0][0], viewMatrix[1][0], viewMatrix[2][0]);
+    vec3 cameraUp = vec3(viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1]);
+    vec3 worldCenter = vec3(modelMatrix * vec4(0.0, 0.0, 0.0, 1.0));
+    vec3 worldPosition = worldCenter + cameraRight * position.x + cameraUp * position.y;
+    gl_Position = projectionMatrix * viewMatrix * vec4(worldPosition, 1.0);
+    // gl_Position = mvp * vec4(position, 0.0, 1.0);
+}
+)";
+
         const char *fragmentShader = R"(
 out vec4 fragColor;
 
@@ -241,22 +268,21 @@ void main() {
     fragColor = vec4(1.0);
 }
 )";
-        ShaderProgram program;
-        if (!program.attachShader(ShaderProgram::ShaderType::FragmentShader, fragmentShader))
+        auto maybeProgram = initializeShaderProgram(orbitVertexShader, fragmentShader);
+        if (!maybeProgram.has_value())
         {
             glfwTerminate();
             return 1;
         }
-        if (!program.attachShader(ShaderProgram::ShaderType::VertexShader, vertexShader))
+        ShaderProgram orbitProgram = std::move(maybeProgram.value());
+
+        maybeProgram = initializeShaderProgram(billboardVertexShader, fragmentShader);
+        if (!maybeProgram.has_value())
         {
             glfwTerminate();
             return 1;
         }
-        if (!program.link())
-        {
-            glfwTerminate();
-            return 1;
-        }
+        ShaderProgram billboardProgram = std::move(maybeProgram.value());
 
         static const std::vector<OrbitalElements> orbits = {
             // semiMajorAxis, eccentricity, inclination, longitudePerihelion, longitudeAscendingNode, meanAnomalyAtEpoch
@@ -286,21 +312,24 @@ void main() {
         double lastCursorX = 0.0, lastCursorY = 0.0;
         glfwGetCursorPos(window, &lastCursorX, &lastCursorY);
 
-        {
-            using namespace std::chrono_literals;
-            std::println("{}", std::chrono::duration_cast<Days>(2s).count());
-        }
-
+        constexpr auto kBodyVertexCount = 20;
         Mesh bodyMesh;
         {
-            constexpr auto kSize = 0.2;
-            static const std::vector<glm::vec3> vertices = {
-                {-kSize, 0.0, 0.0}, {kSize, 0.0, 0.0},  {0.0, -kSize, 0.0},
-                {0.0, kSize, 0.0},  {0.0, 0.0, -kSize}, {0.0, 0.0, kSize},
-            };
-            bodyMesh.setVertexData(std::as_bytes(std::span{vertices}));
-            const std::array<Mesh::VertexAttribute, 1> attributes = {Mesh::VertexAttribute{3, Mesh::Type::Float, 0}};
-            bodyMesh.setVertexAttributes(attributes, sizeof(glm::vec3));
+            constexpr auto kRadius = 0.1;
+
+            // clang-format off
+            const std::vector<glm::vec2> verts = std::views::iota(0, kBodyVertexCount)
+                                                 | std::views::transform([](const std::size_t i) -> glm::vec2 {
+                                                       const auto a = i * 2.0f * glm::pi<float>() / kBodyVertexCount;
+                                                       const auto x = kRadius * glm::cos(a);
+                                                       const auto y = kRadius * glm::sin(a);
+                                                       return {x, y};
+                                                   })
+                                                 | std::ranges::to<std::vector>();
+            // clang-format on
+            bodyMesh.setVertexData(std::as_bytes(std::span{verts}));
+            const std::array<Mesh::VertexAttribute, 1> attributes = {Mesh::VertexAttribute{2, Mesh::Type::Float, 0}};
+            bodyMesh.setVertexAttributes(attributes, sizeof(glm::vec2));
         }
 
         auto currentTime = daysSinceEpoch(std::chrono::system_clock::now());
@@ -339,29 +368,39 @@ void main() {
             const auto projectionMatrix =
                 glm::perspective(glm::radians(45.0f), static_cast<float>(width) / height, 0.1f, 100.0f);
             const auto viewMatrix =
-                glm::lookAt(glm::vec3(0.0f, 0.0f, 16.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+                glm::lookAt(glm::vec3(0.0f, 0.0f, 8.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
             const auto mvp = projectionMatrix * viewMatrix * modelMatrix;
 
-            program.use();
-            program.setUniform(program.uniformLocation("mvp"), mvp);
+            orbitProgram.use();
+            orbitProgram.setUniform(orbitProgram.uniformLocation("mvp"), mvp);
 
             for (const auto &body : bodies)
             {
                 body.renderOrbit();
             }
 
+            billboardProgram.use();
+            billboardProgram.setUniform(billboardProgram.uniformLocation("projectionMatrix"), projectionMatrix);
+            billboardProgram.setUniform(billboardProgram.uniformLocation("viewMatrix"), viewMatrix);
+
+            // sun
+            billboardProgram.setUniform(billboardProgram.uniformLocation("mvp"), mvp);
+            billboardProgram.setUniform(billboardProgram.uniformLocation("modelMatrix"), modelMatrix);
+            bodyMesh.draw(Mesh::Primitive::LineLoop, 0, kBodyVertexCount);
+
             for (const auto &body : bodies)
             {
                 const auto position = body.position(currentTime);
                 const auto bodyModelMatrix = modelMatrix * glm::translate(glm::mat4(1.0), position);
                 const auto mvp = projectionMatrix * viewMatrix * bodyModelMatrix;
-                program.setUniform(program.uniformLocation("mvp"), mvp);
-                bodyMesh.draw(Mesh::Primitive::Lines, 0, 6);
+                billboardProgram.setUniform(billboardProgram.uniformLocation("mvp"), mvp);
+                billboardProgram.setUniform(billboardProgram.uniformLocation("modelMatrix"), bodyModelMatrix);
+                bodyMesh.draw(Mesh::Primitive::LineLoop, 0, kBodyVertexCount);
             }
 
             glfwSwapBuffers(window);
 
-            currentTime += Days{0.5};
+            // currentTime += Days{0.5};
         }
     }
 
