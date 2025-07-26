@@ -7,13 +7,15 @@
 #include <glm/gtc/constants.hpp>
 #include <glm/gtx/string_cast.hpp>
 
+#include <nlohmann/json.hpp>
+
+#include <chrono>
+#include <fstream>
 #include <cassert>
-#include <stdio.h>
+#include <cstdio>
 
 import glhelpers;
 import mesh;
-
-import std;
 
 namespace
 {
@@ -51,6 +53,8 @@ public:
     Body();
 
     void setOrbitalElements(const OrbitalElements &orbit);
+    OrbitalElements orbitalElements() const { return m_orbit; }
+
     void renderOrbit() const;
     float meanAnomaly(Days day) const;      // radians
     float eccentricAnomaly(Days day) const; // radians
@@ -199,6 +203,102 @@ std::optional<gl::ShaderProgram> initializeShaderProgram(const char *vertexShade
     return program;
 }
 
+struct World
+{
+public:
+    World();
+
+    void load(const nlohmann::json &json);
+
+    std::string_view name() const { return m_name; }
+    const Body &body() const { return m_body; }
+
+private:
+    std::string m_name;
+    Body m_body;
+};
+
+World::World() = default;
+
+void World::load(const nlohmann::json &json)
+{
+    const auto name = json["name"];
+    assert(name.is_string());
+    m_name = name.get<std::string>();
+
+    const auto orbit = json["orbit"];
+    assert(orbit.is_object());
+
+    OrbitalElements orbitalElements;
+
+    const auto semiMajorAxis = orbit["semimajor_axis"];
+    assert(semiMajorAxis.is_number());
+    orbitalElements.semiMajorAxis = semiMajorAxis.get<float>();
+
+    const auto eccentricity = orbit["eccentricity"];
+    assert(eccentricity.is_number());
+    orbitalElements.eccentricity = eccentricity.get<float>();
+
+    const auto inclination = orbit["inclination"];
+    assert(inclination.is_number());
+    orbitalElements.inclination = inclination.get<float>();
+
+    const auto longitudePerihelion = orbit["longitude_perihelion"];
+    assert(longitudePerihelion.is_number());
+    orbitalElements.longitudePerihelion = longitudePerihelion.get<float>();
+
+    const auto longitudeAscendingNode = orbit["longitude_ascending_node"];
+    assert(longitudeAscendingNode.is_number());
+    orbitalElements.longitudeAscendingNode = longitudeAscendingNode.get<float>();
+
+    const auto meanAnomaly = orbit["mean_anomaly"];
+    assert(meanAnomaly.is_number());
+    orbitalElements.meanAnomalyAtEpoch = meanAnomaly.get<float>();
+
+    m_body.setOrbitalElements(orbitalElements);
+}
+
+struct Universe
+{
+public:
+    Universe();
+
+    bool load(const nlohmann::json &json);
+    std::span<const World> worlds() const;
+
+private:
+    std::vector<World> m_worlds;
+};
+
+Universe::Universe() = default;
+
+bool Universe::load(const nlohmann::json &json)
+{
+    const auto worldsJson = json["worlds"];
+    assert(worldsJson.is_array());
+
+    m_worlds.reserve(worldsJson.size());
+
+    for (const auto &worldJson : worldsJson)
+    {
+        World world;
+        world.load(worldJson);
+        m_worlds.push_back(std::move(world));
+    }
+
+    return true;
+}
+
+std::span<const World> Universe::worlds() const
+{
+    return m_worlds;
+}
+
+std::string assetPath(std::string_view name)
+{
+    return std::format("{}{}", ASSETSDIR, name);
+}
+
 int main(int argc, char *argv[])
 {
     if (!glfwInit())
@@ -284,28 +384,11 @@ void main() {
         }
         ShaderProgram billboardProgram = std::move(maybeProgram.value());
 
-        static const std::vector<OrbitalElements> orbits = {
-            // semiMajorAxis, eccentricity, inclination, longitudePerihelion, longitudeAscendingNode, meanAnomalyAtEpoch
-            // a, e, i, w + N, N
-            {0.3871, 0.20564, 7.006, 77.46, 48.34, 174.796},   // Mercury
-            {0.7233, 0.00676, 3.398, 131.77, 76.67, 50.115},   // Venus
-            {1.0000, 0.01673, 0.000, 102.93, 0.000, 358.617},  // Earth
-            {1.5237, 0.09337, 1.852, 336.08, 49.71, 19.412},   // Mars
-            {5.2025, 0.04854, 1.299, 14.27, 100.29, 20.02},    // Jupiter
-            {9.5415, 0.05551, 2.494, 92.86, 113.64, 317.02},   // Saturn
-            {19.188, 0.04686, 0.773, 172.43, 73.96, 142.2386}, // Uranus
-            {30.070, 0.00895, 1.770, 46.68, 131.79, 256.228},  // Neptune
-        };
+        std::ifstream f(assetPath("universe.json"));
+        const nlohmann::json universeJson = nlohmann::json::parse(f);
 
-        // clang-format off
-        const std::vector<Body> bodies = orbits
-                                         | std::views::transform([](const OrbitalElements &orbit) {
-                                               Body body;
-                                               body.setOrbitalElements(orbit);
-                                               return body;
-                                           })
-                                         | std::ranges::to<std::vector>();
-        // clang-format on
+        Universe universe;
+        universe.load(universeJson);
 
         auto modelMatrix = glm::mat4(1.0f);
 
@@ -374,9 +457,11 @@ void main() {
             orbitProgram.use();
             orbitProgram.setUniform(orbitProgram.uniformLocation("mvp"), mvp);
 
-            for (const auto &body : bodies)
+            const auto worlds = universe.worlds();
+
+            for (const auto &world : worlds)
             {
-                body.renderOrbit();
+                world.body().renderOrbit();
             }
 
             billboardProgram.use();
@@ -388,8 +473,9 @@ void main() {
             billboardProgram.setUniform(billboardProgram.uniformLocation("modelMatrix"), modelMatrix);
             bodyMesh.draw(Mesh::Primitive::LineLoop, 0, kBodyVertexCount);
 
-            for (const auto &body : bodies)
+            for (const auto &world : worlds)
             {
+                const auto &body = world.body();
                 const auto position = body.position(currentTime);
                 const auto bodyModelMatrix = modelMatrix * glm::translate(glm::mat4(1.0), position);
                 const auto mvp = projectionMatrix * viewMatrix * bodyModelMatrix;

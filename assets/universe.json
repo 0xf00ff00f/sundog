@@ -1,0 +1,92 @@
+{
+    "worlds": [
+        {
+            "name": "Mercury",
+            "orbit": {
+                "semimajor_axis": 0.3871,
+                "eccentricity": 0.20564,
+                "inclination": 7.006,
+                "longitude_perihelion": 77.46,
+                "longitude_ascending_node": 48.34,
+                "mean_anomaly": 174.796
+            }
+        },
+        {
+            "name": "Venus",
+            "orbit": {
+                "semimajor_axis": 0.7233,
+                "eccentricity": 0.00676,
+                "inclination": 3.398,
+                "longitude_perihelion": 131.77,
+                "longitude_ascending_node": 76.67,
+                "mean_anomaly": 50.115
+            }
+        },
+        {
+            "name": "Earth",
+            "orbit": {
+                "semimajor_axis": 1.0,
+                "eccentricity": 0.01673,
+                "inclination": 0.0,
+                "longitude_perihelion": 102.93,
+                "longitude_ascending_node": 0.0,
+                "mean_anomaly": 358.617
+            }
+        },
+        {
+            "name": "Mars",
+            "orbit": {
+                "semimajor_axis": 1.5237,
+                "eccentricity": 0.09337,
+                "inclination": 1.852,
+                "longitude_perihelion": 336.08,
+                "longitude_ascending_node": 49.71,
+                "mean_anomaly": 19.412
+            }
+        },
+        {
+            "name": "Jupiter",
+            "orbit": {
+                "semimajor_axis": 5.2025,
+                "eccentricity": 0.04854,
+                "inclination": 1.299,
+                "longitude_perihelion": 14.27,
+                "longitude_ascending_node": 100.29,
+                "mean_anomaly": 20.02
+            }
+        },
+        {
+            "name": "Saturn",
+            "orbit": {
+                "semimajor_axis": 9.5415,
+                "eccentricity": 0.05551,
+                "inclination": 2.494,
+                "longitude_perihelion": 92.86,
+                "longitude_ascending_node": 113.64,
+                "mean_anomaly": 317.02
+            }
+        },
+        {
+            "name": "Uranus",
+            "orbit": {
+                "semimajor_axis": 19.188,
+                "eccentricity": 0.04686,
+                "inclination": 0.773,
+                "longitude_perihelion": 172.43,
+                "longitude_ascending_node": 73.96,
+                "mean_anomaly": 142.2386
+            }
+        },
+        {
+            "name": "Neptune",
+            "orbit": {
+                "semimajor_axis": 30.07,
+                "eccentricity": 0.00895,
+                "inclination": 1.77,
+                "longitude_perihelion": 46.68,
+                "longitude_ascending_node": 131.79,
+                "mean_anomaly": 256.228
+            }
+        }
+    ]
+}
