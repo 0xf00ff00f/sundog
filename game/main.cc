@@ -1,4 +1,5 @@
-#include <glad/gl.h>
+#include "glhelpers.h"
+#include "mesh.h"
 
 #include <GLFW/glfw3.h>
 
@@ -13,9 +14,6 @@
 #include <fstream>
 #include <cassert>
 #include <cstdio>
-
-import glhelpers;
-import mesh;
 
 namespace
 {
@@ -43,7 +41,7 @@ Days daysSinceEpoch(std::chrono::time_point<std::chrono::system_clock> t)
 {
     using namespace std::chrono;
     using namespace std::chrono_literals;
-    static const auto startEpoch = 2000y / January / 0;
+    static const auto startEpoch = 2000y / January / 1d;
     return duration_cast<Days>(sys_days{floor<days>(t)} - sys_days{startEpoch});
 }
 
