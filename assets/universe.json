@@ -97,6 +97,30 @@
             }
         },
         {
+            "name": "Ceres",
+            "orbit": {
+                "epoch": 2460000.5,
+                "semimajor_axis": 2.76718174,
+                "eccentricity": 0.07881745,
+                "inclination": 10.58634327,
+                "longitude_perihelion": 153.730610234836,
+                "longitude_ascending_node": 80.260148690589,
+                "mean_anomaly": 17.215651496148
+            }
+        },
+        {
+            "name": "Pallas",
+            "orbit": {
+                "epoch": 2460000.5,
+                "semimajor_axis": 2.76963168,
+                "eccentricity": 0.23008437,
+                "inclination": 34.92703056,
+                "longitude_perihelion": 123.78293117144,
+                "longitude_ascending_node": 172.918132705,
+                "mean_anomaly": 357.84943175674
+            }
+        },
+        {
             "name": "Phaethon",
             "orbit": {
                 "epoch": 2460000.5,
