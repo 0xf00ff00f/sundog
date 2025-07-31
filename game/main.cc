@@ -24,8 +24,25 @@ constexpr auto kEarthYearInDays = 365.2425;
 // http://astro.if.ufrgs.br/trigesf/position.html
 // http://www.davidcolarusso.com/astro/
 
+struct JulianClock
+{
+    using rep = float;
+    using period = std::ratio<60 * 60 * 24>;
+    using duration = std::chrono::duration<rep, period>;
+    using time_point = std::chrono::time_point<JulianClock>;
+
+    static time_point now()
+    {
+        using namespace std::chrono;
+        return time_point{duration{system_clock::now().time_since_epoch()} + duration{2440587.5}};
+    }
+};
+
+using JulianDate = std::chrono::time_point<JulianClock>;
+
 struct OrbitalElements
 {
+    JulianDate epoch;
     float semiMajorAxis = 1.0f;
     float eccentricity = 0.0f;
     float inclination = 0.0f;            // degrees
@@ -34,16 +51,6 @@ struct OrbitalElements
     float meanAnomalyAtEpoch = 0.0f;     // degrees
 };
 // longitudePerihelion = longitudeAscendingNode + argumentPerihelion
-
-using Days = std::chrono::duration<float, std::ratio<60 * 60 * 24>>;
-
-Days daysSinceEpoch(std::chrono::time_point<std::chrono::system_clock> t)
-{
-    using namespace std::chrono;
-    using namespace std::chrono_literals;
-    static const auto startEpoch = 2000y / January / 1d;
-    return duration_cast<Days>(sys_days{floor<days>(t)} - sys_days{startEpoch});
-}
 
 struct Body
 {
@@ -54,9 +61,9 @@ public:
     OrbitalElements orbitalElements() const { return m_orbit; }
 
     void renderOrbit() const;
-    float meanAnomaly(Days day) const;      // radians
-    float eccentricAnomaly(Days day) const; // radians
-    glm::vec3 position(Days day) const;
+    float meanAnomaly(JulianDate when) const;      // radians
+    float eccentricAnomaly(JulianDate when) const; // radians
+    glm::vec3 position(JulianDate when) const;
 
 private:
     void initializeOrbitMesh();
@@ -81,16 +88,16 @@ void Body::setOrbitalElements(const OrbitalElements &orbit)
     initializeOrbitMesh();
 }
 
-float Body::meanAnomaly(Days day) const
+float Body::meanAnomaly(JulianDate when) const
 {
     const float Mepoch = glm::radians(m_orbit.meanAnomalyAtEpoch);
-    return Mepoch + 2.0 * glm::pi<float>() * day.count() / m_period;
+    return Mepoch + 2.0 * glm::pi<float>() * (when - m_orbit.epoch).count() / m_period;
 }
 
-float Body::eccentricAnomaly(Days day) const
+float Body::eccentricAnomaly(JulianDate when) const
 {
     const float e = m_orbit.eccentricity;
-    const float M = meanAnomaly(day);
+    const float M = meanAnomaly(when);
 
     constexpr auto kTolerance = glm::radians(0.01);
     constexpr auto kMaxIterations = 200;
@@ -108,9 +115,9 @@ float Body::eccentricAnomaly(Days day) const
     return E;
 }
 
-glm::vec3 Body::position(Days day) const
+glm::vec3 Body::position(JulianDate when) const
 {
-    const auto E = eccentricAnomaly(day);
+    const auto E = eccentricAnomaly(when);
 
     const auto a = m_orbit.semiMajorAxis;
     const auto e = m_orbit.eccentricity;
@@ -228,6 +235,10 @@ void World::load(const nlohmann::json &json)
     assert(orbit.is_object());
 
     OrbitalElements orbitalElements;
+
+    const auto epoch = orbit["epoch"];
+    assert(epoch.is_number());
+    orbitalElements.epoch = JulianDate{JulianClock::duration{epoch.get<float>()}};
 
     const auto semiMajorAxis = orbit["semimajor_axis"];
     assert(semiMajorAxis.is_number());
@@ -413,7 +424,7 @@ void main() {
             bodyMesh.setVertexAttributes(attributes, sizeof(glm::vec2));
         }
 
-        auto currentTime = daysSinceEpoch(std::chrono::system_clock::now());
+        auto currentTime = JulianClock::now();
 
         while (!glfwWindowShouldClose(window))
         {
@@ -484,7 +495,7 @@ void main() {
 
             glfwSwapBuffers(window);
 
-            // currentTime += Days{0.5};
+            // currentTime += JulianClock::duration{0.5};
         }
     }
 
