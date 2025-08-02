@@ -15,11 +15,6 @@
 #include <cassert>
 #include <cstdio>
 
-namespace
-{
-constexpr auto kEarthYearInDays = 365.2425;
-}
-
 // https://farside.ph.utexas.edu/teaching/celestial/Celestial/node34.html
 // http://astro.if.ufrgs.br/trigesf/position.html
 // http://www.davidcolarusso.com/astro/
@@ -33,8 +28,7 @@ struct JulianClock
 
     static time_point now()
     {
-        using namespace std::chrono;
-        return time_point{duration{system_clock::now().time_since_epoch()} + duration{2440587.5}};
+        return time_point{duration{std::chrono::system_clock::now().time_since_epoch()} + duration{2440587.5}};
     }
 };
 
@@ -45,10 +39,10 @@ struct OrbitalElements
     JulianDate epoch;
     float semiMajorAxis = 1.0f;
     float eccentricity = 0.0f;
-    float inclination = 0.0f;            // degrees
-    float longitudePerihelion = 0.0f;    // degrees
-    float longitudeAscendingNode = 0.0f; // degrees
-    float meanAnomalyAtEpoch = 0.0f;     // degrees
+    float inclination = 0.0f;            // radians
+    float longitudePerihelion = 0.0f;    // radians
+    float longitudeAscendingNode = 0.0f; // radians
+    float meanAnomalyAtEpoch = 0.0f;     // radians
 };
 // longitudePerihelion = longitudeAscendingNode + argumentPerihelion
 
@@ -83,6 +77,7 @@ Body::Body()
 
 void Body::setOrbitalElements(const OrbitalElements &orbit)
 {
+    constexpr auto kEarthYearInDays = 365.2425;
     m_orbit = orbit;
     m_period = std::pow(m_orbit.semiMajorAxis, 3.0 / 2.0) * kEarthYearInDays;
     initializeOrbitMesh();
@@ -90,7 +85,7 @@ void Body::setOrbitalElements(const OrbitalElements &orbit)
 
 float Body::meanAnomaly(JulianDate when) const
 {
-    const float Mepoch = glm::radians(m_orbit.meanAnomalyAtEpoch);
+    const float Mepoch = m_orbit.meanAnomalyAtEpoch;
     return Mepoch + 2.0 * glm::pi<float>() * (when - m_orbit.epoch).count() / m_period;
 }
 
@@ -149,13 +144,13 @@ glm::vec3 Body::position(JulianDate when) const
 
 glm::mat3 Body::orbitRotationMatrix() const
 {
-    const auto w = glm::radians(m_orbit.longitudePerihelion - m_orbit.longitudeAscendingNode);
+    const auto w = m_orbit.longitudePerihelion - m_orbit.longitudeAscendingNode;
     const auto rw = glm::mat3(glm::rotate(glm::mat4(1.0), w, glm::vec3(0.0, 0.0, 1.0)));
 
-    const auto i = glm::radians(m_orbit.inclination);
+    const auto i = m_orbit.inclination;
     const auto ri = glm::mat3(glm::rotate(glm::mat4(1.0), i, glm::vec3(1.0, 0.0, 0.0)));
 
-    const auto N = glm::radians(m_orbit.longitudeAscendingNode);
+    const auto N = m_orbit.longitudeAscendingNode;
     const auto rN = glm::mat3(glm::rotate(glm::mat4(1.0), N, glm::vec3(0.0, 0.0, 1.0)));
 
     return rN * ri * rw;
@@ -250,19 +245,19 @@ void World::load(const nlohmann::json &json)
 
     const auto inclination = orbit["inclination"];
     assert(inclination.is_number());
-    orbitalElements.inclination = inclination.get<float>();
+    orbitalElements.inclination = glm::radians(inclination.get<float>());
 
     const auto longitudePerihelion = orbit["longitude_perihelion"];
     assert(longitudePerihelion.is_number());
-    orbitalElements.longitudePerihelion = longitudePerihelion.get<float>();
+    orbitalElements.longitudePerihelion = glm::radians(longitudePerihelion.get<float>());
 
     const auto longitudeAscendingNode = orbit["longitude_ascending_node"];
     assert(longitudeAscendingNode.is_number());
-    orbitalElements.longitudeAscendingNode = longitudeAscendingNode.get<float>();
+    orbitalElements.longitudeAscendingNode = glm::radians(longitudeAscendingNode.get<float>());
 
     const auto meanAnomaly = orbit["mean_anomaly"];
     assert(meanAnomaly.is_number());
-    orbitalElements.meanAnomalyAtEpoch = meanAnomaly.get<float>();
+    orbitalElements.meanAnomalyAtEpoch = glm::radians(meanAnomaly.get<float>());
 
     m_body.setOrbitalElements(orbitalElements);
 }
@@ -404,25 +399,30 @@ void main() {
         double lastCursorX = 0.0, lastCursorY = 0.0;
         glfwGetCursorPos(window, &lastCursorX, &lastCursorY);
 
-        constexpr auto kBodyVertexCount = 20;
-        Mesh bodyMesh;
+        constexpr auto kCircleMeshVertexCount = 20;
+        Mesh circleMesh;
         {
             constexpr auto kRadius = 0.1;
 
             // clang-format off
-            const std::vector<glm::vec2> verts = std::views::iota(0, kBodyVertexCount)
+            const std::vector<glm::vec2> verts = std::views::iota(0, kCircleMeshVertexCount)
                                                  | std::views::transform([](const std::size_t i) -> glm::vec2 {
-                                                       const auto a = i * 2.0f * glm::pi<float>() / kBodyVertexCount;
+                                                       const auto a = i * 2.0f * glm::pi<float>() / kCircleMeshVertexCount;
                                                        const auto x = kRadius * glm::cos(a);
                                                        const auto y = kRadius * glm::sin(a);
                                                        return {x, y};
                                                    })
                                                  | std::ranges::to<std::vector>();
             // clang-format on
-            bodyMesh.setVertexData(std::as_bytes(std::span{verts}));
+            circleMesh.setVertexData(std::as_bytes(std::span{verts}));
             const std::array<Mesh::VertexAttribute, 1> attributes = {Mesh::VertexAttribute{2, Mesh::Type::Float, 0}};
-            bodyMesh.setVertexAttributes(attributes, sizeof(glm::vec2));
+            circleMesh.setVertexAttributes(attributes, sizeof(glm::vec2));
         }
+
+        glEnable(GL_LINE_SMOOTH);
+        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         auto currentTime = JulianClock::now();
 
@@ -480,7 +480,7 @@ void main() {
             // sun
             billboardProgram.setUniform(billboardProgram.uniformLocation("mvp"), mvp);
             billboardProgram.setUniform(billboardProgram.uniformLocation("modelMatrix"), modelMatrix);
-            bodyMesh.draw(Mesh::Primitive::LineLoop, 0, kBodyVertexCount);
+            circleMesh.draw(Mesh::Primitive::LineLoop, 0, kCircleMeshVertexCount);
 
             for (const auto &world : worlds)
             {
@@ -490,7 +490,7 @@ void main() {
                 const auto mvp = projectionMatrix * viewMatrix * bodyModelMatrix;
                 billboardProgram.setUniform(billboardProgram.uniformLocation("mvp"), mvp);
                 billboardProgram.setUniform(billboardProgram.uniformLocation("modelMatrix"), bodyModelMatrix);
-                bodyMesh.draw(Mesh::Primitive::LineLoop, 0, kBodyVertexCount);
+                circleMesh.draw(Mesh::Primitive::LineLoop, 0, kCircleMeshVertexCount);
             }
 
             glfwSwapBuffers(window);
