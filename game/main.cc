@@ -1,5 +1,7 @@
 #include "glhelpers.h"
 #include "mesh.h"
+#include "glyph_cache.h"
+#include "tile_batcher.h"
 
 #include <GLFW/glfw3.h>
 
@@ -303,6 +305,8 @@ std::string assetPath(std::string_view name)
     return std::format("{}{}", ASSETSDIR, name);
 }
 
+// TODO: shader manager
+
 int main(int argc, char *argv[])
 {
     if (!glfwInit())
@@ -365,14 +369,43 @@ void main() {
 }
 )";
 
-        const char *fragmentShader = R"(
+        const char *lineFragmentShader = R"(
 out vec4 fragColor;
 
 void main() {
-    fragColor = vec4(1.0);
+    // fragColor = vec4(1.0);
+    fragColor = vec4(0.5, 0.5, 0.5, 1.0);
 }
 )";
-        auto maybeProgram = initializeShaderProgram(orbitVertexShader, fragmentShader);
+
+        const char *textVertexShader = R"(
+layout(location=0) in vec2 position;
+layout(location=1) in vec2 texCoord;
+
+uniform mat4 mvp;
+
+out vec2 vs_texCoord;
+
+void main() {
+    vs_texCoord = texCoord;
+    gl_Position = mvp * vec4(position, 0.0, 1.0);
+}
+)";
+
+        const char *textFragmentShader = R"(
+uniform sampler2D spriteSheetTexture;
+
+in vec2 vs_texCoord;
+
+out vec4 fragColor;
+
+void main() {
+    // fragColor = vec4(1.0); // texture(spriteSheetTexture, vs_texCoord);
+    // fragColor = vec4(vs_texCoord, 0.0, 1.0);
+    fragColor = texture(spriteSheetTexture, vs_texCoord);
+}
+)";
+        auto maybeProgram = initializeShaderProgram(orbitVertexShader, lineFragmentShader);
         if (!maybeProgram.has_value())
         {
             glfwTerminate();
@@ -380,13 +413,21 @@ void main() {
         }
         ShaderProgram orbitProgram = std::move(maybeProgram.value());
 
-        maybeProgram = initializeShaderProgram(billboardVertexShader, fragmentShader);
+        maybeProgram = initializeShaderProgram(billboardVertexShader, lineFragmentShader);
         if (!maybeProgram.has_value())
         {
             glfwTerminate();
             return 1;
         }
         ShaderProgram billboardProgram = std::move(maybeProgram.value());
+
+        maybeProgram = initializeShaderProgram(textVertexShader, textFragmentShader);
+        if (!maybeProgram.has_value())
+        {
+            glfwTerminate();
+            return 1;
+        }
+        ShaderProgram textProgram = std::move(maybeProgram.value());
 
         std::ifstream f(assetPath("universe.json"));
         const nlohmann::json universeJson = nlohmann::json::parse(f);
@@ -419,8 +460,12 @@ void main() {
             circleMesh.setVertexAttributes(attributes, sizeof(glm::vec2));
         }
 
+        GlyphCache glyphCache("DejaVuSans.ttf", 20);
+        TileBatcher tileBatcher;
+
         glEnable(GL_LINE_SMOOTH);
         glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -482,6 +527,7 @@ void main() {
             billboardProgram.setUniform(billboardProgram.uniformLocation("modelMatrix"), modelMatrix);
             circleMesh.draw(Mesh::Primitive::LineLoop, 0, kCircleMeshVertexCount);
 
+            tileBatcher.reset();
             for (const auto &world : worlds)
             {
                 const auto &body = world.body();
@@ -491,11 +537,49 @@ void main() {
                 billboardProgram.setUniform(billboardProgram.uniformLocation("mvp"), mvp);
                 billboardProgram.setUniform(billboardProgram.uniformLocation("modelMatrix"), bodyModelMatrix);
                 circleMesh.draw(Mesh::Primitive::LineLoop, 0, kCircleMeshVertexCount);
+
+                {
+                    auto positionProjected = mvp * glm::vec4(0.0, 0.0, 0.0, 1.0);
+                    glm::vec2 p;
+                    p.x = 0.5f * ((positionProjected.x / positionProjected.w) + 1.0) * width;
+                    p.y = (1.0f - 0.5f * ((positionProjected.y / positionProjected.w) + 1.0)) * height;
+
+                    p.x += 5.0;
+                    p.y -= glyphCache.pixelHeight();
+
+                    const auto name = world.name();
+                    for (size_t index = 0; const char ch : world.name())
+                    {
+                        const auto glyph = glyphCache.getGlyph(std::toupper(ch));
+                        if (glyph.has_value())
+                        {
+                            const auto topLeft = p + glyph->topLeft;
+                            const auto bottomRight = topLeft + glm::vec2(glyph->width, glyph->height);
+                            tileBatcher.setTexture(glyph->texture);
+                            tileBatcher.addTile({topLeft, glyph->texCoords.topLeft},
+                                                {bottomRight, glyph->texCoords.bottomRight});
+                            p += glm::vec2(glyph->advance, 0);
+                            if (index < name.size() - 1)
+                            {
+                                p += glm::vec2(glyphCache.kernAdvance(ch, name[index + 1]), 0);
+                            }
+                        }
+                        ++index;
+                    }
+                }
+            }
+
+            {
+                textProgram.use();
+                const auto mvp = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f);
+                textProgram.setUniform(textProgram.uniformLocation("mvp"), mvp);
+                tileBatcher.blit();
             }
 
             glfwSwapBuffers(window);
 
             // currentTime += JulianClock::duration{0.5};
+            currentTime += JulianClock::duration{0.25};
         }
     }
 

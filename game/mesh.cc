@@ -1,7 +1,7 @@
 #include "mesh.h"
 
 Mesh::Mesh()
-    : m_vertexBuffer(gl::Buffer::Target::ArrayBuffer)
+    : m_vertexBuffer(gl::Buffer::Target::ArrayBuffer, gl::Buffer::Usage::StaticDraw)
 {
 }
 
@@ -27,7 +27,7 @@ void Mesh::setVertexAttributes(std::span<const VertexAttribute> attributes, std:
 void Mesh::setVertexData(std::span<const std::byte> vertexData)
 {
     m_vertexBuffer.bind();
-    m_vertexBuffer.data(vertexData, gl::Buffer::Usage::StaticDraw);
+    m_vertexBuffer.data(vertexData);
 }
 
 void Mesh::draw(Primitive primitive, std::size_t firstVertex, std::size_t vertexCount) const

@@ -11,17 +11,27 @@ target_sources(
           glyph_image_generator.h
           glyph_image_generator.cc
           sprite_sheet.h
-          sprite_sheet.cc)
+          sprite_sheet.cc
+          glhelpers.h
+          glhelpers.cc
+          mesh.h
+          mesh.cc
+          glyph_cache.h
+          glyph_cache.cc
+          tile_batcher.h
+          tile_batcher.cc)
 target_compile_features(infrastructure PUBLIC cxx_std_23)
-target_link_libraries(infrastructure PUBLIC glm muslots stb)
+target_compile_definitions(infrastructure PUBLIC GLM_ENABLE_EXPERIMENTAL)
+target_link_libraries(infrastructure PUBLIC glm glad muslots stb)
 
 add_executable(game)
-target_sources(game PUBLIC main.cc glhelpers.h glhelpers.cc mesh.h mesh.cc)
+target_sources(game PUBLIC main.cc)
 target_compile_features(game PUBLIC cxx_std_23)
 target_compile_definitions(game PUBLIC GLM_ENABLE_EXPERIMENTAL)
 target_compile_definitions(
   game PUBLIC ASSETSDIR="${CMAKE_CURRENT_SOURCE_DIR}/../assets/")
-target_link_libraries(game PRIVATE glfw glad nlohmann_json::nlohmann_json)
+target_link_libraries(game PRIVATE glfw nlohmann_json::nlohmann_json
+                                   infrastructure)
 set_target_properties(game PROPERTIES CXX_STANDARD_REQUIRED ON)
 
 add_executable(test-glyph-generator test_glyph_generator.cc)

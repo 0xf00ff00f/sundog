@@ -12,8 +12,9 @@
 namespace gl
 {
 
-Buffer::Buffer(Target target)
+Buffer::Buffer(Target target, Usage usage)
     : m_target(target)
+    , m_usage(usage)
 {
     glGenBuffers(1, &m_handle);
 }
@@ -45,9 +46,110 @@ void Buffer::bind() const
     glBindBuffer(static_cast<GLenum>(m_target), m_handle);
 }
 
-void Buffer::data(std::span<const std::byte> bytes, Usage usage)
+void Buffer::unbind() const
 {
-    glBufferData(static_cast<GLenum>(m_target), bytes.size(), bytes.data(), static_cast<GLenum>(usage));
+    glBindBuffer(static_cast<GLenum>(m_target), 0);
+}
+
+void Buffer::data(std::span<const std::byte> bytes) const
+{
+    data(bytes.size(), bytes.data());
+}
+
+void Buffer::allocate(size_t size) const
+{
+    data(size, nullptr);
+}
+
+void Buffer::data(size_t size, const std::byte *data) const
+{
+    bind();
+    glBufferData(static_cast<GLenum>(m_target), size, data, static_cast<GLenum>(m_usage));
+}
+
+void Buffer::unmap() const
+{
+    glUnmapBuffer(static_cast<GLenum>(m_target));
+}
+
+Texture::Texture(size_t width, size_t height)
+    : m_width(width)
+    , m_height(height)
+{
+    glGenTextures(1, &m_handle);
+    if (m_handle != 0)
+    {
+        bind();
+        // TODO: handle other formats
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    }
+}
+
+Texture::Texture(const Image<uint32_t> &image)
+    : Texture(image.width(), image.height())
+{
+    data(std::as_bytes(image.pixels()));
+}
+
+Texture::~Texture()
+{
+    glDeleteTextures(1, &m_handle);
+}
+
+Texture::Texture(Texture &&other)
+    : m_handle(std::exchange(other.m_handle, 0))
+{
+}
+
+Texture &Texture::operator=(Texture &&other)
+{
+    if (this != &other)
+    {
+        if (m_handle)
+            glDeleteTextures(1, &m_handle);
+        m_handle = std::exchange(other.m_handle, 0);
+    }
+    return *this;
+}
+
+void Texture::bind() const
+{
+    glBindTexture(GL_TEXTURE_2D, m_handle);
+}
+
+void Texture::setMinificationFilter(Filter filter) const
+{
+    bind();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, static_cast<GLint>(filter));
+}
+
+void Texture::setMagnificationFilter(Filter filter) const
+{
+    bind();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, static_cast<GLint>(filter));
+}
+
+void Texture::setWrapModeS(WrapMode wrapMode) const
+{
+    bind();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, static_cast<GLint>(wrapMode));
+}
+
+void Texture::setWrapModeT(WrapMode wrapMode) const
+{
+    bind();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, static_cast<GLint>(wrapMode));
+}
+
+void Texture::data(std::span<const std::byte> bytes) const
+{
+    if (bytes.size() != m_width * m_height * sizeof(uint32_t))
+    {
+        std::println(stderr, "Data size doesn't match texture size");
+        return;
+    }
+    bind();
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, GL_RGBA, GL_UNSIGNED_BYTE, bytes.data());
 }
 
 VertexArray::VertexArray()
@@ -80,6 +182,11 @@ VertexArray &VertexArray::operator=(VertexArray &&other)
 void VertexArray::bind() const
 {
     glBindVertexArray(m_handle);
+}
+
+void VertexArray::unbind()
+{
+    glBindVertexArray(0);
 }
 
 ShaderProgram::ShaderProgram()
