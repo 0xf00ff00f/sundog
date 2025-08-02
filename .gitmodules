@@ -7,3 +7,6 @@
 [submodule "game/3rdparty/json"]
 	path = game/3rdparty/json
 	url = https://github.com/nlohmann/json.git
+[submodule "game/muslots"]
+	path = game/muslots
+	url = https://github.com/0xf00ff00f/muslots
