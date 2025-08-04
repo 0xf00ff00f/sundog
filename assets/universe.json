@@ -121,6 +121,42 @@
             }
         },
         {
+            "name": "Juno",
+            "orbit": {
+                "epoch": 2460000.5,
+                "semimajor_axis": 2.67013682,
+                "eccentricity": 0.25646772,
+                "inclination": 12.99066193,
+                "longitude_perihelion": 57.57954057042,
+                "longitude_ascending_node": 169.84300685997,
+                "mean_anomaly": 351.82411888186
+            }
+        },
+        {
+            "name": "Vesta",
+            "orbit": {
+                "epoch": 2460000.5,
+                "semimajor_axis": 2.36303821,
+                "eccentricity": 0.08875750,
+                "inclination": 7.13925798,
+                "longitude_perihelion": 255.35646413737,
+                "longitude_ascending_node": 103.75730014935,
+                "mean_anomaly": 115.13298959749
+            }
+        },
+        {
+            "name": "Hygiea",
+            "orbit": {
+                "epoch": 2460000.5,
+                "semimajor_axis": 3.14018109,
+                "eccentricity": 0.11115904,
+                "inclination": 3.83172841,
+                "longitude_perihelion": 235.65982892343,
+                "longitude_ascending_node": 283.17317744373,
+                "mean_anomaly": 39.735493038824
+            }
+        },
+        {
             "name": "Phaethon",
             "orbit": {
                 "epoch": 2460000.5,
