@@ -64,8 +64,9 @@ std::optional<Rect> SpriteSheet::Node::insert(size_t width, size_t height)
     }
 }
 
-SpriteSheet::SpriteSheet(size_t width, size_t height)
+SpriteSheet::SpriteSheet(size_t width, size_t height, size_t margin)
     : m_image(width, height)
+    , m_margin(margin)
     , m_tree(std::make_unique<Node>(0, 0, width, height))
 {
 }
@@ -87,16 +88,14 @@ SpriteSheet &SpriteSheet::operator=(SpriteSheet &&other)
 
 std::optional<Rect> SpriteSheet::tryInsert(const Image<uint32_t> &image)
 {
-    constexpr auto Margin = 1;
-
-    auto rect = m_tree->insert(image.width() + 2 * Margin, image.height() + 2 * Margin);
+    auto rect = m_tree->insert(image.width() + 2 * m_margin, image.height() + 2 * m_margin);
     if (!rect)
         return std::nullopt;
 
     const auto *src = image.pixels().data();
     const auto srcSpan = image.width();
 
-    auto *dest = m_image.pixels().data() + (rect->y + Margin) * m_image.width() + rect->x + Margin;
+    auto *dest = m_image.pixels().data() + (rect->y + m_margin) * m_image.width() + rect->x + m_margin;
     const auto destSpan = m_image.width();
 
     for (size_t i = 0; i < image.height(); ++i)

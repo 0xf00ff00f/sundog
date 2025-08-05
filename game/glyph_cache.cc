@@ -32,14 +32,9 @@ void LazyTexture::bind() const
     m_texture.bind();
 }
 
-GlyphCache::SpriteSheetTexture::SpriteSheetTexture()
-    : spriteSheet(kSheetWidth, kSheetHeight)
-    , texture(&spriteSheet.image())
-{
-}
-
 GlyphCache::GlyphCache(const std::string &font, float pixelHeight, int outlineSize)
     : m_glyphGenerator(font, pixelHeight, outlineSize)
+    , m_spriteBook(kSheetWidth, kSheetHeight)
 {
 }
 
@@ -78,44 +73,24 @@ std::optional<GlyphCache::Sprite> GlyphCache::createGlyph(char32_t codepoint)
     const auto glyphImage = m_glyphGenerator.generate(codepoint);
 
     const auto &image = glyphImage.image;
-
-    struct RectTexture
-    {
-        Rect rect;
-        const gl::AbstractTexture *texture;
-    };
-    auto rectTexture = [this, &image]() -> std::optional<RectTexture> {
-        // does the image fit in any of the existing sheets?
-        for (const auto &spriteSheetTexture : m_spriteSheets)
-        {
-            if (auto rect = spriteSheetTexture->spriteSheet.tryInsert(image))
-            {
-                spriteSheetTexture->texture.markDirty();
-                return RectTexture{*rect, &spriteSheetTexture->texture};
-            }
-        }
-
-        // create a new sheet, try again
-        m_spriteSheets.emplace_back(std::make_unique<SpriteSheetTexture>());
-        const auto &spriteSheetTexture = m_spriteSheets.back();
-        if (auto rect = spriteSheetTexture->spriteSheet.tryInsert(image))
-        {
-            spriteSheetTexture->texture.markDirty();
-            return RectTexture{*rect, &spriteSheetTexture->texture};
-        }
-
-        // no dice
-        return std::nullopt;
-    }();
-    if (!rectTexture)
-        return std::nullopt;
+    auto sprite = m_spriteBook.tryInsert(image);
+    if (!sprite.has_value())
+        return {};
 
     const auto toTexCoord = [this](size_t x, size_t y) {
         return glm::vec2(x, y) / glm::vec2(kSheetWidth, kSheetHeight);
     };
 
-    const auto &rect = rectTexture->rect;
-    const auto *texture = rectTexture->texture;
+    const auto &rect = sprite->rect;
+    auto *texture = [this, sheetImage = sprite->sheetImage]() -> LazyTexture * {
+        auto it = m_sheetTextures.find(sheetImage);
+        if (it == m_sheetTextures.end())
+        {
+            it = m_sheetTextures.insert(it, {sheetImage, std::make_unique<LazyTexture>(sheetImage)});
+        }
+        return it->second.get();
+    }();
+    texture->markDirty();
 
     return Sprite{.width = image.width(),
                   .height = image.height(),

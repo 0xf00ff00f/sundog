@@ -1,5 +1,6 @@
 #pragma once
 
+#include "rect.h"
 #include "image.h"
 
 #include <muslots/muslots.h>
@@ -7,18 +8,10 @@
 #include <optional>
 #include <memory>
 
-struct Rect
-{
-    size_t x{0};
-    size_t y{0};
-    size_t width{0};
-    size_t height{0};
-};
-
 class SpriteSheet
 {
 public:
-    SpriteSheet(size_t width, size_t height);
+    SpriteSheet(size_t width, size_t height, size_t margin = 1);
     ~SpriteSheet();
 
     // not copyable
@@ -40,12 +33,14 @@ public:
 
     size_t width() const { return m_image.width(); }
     size_t height() const { return m_image.height(); }
+    size_t margin() const { return m_margin; }
     const Image<uint32_t> &image() const { return m_image; }
 
     muslots::Signal<> changed;
 
 private:
     Image<uint32_t> m_image;
+    size_t m_margin;
     struct Node;
     std::unique_ptr<Node> m_tree;
 };

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sprite_sheet.h"
+#include "sprite_book.h"
 #include "glyph_image_generator.h"
 #include "glhelpers.h"
 
@@ -52,14 +52,8 @@ public:
 private:
     std::optional<Sprite> createGlyph(char32_t codepoint);
 
-    struct SpriteSheetTexture
-    {
-        SpriteSheetTexture();
-
-        SpriteSheet spriteSheet;
-        LazyTexture texture;
-    };
-    std::vector<std::unique_ptr<SpriteSheetTexture>> m_spriteSheets;
+    SpriteBook m_spriteBook;
+    std::unordered_map<const Image<uint32_t> *, std::unique_ptr<LazyTexture>> m_sheetTextures;
     GlyphImageGenerator m_glyphGenerator;
     std::unordered_map<char32_t, std::optional<Sprite>> m_glyphSprites;
 };
