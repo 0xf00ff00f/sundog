@@ -21,6 +21,9 @@
 // http://astro.if.ufrgs.br/trigesf/position.html
 // http://www.davidcolarusso.com/astro/
 
+// Sun's gravitational parameter in AU^3/days^2
+inline constexpr auto kGMSun = 7.496 * 1e-6 * 4 * glm::pi<double>() * glm::pi<double>();
+
 struct JulianClock
 {
     using rep = float;
@@ -39,14 +42,98 @@ using JulianDate = std::chrono::time_point<JulianClock>;
 struct OrbitalElements
 {
     JulianDate epoch;
-    float semiMajorAxis = 1.0f;
-    float eccentricity = 0.0f;
-    float inclination = 0.0f;            // radians
-    float longitudePerihelion = 0.0f;    // radians
-    float longitudeAscendingNode = 0.0f; // radians
-    float meanAnomalyAtEpoch = 0.0f;     // radians
+    double semiMajorAxis = 1.0;
+    double eccentricity = 0.0;
+    double inclination = 0.0;            // radians
+    double longitudePerihelion = 0.0;    // radians
+    double longitudeAscendingNode = 0.0; // radians
+    double meanAnomalyAtEpoch = 0.0;     // radians
 };
 // longitudePerihelion = longitudeAscendingNode + argumentPerihelion
+
+const double meanAnomalyFromTrueAnomaly(const double nu, const double e)
+{
+    // eccentric anomaly
+    const auto E = 2.0 * std::atan2(std::sqrt(1 - e) * std::sin(0.5 * nu), std::sqrt(1 + e) * std::cos(0.5 * nu));
+
+    // mean anomaly
+    return E - e * std::sin(E);
+}
+
+OrbitalElements orbitalElementsFromStateVector(const glm::dvec3 &r, const glm::dvec3 &v, JulianDate epoch,
+                                               double mu = kGMSun)
+{
+    const auto pi = glm::pi<double>();
+
+    // magnitudes
+    const auto rMag = glm::length(r);
+    const auto vMag = glm::length(v);
+
+    // specific angular momentum
+    const auto h = glm::cross(r, v);
+    const auto hMag = glm::length(h);
+
+    // eccentricity vector and magnitude
+    const auto eVec = (glm::cross(v, h) / mu) - (r / rMag);
+    const auto e = glm::length(eVec);
+
+    // semi-major axis
+    const auto a = 1.0 / ((2.0 / rMag) - ((vMag * vMag) / mu));
+
+    // orbit inclination
+    const auto i = std::acos(h.z / hMag);
+
+    // node vector (pointing toward ascending node)
+    const auto n = glm::cross(glm::dvec3{0, 0, 1}, h);
+    const auto nMag = glm::length(n);
+
+    // right ascension of ascending node
+    double Omega;
+    if (nMag != 0.0)
+    {
+        Omega = std::acos(n.x / nMag);
+        if (n.y < 0.0)
+            Omega = 2.0 * pi - Omega;
+    }
+    else
+    {
+        Omega = 0.0; // equatorial orbit
+    }
+
+    // argument of perihelion
+    double omega;
+    if (nMag != 0.0 && e > 1e-8)
+    {
+        omega = std::acos(glm::dot(n, eVec) / (nMag * e));
+        if (eVec.z < 0.0)
+            omega = 2.0 * pi - omega;
+    }
+    else
+    {
+        omega = 0.0; // circular or equatorial orbit
+    }
+
+    // true anomaly
+    double nu;
+    if (e > 1e-8)
+    {
+        nu = std::acos(glm::dot(eVec, r) / (e * rMag));
+        if (glm::dot(r, v) < 0.0)
+            nu = 2.0 * pi - nu;
+    }
+    else
+    {
+        nu = 0.0; // circular orbit
+    }
+
+    return OrbitalElements{.epoch = epoch,
+                           .semiMajorAxis = a,
+                           .eccentricity = e,
+                           .inclination = i,
+                           .longitudePerihelion = omega + Omega,
+                           .longitudeAscendingNode = Omega,
+                           .meanAnomalyAtEpoch = meanAnomalyFromTrueAnomaly(nu, e)};
+}
 
 struct Body
 {
@@ -62,13 +149,15 @@ public:
     glm::vec3 position(JulianDate when) const;
 
 private:
+    void updatePeriod();
+    void updateOrbitRotationMatrix();
     void initializeOrbitMesh();
-    glm::mat3 orbitRotationMatrix() const;
 
     static constexpr auto kOrbitVertexCount = 300;
 
     OrbitalElements m_orbit;
     float m_period = 0.0f;
+    glm::mat3 m_orbitRotationMatrix;
     Mesh m_orbitMesh;
 };
 
@@ -79,9 +168,9 @@ Body::Body()
 
 void Body::setOrbitalElements(const OrbitalElements &orbit)
 {
-    constexpr auto kEarthYearInDays = 365.2425;
     m_orbit = orbit;
-    m_period = std::pow(m_orbit.semiMajorAxis, 3.0 / 2.0) * kEarthYearInDays;
+    updatePeriod();
+    updateOrbitRotationMatrix();
     initializeOrbitMesh();
 }
 
@@ -114,16 +203,17 @@ float Body::eccentricAnomaly(JulianDate when) const
 
 glm::vec3 Body::position(JulianDate when) const
 {
-    const auto E = eccentricAnomaly(when);
-
-    const auto a = m_orbit.semiMajorAxis;
     const auto e = m_orbit.eccentricity;
+    const auto a = m_orbit.semiMajorAxis;
+    const auto b = a * std::sqrt(1.0 - e * e); // semi-minor axis
+
+    const auto E = eccentricAnomaly(when);
 
     // position in orbit
     const auto x = a * (std::cos(E) - e);
-    const auto y = a * (std::sqrt(1.0 - e * e) * std::sin(E));
+    const auto y = b * std::sin(E);
 
-    const auto position = orbitRotationMatrix() * glm::vec3(x, y, 0.0);
+    const auto position = m_orbitRotationMatrix * glm::vec3(x, y, 0.0);
 
 #if 0
     {
@@ -144,18 +234,24 @@ glm::vec3 Body::position(JulianDate when) const
     return position;
 }
 
-glm::mat3 Body::orbitRotationMatrix() const
+void Body::updatePeriod()
 {
-    const auto w = m_orbit.longitudePerihelion - m_orbit.longitudeAscendingNode;
+    constexpr auto kEarthYearInDays = 365.2425;
+    m_period = std::pow(m_orbit.semiMajorAxis, 3.0 / 2.0) * kEarthYearInDays;
+}
+
+void Body::updateOrbitRotationMatrix()
+{
+    const float w = m_orbit.longitudePerihelion - m_orbit.longitudeAscendingNode;
     const auto rw = glm::mat3(glm::rotate(glm::mat4(1.0), w, glm::vec3(0.0, 0.0, 1.0)));
 
-    const auto i = m_orbit.inclination;
+    const float i = m_orbit.inclination;
     const auto ri = glm::mat3(glm::rotate(glm::mat4(1.0), i, glm::vec3(1.0, 0.0, 0.0)));
 
-    const auto N = m_orbit.longitudeAscendingNode;
+    const float N = m_orbit.longitudeAscendingNode;
     const auto rN = glm::mat3(glm::rotate(glm::mat4(1.0), N, glm::vec3(0.0, 0.0, 1.0)));
 
-    return rN * ri * rw;
+    m_orbitRotationMatrix = rN * ri * rw;
 }
 
 void Body::initializeOrbitMesh()
@@ -171,11 +267,11 @@ void Body::initializeOrbitMesh()
     // clang-format off
     const std::vector<Vertex> verts =
         std::views::iota(0, kOrbitVertexCount)
-        | std::views::transform([semiMajorAxis, semiMinorAxis, focus, rotationMatrix = orbitRotationMatrix()](const std::size_t i) -> Vertex {
+        | std::views::transform([this, semiMajorAxis, semiMinorAxis, focus](const std::size_t i) -> Vertex {
               const auto t = i * 2.0f * glm::pi<float>() / kOrbitVertexCount;
               const auto x = semiMajorAxis * glm::cos(t) - focus;
               const auto y = semiMinorAxis * glm::sin(t);
-              const auto position = rotationMatrix * glm::vec3(x, y, 0.0f);
+              const auto position = m_orbitRotationMatrix * glm::vec3(x, y, 0.0f);
               return Vertex{.position = position};
           })
         | std::ranges::to<std::vector>();
@@ -319,7 +415,7 @@ int main(int argc, char *argv[])
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow *window = glfwCreateWindow(1200, 600, "Hello", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(600, 600, "Hello", nullptr, nullptr);
     if (!window)
     {
         std::println(stderr, "Failed to create window");
@@ -327,6 +423,12 @@ int main(int argc, char *argv[])
         return 1;
     }
     glfwMakeContextCurrent(window);
+
+    static bool playing = false;
+    glfwSetKeyCallback(window, [](GLFWwindow *window, int key, int scancode, int action, int mods) {
+        if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
+            playing = !playing;
+    });
 
     const auto gladVersion = gladLoadGL(glfwGetProcAddress);
     if (gladVersion == 0)
@@ -372,9 +474,10 @@ void main() {
         const char *lineFragmentShader = R"(
 out vec4 fragColor;
 
+uniform vec4 color;
+
 void main() {
-    // fragColor = vec4(1.0);
-    fragColor = vec4(0.5, 0.5, 0.5, 1.0);
+    fragColor = color;
 }
 )";
 
@@ -435,6 +538,45 @@ void main() {
         Universe universe;
         universe.load(universeJson);
 
+        const auto transitInterval = JulianClock::duration{253.5};
+        const auto timeDeparture = JulianDate{JulianClock::duration{2455892.126389}};
+        const auto timeArrival = timeDeparture + transitInterval;
+        Body spaceship;
+        {
+            const auto &worlds = universe.worlds();
+
+            const auto &bodyDeparture = worlds[2].body(); // Earth
+            const auto &bodyArrival = worlds[3].body();   // Mars
+
+            auto posDeparture = glm::dvec3(bodyDeparture.position(timeDeparture));
+            auto posArrival = glm::dvec3(bodyArrival.position(timeArrival));
+
+            std::println("posDeparture={}", glm::to_string(posDeparture));
+            std::println("posArrival={}", glm::to_string(posArrival));
+            std::println("mu={}", kGMSun);
+            std::println("transit={}", transitInterval.count());
+
+            // >>> import numpy as np
+            // >>> r1 = np.array([0.405292, 0.899478, 0.000000])
+            // >>> r2 = np.array([0.721614, -0.076437, -0.042739])
+            // >>> tof = 253.5
+            // >>> from lamberthub import gooding1990
+            // >>> v1, v2 = gooding1990(mu_sun, r1, r2, tof, M=0, prograde=True)
+            // >>> v1
+            // array([-0.01290124,  0.01014129,  0.0009876 ])
+            // >>> v2
+            // array([0.0062029 , 0.02111992, 0.0001873 ])
+            // >>> r2 = np.array([-0.855852, -1.274498, -0.005540])
+            // >>> v1, v2 = gooding1990(mu_sun, r1, r2, tof, M=0, prograde=True)
+            // >>> v2
+            // array([ 0.01028778, -0.00667586,  0.00026159])
+
+            const auto velArrival = glm::dvec3(0.01028778, -0.00667586, 0.00026159);
+
+            const auto orbitalElements = orbitalElementsFromStateVector(posArrival, velArrival, timeArrival);
+            spaceship.setOrbitalElements(orbitalElements);
+        }
+
         auto modelMatrix = glm::mat4(1.0f);
 
         double lastCursorX = 0.0, lastCursorY = 0.0;
@@ -443,7 +585,7 @@ void main() {
         constexpr auto kCircleMeshVertexCount = 20;
         Mesh circleMesh;
         {
-            constexpr auto kRadius = 0.1;
+            constexpr auto kRadius = 0.05;
 
             // clang-format off
             const std::vector<glm::vec2> verts = std::views::iota(0, kCircleMeshVertexCount)
@@ -463,13 +605,35 @@ void main() {
         GlyphCache glyphCache("DejaVuSans.ttf", 20);
         TileBatcher tileBatcher;
 
+        const auto renderText = [&](const glm::vec2 &position, std::string_view text) {
+            glm::vec2 p = position;
+            for (size_t index = 0; const char ch : text)
+            {
+                const auto glyph = glyphCache.getGlyph(std::toupper(ch));
+                if (glyph.has_value())
+                {
+                    const auto topLeft = p + glyph->topLeft;
+                    const auto bottomRight = topLeft + glm::vec2(glyph->width, glyph->height);
+                    tileBatcher.setTexture(glyph->texture);
+                    tileBatcher.addTile({topLeft, glyph->texCoords.topLeft},
+                                        {bottomRight, glyph->texCoords.bottomRight});
+                    p += glm::vec2(glyph->advance, 0);
+                    if (index < text.size() - 1)
+                    {
+                        p += glm::vec2(glyphCache.kernAdvance(ch, text[index + 1]), 0);
+                    }
+                }
+                ++index;
+            }
+        };
+
         glEnable(GL_LINE_SMOOTH);
         glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        auto currentTime = JulianClock::now();
+        auto currentTime = timeDeparture; // JulianClock::now();
 
         while (!glfwWindowShouldClose(window))
         {
@@ -505,17 +669,23 @@ void main() {
             const auto projectionMatrix =
                 glm::perspective(glm::radians(45.0f), static_cast<float>(width) / height, 0.1f, 100.0f);
             const auto viewMatrix =
-                glm::lookAt(glm::vec3(0.0f, 0.0f, 8.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+                glm::lookAt(glm::vec3(0.0f, 0.0f, 6.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
             const auto mvp = projectionMatrix * viewMatrix * modelMatrix;
 
             orbitProgram.use();
             orbitProgram.setUniform(orbitProgram.uniformLocation("mvp"), mvp);
+            orbitProgram.setUniform(orbitProgram.uniformLocation("color"), glm::vec4(0.5, 0.5, 0.5, 1.0));
 
             const auto worlds = universe.worlds();
 
             for (const auto &world : worlds)
             {
                 world.body().renderOrbit();
+            }
+            if (currentTime < timeArrival)
+            {
+                orbitProgram.setUniform(orbitProgram.uniformLocation("color"), glm::vec4(0.5, 0.5, 0.0, 1.0));
+                spaceship.renderOrbit();
             }
 
             billboardProgram.use();
@@ -525,12 +695,11 @@ void main() {
             // sun
             billboardProgram.setUniform(billboardProgram.uniformLocation("mvp"), mvp);
             billboardProgram.setUniform(billboardProgram.uniformLocation("modelMatrix"), modelMatrix);
+            billboardProgram.setUniform(orbitProgram.uniformLocation("color"), glm::vec4(0.5, 0.5, 0.5, 1.0));
+
             circleMesh.draw(Mesh::Primitive::LineLoop, 0, kCircleMeshVertexCount);
 
-            tileBatcher.reset();
-            for (const auto &world : worlds)
-            {
-                const auto &body = world.body();
+            const auto drawBody = [&](const Body &body, std::string_view name) {
                 const auto position = body.position(currentTime);
                 const auto bodyModelMatrix = modelMatrix * glm::translate(glm::mat4(1.0), position);
                 const auto mvp = projectionMatrix * viewMatrix * bodyModelMatrix;
@@ -547,27 +716,22 @@ void main() {
                     p.x += 5.0;
                     p.y -= glyphCache.pixelHeight();
 
-                    const auto name = world.name();
-                    for (size_t index = 0; const char ch : world.name())
-                    {
-                        const auto glyph = glyphCache.getGlyph(std::toupper(ch));
-                        if (glyph.has_value())
-                        {
-                            const auto topLeft = p + glyph->topLeft;
-                            const auto bottomRight = topLeft + glm::vec2(glyph->width, glyph->height);
-                            tileBatcher.setTexture(glyph->texture);
-                            tileBatcher.addTile({topLeft, glyph->texCoords.topLeft},
-                                                {bottomRight, glyph->texCoords.bottomRight});
-                            p += glm::vec2(glyph->advance, 0);
-                            if (index < name.size() - 1)
-                            {
-                                p += glm::vec2(glyphCache.kernAdvance(ch, name[index + 1]), 0);
-                            }
-                        }
-                        ++index;
-                    }
+                    renderText(p, name);
                 }
+            };
+
+            tileBatcher.reset();
+            for (const auto &world : worlds)
+            {
+                drawBody(world.body(), world.name());
             }
+            if (currentTime < timeArrival)
+            {
+                billboardProgram.setUniform(orbitProgram.uniformLocation("color"), glm::vec4(0.5, 0.5, 0.0, 1.0));
+                drawBody(spaceship, "X");
+            }
+
+            renderText(glm::vec2(0), std::format("{}", currentTime.time_since_epoch().count()));
 
             {
                 textProgram.use();
@@ -578,8 +742,8 @@ void main() {
 
             glfwSwapBuffers(window);
 
-            // currentTime += JulianClock::duration{0.5};
-            currentTime += JulianClock::duration{0.25};
+            if (playing)
+                currentTime += JulianClock::duration{0.25};
         }
     }
 
