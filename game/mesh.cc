@@ -1,5 +1,7 @@
 #include "mesh.h"
 
+#include <ranges>
+
 Mesh::Mesh()
     : m_vertexBuffer(gl::Buffer::Target::ArrayBuffer, gl::Buffer::Usage::StaticDraw)
 {

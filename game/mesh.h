@@ -3,7 +3,6 @@
 #include "glhelpers.h"
 
 #include <span>
-#include <ranges>
 
 class Mesh
 {
