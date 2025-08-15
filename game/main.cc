@@ -2,6 +2,7 @@
 #include "mesh.h"
 #include "glyph_cache.h"
 #include "tile_batcher.h"
+#include "orbital_elements.h"
 
 #include <GLFW/glfw3.h>
 
@@ -20,120 +21,6 @@
 // https://farside.ph.utexas.edu/teaching/celestial/Celestial/node34.html
 // http://astro.if.ufrgs.br/trigesf/position.html
 // http://www.davidcolarusso.com/astro/
-
-// Sun's gravitational parameter in AU^3/days^2
-inline constexpr auto kGMSun = 7.496 * 1e-6 * 4 * glm::pi<double>() * glm::pi<double>();
-
-struct JulianClock
-{
-    using rep = float;
-    using period = std::ratio<60 * 60 * 24>;
-    using duration = std::chrono::duration<rep, period>;
-    using time_point = std::chrono::time_point<JulianClock>;
-
-    static time_point now()
-    {
-        return time_point{duration{std::chrono::system_clock::now().time_since_epoch()} + duration{2440587.5}};
-    }
-};
-
-using JulianDate = std::chrono::time_point<JulianClock>;
-
-struct OrbitalElements
-{
-    JulianDate epoch;
-    double semiMajorAxis = 1.0;
-    double eccentricity = 0.0;
-    double inclination = 0.0;            // radians
-    double longitudePerihelion = 0.0;    // radians
-    double longitudeAscendingNode = 0.0; // radians
-    double meanAnomalyAtEpoch = 0.0;     // radians
-};
-// longitudePerihelion = longitudeAscendingNode + argumentPerihelion
-
-const double meanAnomalyFromTrueAnomaly(const double nu, const double e)
-{
-    // eccentric anomaly
-    const auto E = 2.0 * std::atan2(std::sqrt(1 - e) * std::sin(0.5 * nu), std::sqrt(1 + e) * std::cos(0.5 * nu));
-
-    // mean anomaly
-    return E - e * std::sin(E);
-}
-
-OrbitalElements orbitalElementsFromStateVector(const glm::dvec3 &r, const glm::dvec3 &v, JulianDate epoch,
-                                               double mu = kGMSun)
-{
-    const auto pi = glm::pi<double>();
-
-    // magnitudes
-    const auto rMag = glm::length(r);
-    const auto vMag = glm::length(v);
-
-    // specific angular momentum
-    const auto h = glm::cross(r, v);
-    const auto hMag = glm::length(h);
-
-    // eccentricity vector and magnitude
-    const auto eVec = (glm::cross(v, h) / mu) - (r / rMag);
-    const auto e = glm::length(eVec);
-
-    // semi-major axis
-    const auto a = 1.0 / ((2.0 / rMag) - ((vMag * vMag) / mu));
-
-    // orbit inclination
-    const auto i = std::acos(h.z / hMag);
-
-    // node vector (pointing toward ascending node)
-    const auto n = glm::cross(glm::dvec3{0, 0, 1}, h);
-    const auto nMag = glm::length(n);
-
-    // right ascension of ascending node
-    double Omega;
-    if (nMag != 0.0)
-    {
-        Omega = std::acos(n.x / nMag);
-        if (n.y < 0.0)
-            Omega = 2.0 * pi - Omega;
-    }
-    else
-    {
-        Omega = 0.0; // equatorial orbit
-    }
-
-    // argument of perihelion
-    double omega;
-    if (nMag != 0.0 && e > 1e-8)
-    {
-        omega = std::acos(glm::dot(n, eVec) / (nMag * e));
-        if (eVec.z < 0.0)
-            omega = 2.0 * pi - omega;
-    }
-    else
-    {
-        omega = 0.0; // circular or equatorial orbit
-    }
-
-    // true anomaly
-    double nu;
-    if (e > 1e-8)
-    {
-        nu = std::acos(glm::dot(eVec, r) / (e * rMag));
-        if (glm::dot(r, v) < 0.0)
-            nu = 2.0 * pi - nu;
-    }
-    else
-    {
-        nu = 0.0; // circular orbit
-    }
-
-    return OrbitalElements{.epoch = epoch,
-                           .semiMajorAxis = a,
-                           .eccentricity = e,
-                           .inclination = i,
-                           .longitudePerihelion = omega + Omega,
-                           .longitudeAscendingNode = Omega,
-                           .meanAnomalyAtEpoch = meanAnomalyFromTrueAnomaly(nu, e)};
-}
 
 struct Body
 {
@@ -213,25 +100,7 @@ glm::vec3 Body::position(JulianDate when) const
     const auto x = a * (std::cos(E) - e);
     const auto y = b * std::sin(E);
 
-    const auto position = m_orbitRotationMatrix * glm::vec3(x, y, 0.0);
-
-#if 0
-    {
-        const auto w = glm::radians(m_orbit.longitudePerihelion - m_orbit.longitudeAscendingNode);
-        const auto i = glm::radians(m_orbit.inclination);
-        const auto N = glm::radians(m_orbit.longitudeAscendingNode);
-
-        const auto v = std::atan2(y, x);
-        const auto r = std::sqrt(x * x + y * y);
-        const auto xh = r * (std::cos(N) * std::cos(v + w) - std::sin(N) * std::sin(v + w) * std::cos(i));
-        const auto yh = r * (std::sin(N) * std::cos(v + w) + std::cos(N) * std::sin(v + w) * std::cos(i));
-        const auto zh = r * std::sin(v + w) * std::sin(i);
-
-        std::println("position={} expected={}", glm::to_string(position), glm::to_string(glm::vec3(xh, yh, zh)));
-    }
-#endif
-
-    return position;
+    return m_orbitRotationMatrix * glm::vec3(x, y, 0.0);
 }
 
 void Body::updatePeriod()
