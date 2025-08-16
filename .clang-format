@@ -96,3 +96,6 @@ FixNamespaceComments: true
 Language: Java
 BasedOnStyle: LLVM
 IndentWidth: 4
+---
+Language: Json
+DisableFormat: true

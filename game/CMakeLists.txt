@@ -28,7 +28,17 @@ target_compile_definitions(infrastructure PUBLIC GLM_ENABLE_EXPERIMENTAL)
 target_link_libraries(infrastructure PUBLIC glm glad muslots stb)
 
 add_executable(game)
-target_sources(game PUBLIC main.cc orbital_elements.h orbital_elements.cc)
+target_sources(
+  game
+  PUBLIC main.cc
+         orbital_elements.h
+         orbital_elements.cc
+         universe.h
+         universe.cc
+         asset_path.h
+         asset_path.cc
+         shader_manager.h
+         shader_manager.cc)
 target_compile_features(game PUBLIC cxx_std_23)
 target_compile_definitions(game PUBLIC GLM_ENABLE_EXPERIMENTAL)
 target_compile_definitions(
