@@ -33,6 +33,8 @@ target_sources(
   PUBLIC main.cc
          orbital_elements.h
          orbital_elements.cc
+         lambert.h
+         lambert.cc
          universe.h
          universe.cc
          asset_path.h

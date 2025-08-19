@@ -6,6 +6,7 @@
 #include "universe.h"
 #include "asset_path.h"
 #include "shader_manager.h"
+#include "lambert.h"
 
 #include <GLFW/glfw3.h>
 
@@ -93,22 +94,9 @@ int main(int argc, char *argv[])
             std::println("mu={}", kGMSun);
             std::println("transit={}", transitInterval.count());
 
-            // >>> import numpy as np
-            // >>> r1 = np.array([0.405292, 0.899478, 0.000000])
-            // >>> r2 = np.array([0.721614, -0.076437, -0.042739])
-            // >>> tof = 253.5
-            // >>> from lamberthub import gooding1990
-            // >>> v1, v2 = gooding1990(mu_sun, r1, r2, tof, M=0, prograde=True)
-            // >>> v1
-            // array([-0.01290124,  0.01014129,  0.0009876 ])
-            // >>> v2
-            // array([0.0062029 , 0.02111992, 0.0001873 ])
-            // >>> r2 = np.array([-0.855852, -1.274498, -0.005540])
-            // >>> v1, v2 = gooding1990(mu_sun, r1, r2, tof, M=0, prograde=True)
-            // >>> v2
-            // array([ 0.01028778, -0.00667586,  0.00026159])
-
-            const auto velArrival = glm::dvec3(0.01028778, -0.00667586, 0.00026159);
+            auto [velDeparture, velArrival] =
+                *lambert_battin(kGMSun, posDeparture, posArrival, transitInterval.count());
+            std::println("velDeparture={} velArrival={}", glm::to_string(velDeparture), glm::to_string(velArrival));
 
             const auto orbitalElements = orbitalElementsFromStateVector(posArrival, velArrival, timeArrival);
             spaceship.setOrbitalElements(orbitalElements);
