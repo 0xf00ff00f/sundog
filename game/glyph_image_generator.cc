@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cmath>
 #include <print>
+#include <mdspan>
 
 namespace
 {
@@ -47,10 +48,13 @@ void dilateAlpha(Image<uint32_t> &image, int filterSize)
     const auto width = static_cast<int>(image.width());
     const auto height = static_cast<int>(image.height());
 
-    const auto *sourcePixels = reinterpret_cast<const glm::u8vec4 *>(image.pixels().data());
+    static_assert(sizeof(glm::u8vec4) == sizeof(*image.pixels().data()));
+    const auto sourcePixels = std::mdspan(reinterpret_cast<const glm::u8vec4 *>(image.pixels().data()), height, width);
+    assert(sourcePixels.extent(0) == height);
+    assert(sourcePixels.extent(1) == width);
 
     Image<uint32_t> destImage(width, height);
-    auto *destPixels = reinterpret_cast<glm::u8vec4 *>(destImage.pixels().data());
+    auto destPixels = std::mdspan(reinterpret_cast<glm::u8vec4 *>(destImage.pixels().data()), height, width);
 
     for (int y = 0; y < height; ++y)
     {
@@ -62,14 +66,14 @@ void dilateAlpha(Image<uint32_t> &image, int filterSize)
                 for (int j = std::max(x - halfFilterSize, 0); j <= std::min(x + halfFilterSize, width - 1); ++j)
                 {
                     const auto w = weightMatrix[j - x + halfFilterSize][i - y + halfFilterSize];
-                    const auto sourceAlpha = static_cast<int>(sourcePixels[i * width + j].a);
+                    const auto sourceAlpha = static_cast<int>(sourcePixels[i, j].a);
                     alpha = std::max(alpha, static_cast<int>(w * sourceAlpha));
                 }
             }
 
-            const auto origAlpha = sourcePixels[y * width + x].a;
+            const auto origAlpha = sourcePixels[y, x].a;
             const auto destColor = glm::u8vec4(origAlpha, origAlpha, origAlpha, alpha);
-            destPixels[y * width + x] = destColor;
+            destPixels[y, x] = destColor;
         }
     }
 
