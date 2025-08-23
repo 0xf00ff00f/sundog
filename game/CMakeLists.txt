@@ -4,7 +4,9 @@ add_subdirectory(muslots)
 add_library(infrastructure)
 target_sources(
   infrastructure
-  PRIVATE file.h
+  PRIVATE arg_parser.h
+          arg_parser.cc
+          file.h
           file.cc
           utf8_util.h
           utf8_util.cc
