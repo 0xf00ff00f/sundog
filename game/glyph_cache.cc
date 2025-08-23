@@ -60,7 +60,7 @@ float GlyphCache::textWidth(std::u32string_view text) const
     return m_glyphGenerator.textWidth(text);
 }
 
-std::optional<GlyphCache::Sprite> GlyphCache::getGlyph(char32_t codepoint)
+std::optional<GlyphCache::Glyph> GlyphCache::getGlyph(char32_t codepoint)
 {
     auto it = m_glyphSprites.find(codepoint);
     if (it == m_glyphSprites.end())
@@ -68,7 +68,7 @@ std::optional<GlyphCache::Sprite> GlyphCache::getGlyph(char32_t codepoint)
     return it->second;
 }
 
-std::optional<GlyphCache::Sprite> GlyphCache::createGlyph(char32_t codepoint)
+std::optional<GlyphCache::Glyph> GlyphCache::createGlyph(char32_t codepoint)
 {
     const auto glyphImage = m_glyphGenerator.generate(codepoint);
 
@@ -92,11 +92,10 @@ std::optional<GlyphCache::Sprite> GlyphCache::createGlyph(char32_t codepoint)
     }();
     texture->markDirty();
 
-    return Sprite{.width = image.width(),
-                  .height = image.height(),
-                  .advance = glyphImage.advance,
-                  .topLeft = glyphImage.topLeft,
-                  .texCoords = {.topLeft = toTexCoord(rect.x, rect.y),
-                                .bottomRight = toTexCoord(rect.x + rect.width, rect.y + rect.height)},
-                  .texture = texture};
+    return Glyph{.quad = {.topLeft = glyphImage.topLeft,
+                          .bottomRight = glyphImage.topLeft + glm::vec2(rect.width, rect.height)},
+                 .texCoords = {.topLeft = toTexCoord(rect.x, rect.y),
+                               .bottomRight = toTexCoord(rect.x + rect.width, rect.y + rect.height)},
+                 .advance = glyphImage.advance,
+                 .texture = texture};
 }

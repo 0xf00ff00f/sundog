@@ -137,11 +137,9 @@ int main(int argc, char *argv[])
                 const auto glyph = glyphCache.getGlyph(std::toupper(ch));
                 if (glyph.has_value())
                 {
-                    const auto topLeft = p + glyph->topLeft;
-                    const auto bottomRight = topLeft + glm::vec2(glyph->width, glyph->height);
                     tileBatcher.setTexture(glyph->texture);
-                    tileBatcher.addTile({topLeft, glyph->texCoords.topLeft},
-                                        {bottomRight, glyph->texCoords.bottomRight});
+                    tileBatcher.addTile({p + glyph->quad.topLeft, glyph->texCoords.topLeft},
+                                        {p + glyph->quad.bottomRight, glyph->texCoords.bottomRight});
                     p += glm::vec2(glyph->advance, 0);
                     if (index < text.size() - 1)
                     {
@@ -256,7 +254,7 @@ int main(int argc, char *argv[])
                 drawBody(spaceship, "X");
             }
 
-            renderText(glm::vec2(0), std::format("{}", currentTime.time_since_epoch().count()));
+            renderText(glm::vec2(0), std::format("DATE={}", currentTime.time_since_epoch().count()));
 
             {
                 shaderManager.setCurrent(ShaderManager::Shader::Text);

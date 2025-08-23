@@ -33,27 +33,25 @@ public:
     float kernAdvance(char32_t a, char32_t b) const;
     float textWidth(std::u32string_view text) const;
 
-    struct Sprite
+    struct Quad
     {
-        size_t width{0};
-        size_t height{0};
-        float advance{0.0f};
         glm::vec2 topLeft{0.0f};
-        struct TexCoords
-        {
-            glm::vec2 topLeft{0.0f};
-            glm::vec2 bottomRight{0.0f};
-        };
-        TexCoords texCoords;
+        glm::vec2 bottomRight{0.0f};
+    };
+    struct Glyph
+    {
+        Quad quad;
+        Quad texCoords;
+        float advance{0.0f};
         const gl::AbstractTexture *texture{nullptr};
     };
-    std::optional<Sprite> getGlyph(char32_t codepoint);
+    std::optional<Glyph> getGlyph(char32_t codepoint);
 
 private:
-    std::optional<Sprite> createGlyph(char32_t codepoint);
+    std::optional<Glyph> createGlyph(char32_t codepoint);
 
     SpriteBook m_spriteBook;
     std::unordered_map<const Image<uint32_t> *, std::unique_ptr<LazyTexture>> m_sheetTextures;
     GlyphImageGenerator m_glyphGenerator;
-    std::unordered_map<char32_t, std::optional<Sprite>> m_glyphSprites;
+    std::unordered_map<char32_t, std::optional<Glyph>> m_glyphSprites;
 };
