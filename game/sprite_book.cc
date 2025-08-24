@@ -28,7 +28,7 @@ std::optional<SpriteBook::Entry> SpriteBook::tryInsert(const Image<uint32_t> &im
     }
 
     // Create a new sheet
-    m_sheets.emplace_back(std::make_unique<SpriteSheet>(m_pageWidth, m_pageHeight));
+    m_sheets.emplace_back(std::make_unique<SpriteSheet>(m_pageWidth, m_pageHeight, m_margin));
 
     auto &sheet = m_sheets.back();
     if (auto rect = sheet->tryInsert(image); rect.has_value())

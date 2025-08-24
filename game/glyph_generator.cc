@@ -13,6 +13,8 @@
 namespace
 {
 
+constexpr auto kGlyphMargin = 1;
+
 void dilateAlpha(Image<uint32_t> &image, int filterSize)
 {
     assert((filterSize & 1) == 1);
@@ -100,8 +102,7 @@ GlyphGenerator::GlyphImage GlyphGenerator::generate(char32_t codepoint) const
     int x0, y0, x1, y1;
     stbtt_GetCodepointBitmapBox(&m_font, codepoint, m_scale, m_scale, &x0, &y0, &x1, &y1);
 
-    constexpr auto Border = 1;
-    const auto margin = Border + m_outlineSize;
+    const auto margin = kGlyphMargin + m_outlineSize;
     const auto width = x1 - x0;
     const auto height = y1 - y0;
     Image<uint8_t> image8(width + 2 * margin, height + 2 * margin);
@@ -131,8 +132,7 @@ Image<uint32_t> GlyphGenerator::generate(std::u32string_view text) const
     if (!m_initialized || text.empty())
         return {};
 
-    constexpr auto Border = 1;
-    const auto margin = Border + m_outlineSize;
+    const auto margin = kGlyphMargin + m_outlineSize;
 
     // figure out label width
 

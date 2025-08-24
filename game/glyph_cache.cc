@@ -90,7 +90,8 @@ std::optional<GlyphCache::Glyph> GlyphCache::createGlyph(char32_t codepoint)
     }();
     texture->markDirty();
 
-    return Glyph{.quad = RectF(glm::vec2(glyphImage.topLeft), SizeF(rect.size())),
+    return Glyph{.quad = RectF(glm::vec2(glyphImage.topLeft) - glm::vec2(m_spriteBook.margin(), m_spriteBook.margin()),
+                               SizeF(rect.size())),
                  .texCoords = RectF(toTexCoord(rect.topLeft()), toTexCoord(rect.bottomRight())),
                  .advance = glyphImage.advance,
                  .texture = texture};
