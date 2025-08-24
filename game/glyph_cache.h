@@ -33,15 +33,10 @@ public:
     float kernAdvance(char32_t a, char32_t b) const;
     float textWidth(std::u32string_view text) const;
 
-    struct Quad
-    {
-        glm::vec2 topLeft{0.0f};
-        glm::vec2 bottomRight{0.0f};
-    };
     struct Glyph
     {
-        Quad quad;
-        Quad texCoords;
+        RectF quad;
+        RectF texCoords;
         float advance{0.0f};
         const gl::AbstractTexture *texture{nullptr};
     };

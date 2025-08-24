@@ -5,25 +5,25 @@
 
 struct SpriteSheet::Node
 {
-    Rect rect;
+    RectI rect;
     std::unique_ptr<Node> left, right;
     bool used{false};
 
     Node(size_t x, size_t y, size_t width, size_t height);
-    std::optional<Rect> insert(size_t width, size_t height);
+    std::optional<RectI> insert(size_t width, size_t height);
 };
 
 SpriteSheet::Node::Node(size_t x, size_t y, size_t width, size_t height)
-    : rect{x, y, width, height}
+    : rect(x, y, width, height)
 {
 }
 
-std::optional<Rect> SpriteSheet::Node::insert(size_t width, size_t height)
+std::optional<RectI> SpriteSheet::Node::insert(size_t width, size_t height)
 {
     if (used)
         return std::nullopt;
 
-    if (width > rect.width || height > rect.height)
+    if (width > rect.width() || height > rect.height())
         return std::nullopt;
 
     // is this an internal node?
@@ -39,27 +39,27 @@ std::optional<Rect> SpriteSheet::Node::insert(size_t width, size_t height)
     }
 
     // image fits perfectly in this node?
-    if (width == rect.width && height == rect.height)
+    if (width == rect.width() && height == rect.height())
     {
         used = true;
         return rect;
     }
 
     // else split this node
-    const auto splitX = rect.width - width;
-    const auto splitY = rect.height - height;
+    const auto splitX = rect.width() - width;
+    const auto splitY = rect.height() - height;
     if (splitX > splitY)
     {
         // split horizontally
-        left = std::make_unique<Node>(rect.x, rect.y, width, rect.height);
-        right = std::make_unique<Node>(rect.x + width, rect.y, splitX, rect.height);
+        left = std::make_unique<Node>(rect.left(), rect.top(), width, rect.height());
+        right = std::make_unique<Node>(rect.left() + width, rect.top(), splitX, rect.height());
         return left->insert(width, height);
     }
     else
     {
         // split vertically
-        left = std::make_unique<Node>(rect.x, rect.y, rect.width, height);
-        right = std::make_unique<Node>(rect.x, rect.y + height, rect.width, splitY);
+        left = std::make_unique<Node>(rect.left(), rect.top(), rect.width(), height);
+        right = std::make_unique<Node>(rect.left(), rect.top() + height, rect.width(), splitY);
         return left->insert(width, height);
     }
 }
@@ -86,7 +86,7 @@ SpriteSheet &SpriteSheet::operator=(SpriteSheet &&other)
     return *this;
 }
 
-std::optional<Rect> SpriteSheet::tryInsert(const Image<uint32_t> &image)
+std::optional<RectI> SpriteSheet::tryInsert(const Image<uint32_t> &image)
 {
     auto rect = m_tree->insert(image.width() + 2 * m_margin, image.height() + 2 * m_margin);
     if (!rect)
@@ -95,7 +95,7 @@ std::optional<Rect> SpriteSheet::tryInsert(const Image<uint32_t> &image)
     const auto *src = image.pixels().data();
     const auto srcSpan = image.width();
 
-    auto *dest = m_image.pixels().data() + (rect->y + m_margin) * m_image.width() + rect->x + m_margin;
+    auto *dest = m_image.pixels().data() + (rect->top() + m_margin) * m_image.width() + rect->left() + m_margin;
     const auto destSpan = m_image.width();
 
     for (size_t i = 0; i < image.height(); ++i)

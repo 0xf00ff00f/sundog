@@ -17,7 +17,7 @@ public:
 
     struct Entry
     {
-        Rect rect;
+        RectI rect;
         const Image<uint32_t> *sheetImage;
     };
     std::optional<Entry> tryInsert(const Image<uint32_t> &image);

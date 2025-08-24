@@ -138,8 +138,8 @@ int main(int argc, char *argv[])
                 if (glyph.has_value())
                 {
                     tileBatcher.setTexture(glyph->texture);
-                    tileBatcher.addTile({p + glyph->quad.topLeft, glyph->texCoords.topLeft},
-                                        {p + glyph->quad.bottomRight, glyph->texCoords.bottomRight});
+                    tileBatcher.addTile({p + glyph->quad.topLeft(), glyph->texCoords.topLeft()},
+                                        {p + glyph->quad.bottomRight(), glyph->texCoords.bottomRight()});
                     p += glm::vec2(glyph->advance, 0);
                     if (index < text.size() - 1)
                     {

@@ -29,7 +29,7 @@ public:
         swap(lhs.m_tree, rhs.m_tree);
     }
 
-    std::optional<Rect> tryInsert(const Image<uint32_t> &image);
+    std::optional<RectI> tryInsert(const Image<uint32_t> &image);
 
     size_t width() const { return m_image.width(); }
     size_t height() const { return m_image.height(); }

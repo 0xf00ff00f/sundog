@@ -77,9 +77,7 @@ std::optional<GlyphCache::Glyph> GlyphCache::createGlyph(char32_t codepoint)
     if (!sprite.has_value())
         return {};
 
-    const auto toTexCoord = [this](size_t x, size_t y) {
-        return glm::vec2(x, y) / glm::vec2(kSheetWidth, kSheetHeight);
-    };
+    const auto toTexCoord = [this](const glm::vec2 &p) { return p / glm::vec2(kSheetWidth, kSheetHeight); };
 
     const auto &rect = sprite->rect;
     auto *texture = [this, sheetImage = sprite->sheetImage]() -> LazyTexture * {
@@ -92,10 +90,8 @@ std::optional<GlyphCache::Glyph> GlyphCache::createGlyph(char32_t codepoint)
     }();
     texture->markDirty();
 
-    return Glyph{.quad = {.topLeft = glyphImage.topLeft,
-                          .bottomRight = glyphImage.topLeft + glm::vec2(rect.width, rect.height)},
-                 .texCoords = {.topLeft = toTexCoord(rect.x, rect.y),
-                               .bottomRight = toTexCoord(rect.x + rect.width, rect.y + rect.height)},
+    return Glyph{.quad = RectF(glm::vec2(glyphImage.topLeft), SizeF(rect.size())),
+                 .texCoords = RectF(toTexCoord(rect.topLeft()), toTexCoord(rect.bottomRight())),
                  .advance = glyphImage.advance,
                  .texture = texture};
 }
