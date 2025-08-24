@@ -1,4 +1,4 @@
-#include "glyph_image_generator.h"
+#include "glyph_generator.h"
 
 #include "file.h"
 
@@ -82,14 +82,14 @@ void dilateAlpha(Image<uint32_t> &image, int filterSize)
 
 } // namespace
 
-GlyphImageGenerator::GlyphImageGenerator(const std::string &font, float pixelHeight, int outlineSize)
+GlyphGenerator::GlyphGenerator(const std::string &font, float pixelHeight, int outlineSize)
     : m_initialized(initialize(font, pixelHeight, outlineSize))
 {
 }
 
-GlyphImageGenerator::~GlyphImageGenerator() = default;
+GlyphGenerator::~GlyphGenerator() = default;
 
-GlyphImageGenerator::GlyphImage GlyphImageGenerator::generate(char32_t codepoint) const
+GlyphGenerator::GlyphImage GlyphGenerator::generate(char32_t codepoint) const
 {
     if (!m_initialized)
         return {};
@@ -126,7 +126,7 @@ GlyphImageGenerator::GlyphImage GlyphImageGenerator::generate(char32_t codepoint
                       .image = std::move(image32)};
 }
 
-Image<uint32_t> GlyphImageGenerator::generate(std::u32string_view text) const
+Image<uint32_t> GlyphGenerator::generate(std::u32string_view text) const
 {
     if (!m_initialized || text.empty())
         return {};
@@ -219,12 +219,12 @@ Image<uint32_t> GlyphImageGenerator::generate(std::u32string_view text) const
     return labelImage;
 }
 
-float GlyphImageGenerator::kernAdvance(char32_t a, char32_t b) const
+float GlyphGenerator::kernAdvance(char32_t a, char32_t b) const
 {
     return m_scale * stbtt_GetCodepointKernAdvance(&m_font, a, b);
 }
 
-float GlyphImageGenerator::textWidth(std::u32string_view text) const
+float GlyphGenerator::textWidth(std::u32string_view text) const
 {
     float width = 0.0f;
     for (std::size_t i = 0; i < text.size(); ++i)
@@ -238,7 +238,7 @@ float GlyphImageGenerator::textWidth(std::u32string_view text) const
     return width;
 }
 
-bool GlyphImageGenerator::initialize(const std::string &font, float pixelHeight, int outlineSize)
+bool GlyphGenerator::initialize(const std::string &font, float pixelHeight, int outlineSize)
 {
     m_fontBuffer = readFile(font);
     if (m_fontBuffer.empty())

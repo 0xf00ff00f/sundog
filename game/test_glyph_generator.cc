@@ -1,4 +1,4 @@
-#include "glyph_image_generator.h"
+#include "glyph_generator.h"
 #include "arg_parser.h"
 
 #include <stb_image_write.h>
@@ -47,7 +47,7 @@ int main(int argc, const char *argv[])
     }
     outFile = unused.front();
 
-    GlyphImageGenerator generator(fontPath, fontSize, outlineSize);
+    GlyphGenerator generator(fontPath, fontSize, outlineSize);
     if (!generator.isValid())
         return 1;
 

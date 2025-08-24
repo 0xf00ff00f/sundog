@@ -1,7 +1,7 @@
 #pragma once
 
 #include "sprite_book.h"
-#include "glyph_image_generator.h"
+#include "glyph_generator.h"
 #include "glhelpers.h"
 
 #include <optional>
@@ -47,6 +47,6 @@ private:
 
     SpriteBook m_spriteBook;
     std::unordered_map<const Image<uint32_t> *, std::unique_ptr<LazyTexture>> m_sheetTextures;
-    GlyphImageGenerator m_glyphGenerator;
+    GlyphGenerator m_glyphGenerator;
     std::unordered_map<char32_t, std::optional<Glyph>> m_glyphSprites;
 };

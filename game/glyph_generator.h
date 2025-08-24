@@ -8,11 +8,11 @@
 
 #include <stb_truetype.h>
 
-class GlyphImageGenerator
+class GlyphGenerator
 {
 public:
-    explicit GlyphImageGenerator(const std::string &font, float pixelHeight, int outlineSize = 0);
-    ~GlyphImageGenerator();
+    explicit GlyphGenerator(const std::string &font, float pixelHeight, int outlineSize = 0);
+    ~GlyphGenerator();
 
     bool isValid() const { return m_initialized; }
 

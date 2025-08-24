@@ -10,8 +10,8 @@ target_sources(
           file.cc
           utf8_util.h
           utf8_util.cc
-          glyph_image_generator.h
-          glyph_image_generator.cc
+          glyph_generator.h
+          glyph_generator.cc
           rect.h
           sprite_sheet.h
           sprite_sheet.cc
