@@ -16,12 +16,31 @@ public:
     {
     }
 
+    Image(Image &&other)
+        : m_width(std::exchange(other.m_width, 0))
+        , m_height(std::exchange(other.m_height, 0))
+        , m_pixels(std::move(other.m_pixels))
+    {
+    }
+
+    Image &operator=(Image &&other)
+    {
+        if (this != &other)
+        {
+            m_width = std::exchange(other.m_width, 0);
+            m_height = std::exchange(other.m_height, 0);
+            m_pixels = std::move(other.m_pixels);
+        }
+        return *this;
+    }
+
+    Image(const Image &) = delete;
+    Image &operator=(const Image &) = delete;
+
     size_t width() const { return m_width; }
     size_t height() const { return m_height; }
     std::span<PixelT> pixels() { return m_pixels; }
     std::span<const PixelT> pixels() const { return m_pixels; }
-
-    bool isNull() const { return m_width == 0 || m_height == 0; }
 
 private:
     size_t m_width{0};

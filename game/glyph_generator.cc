@@ -79,7 +79,7 @@ void dilateAlpha(Image<uint32_t> &image, int filterSize)
         }
     }
 
-    image = destImage;
+    image = std::move(destImage);
 }
 
 } // namespace
