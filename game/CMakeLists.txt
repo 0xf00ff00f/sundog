@@ -6,10 +6,16 @@ target_sources(
   infrastructure
   PRIVATE arg_parser.h
           arg_parser.cc
+          asset_path.h
+          asset_path.cc
           file.h
           file.cc
           utf8_util.h
           utf8_util.cc
+          font.h
+          font.cc
+          font_info.h
+          font_info.cc
           glyph_generator.h
           glyph_generator.cc
           rect.h
@@ -17,6 +23,8 @@ target_sources(
           sprite_sheet.cc
           sprite_book.h
           sprite_book.cc
+          sprite_texture_book.h
+          sprite_texture_book.cc
           glhelpers.h
           glhelpers.cc
           mesh.h
@@ -24,10 +32,14 @@ target_sources(
           glyph_cache.h
           glyph_cache.cc
           tile_batcher.h
-          tile_batcher.cc)
+          tile_batcher.cc
+          painter.h
+          painter.cc)
 target_compile_features(infrastructure PUBLIC cxx_std_23)
 target_compile_definitions(infrastructure PUBLIC GLM_ENABLE_EXPERIMENTAL)
 target_link_libraries(infrastructure PUBLIC glm glad muslots stb)
+target_compile_definitions(
+  infrastructure PUBLIC ASSETSDIR="${CMAKE_CURRENT_SOURCE_DIR}/../assets/")
 
 add_executable(game)
 target_sources(
@@ -39,14 +51,10 @@ target_sources(
          lambert.cc
          universe.h
          universe.cc
-         asset_path.h
-         asset_path.cc
          shader_manager.h
          shader_manager.cc)
 target_compile_features(game PUBLIC cxx_std_23)
 target_compile_definitions(game PUBLIC GLM_ENABLE_EXPERIMENTAL)
-target_compile_definitions(
-  game PUBLIC ASSETSDIR="${CMAKE_CURRENT_SOURCE_DIR}/../assets/")
 target_link_libraries(game PRIVATE glfw nlohmann_json::nlohmann_json
                                    infrastructure)
 set_target_properties(game PROPERTIES CXX_STANDARD_REQUIRED ON)

@@ -1,12 +1,11 @@
 #include "glhelpers.h"
 #include "mesh.h"
-#include "glyph_cache.h"
-#include "tile_batcher.h"
 #include "orbital_elements.h"
 #include "universe.h"
 #include "asset_path.h"
 #include "shader_manager.h"
 #include "lambert.h"
+#include "painter.h"
 
 #include <GLFW/glfw3.h>
 
@@ -127,28 +126,8 @@ int main(int argc, char *argv[])
             circleMesh.setVertexAttributes(attributes, sizeof(glm::vec2));
         }
 
-        GlyphCache glyphCache(fontFilePath("DejaVuSans.ttf"), 20);
-        TileBatcher tileBatcher;
-
-        const auto renderText = [&](const glm::vec2 &position, std::string_view text) {
-            glm::vec2 p = position;
-            for (size_t index = 0; const char ch : text)
-            {
-                const auto glyph = glyphCache.getGlyph(std::toupper(ch));
-                if (glyph.has_value())
-                {
-                    tileBatcher.setTexture(glyph->texture);
-                    tileBatcher.addTile({p + glyph->quad.topLeft(), glyph->texCoords.topLeft()},
-                                        {p + glyph->quad.bottomRight(), glyph->texCoords.bottomRight()});
-                    p += glm::vec2(glyph->advance, 0);
-                    if (index < text.size() - 1)
-                    {
-                        p += glm::vec2(glyphCache.kernAdvance(ch, text[index + 1]), 0);
-                    }
-                }
-                ++index;
-            }
-        };
+        const Font font{"DejaVuSans.ttf", 20.0f, 0};
+        Painter painter;
 
         glEnable(GL_LINE_SMOOTH);
         glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
@@ -237,13 +216,14 @@ int main(int argc, char *argv[])
                     p.y = (1.0f - 0.5f * ((positionProjected.y / positionProjected.w) + 1.0)) * height;
 
                     p.x += 5.0;
-                    p.y -= glyphCache.pixelHeight();
+                    p.y -= font.pixelHeight;
 
-                    renderText(p, name);
+                    painter.drawText(p, name);
                 }
             };
 
-            tileBatcher.reset();
+            painter.begin();
+            painter.setFont(font);
             for (const auto &world : worlds)
             {
                 drawBody(world.body(), world.name());
@@ -254,13 +234,13 @@ int main(int argc, char *argv[])
                 drawBody(spaceship, "X");
             }
 
-            renderText(glm::vec2(0), std::format("DATE={}", currentTime.time_since_epoch().count()));
+            painter.drawText(glm::vec2(0), std::format("DATE={}", currentTime.time_since_epoch().count()));
 
             {
                 shaderManager.setCurrent(ShaderManager::Shader::Text);
                 const auto mvp = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f);
                 shaderManager.setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
-                tileBatcher.blit();
+                painter.end();
             }
 
             glfwSwapBuffers(window);

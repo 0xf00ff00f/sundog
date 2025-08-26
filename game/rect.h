@@ -9,6 +9,8 @@ template<typename T>
 struct Size
 {
 public:
+    Size() = default;
+
     explicit Size(T width, T height)
         : m_width{width}
         , m_height{height}
@@ -23,12 +25,11 @@ public:
     }
 
     T width() const { return m_width; }
-
     T height() const { return m_height; }
 
 private:
-    T m_width;
-    T m_height;
+    T m_width{0};
+    T m_height{0};
 };
 
 using SizeI = Size<int>;
@@ -40,6 +41,8 @@ class Rect
 public:
     using Point = glm::vec<2, T>;
     using Size = Size<T>;
+
+    Rect() = default;
 
     explicit Rect(T x, T y, T width, T height)
         : m_topLeft{x, y}
@@ -67,25 +70,24 @@ public:
     }
 
     T width() const { return m_size.width(); }
-
     T height() const { return m_size.height(); }
-
     Size size() const { return m_size; }
 
     Point topLeft() const { return m_topLeft; }
-
     Point bottomRight() const { return m_topLeft + Point{m_size.width(), m_size.height()}; }
 
     T left() const { return m_topLeft.x; }
-
     T right() const { return m_topLeft.x + m_size.width(); }
-
     T top() const { return m_topLeft.y; }
-
     T bottom() const { return m_topLeft.y + m_size.height(); }
 
+    void setLeft(T left) { m_topLeft.x = left; }
+    void setRight(T right) { m_topLeft.x = right - m_size.width(); }
+    void setTop(T top) { m_topLeft.y = top; }
+    void setBottom(T bottom) { m_topLeft.y = bottom - m_size.height(); }
+
 private:
-    Point m_topLeft;
+    Point m_topLeft{0};
     Size m_size;
 };
 

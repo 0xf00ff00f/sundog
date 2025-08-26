@@ -1,8 +1,7 @@
 #pragma once
 
+#include "font.h"
 #include "image.h"
-
-#include <string>
 
 #include <glm/glm.hpp>
 
@@ -11,14 +10,12 @@
 class GlyphGenerator
 {
 public:
-    explicit GlyphGenerator(const std::string &font, float pixelHeight, int outlineSize = 0);
+    explicit GlyphGenerator(const Font &font);
     ~GlyphGenerator();
 
-    bool isValid() const { return m_initialized; }
+    bool valid() const;
 
-    float pixelHeight() const { return m_pixelHeight; }
-    float baseline() const { return m_baseline; }
-    float textWidth(std::u32string_view text) const;
+    const Font &font() const { return m_font; }
 
     struct GlyphImage
     {
@@ -30,16 +27,8 @@ public:
 
     Image<uint32_t> generate(std::u32string_view text) const;
 
-    float kernAdvance(char32_t a, char32_t b) const;
-
 private:
-    bool initialize(const std::string &font, float pixelHeight, int outlineSize);
-
-    std::vector<std::byte> m_fontBuffer;
-    stbtt_fontinfo m_font;
-    float m_pixelHeight{0.0f};
+    Font m_font;
+    const FontInfo *m_fontInfo{nullptr};
     float m_scale{0.0f};
-    int m_baseline{0};
-    int m_outlineSize{0};
-    bool m_initialized{false};
 };

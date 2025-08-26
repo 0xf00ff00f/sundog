@@ -47,15 +47,15 @@ int main(int argc, const char *argv[])
     }
     outFile = unused.front();
 
-    GlyphGenerator generator(fontPath, fontSize, outlineSize);
-    if (!generator.isValid())
+    GlyphGenerator generator(Font(fontPath, fontSize, outlineSize));
+    if (!generator.valid())
         return 1;
 
     Image<uint32_t> image;
 
     if (text.empty())
     {
-        const auto glyphImage = generator.generate(codepoint);
+        auto glyphImage = generator.generate(codepoint);
         image = std::move(glyphImage.image);
     }
     else
