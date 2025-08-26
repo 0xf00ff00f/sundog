@@ -1,13 +1,12 @@
 #include "glyph_generator.h"
 
-#include "file.h"
+#include "font_info.h"
 
 #define STB_TRUETYPE_IMPLEMENTATION
 #include <stb_truetype.h>
 
 #include <algorithm>
 #include <cmath>
-#include <print>
 #include <mdspan>
 
 namespace
@@ -84,121 +83,119 @@ void dilateAlpha(Image<uint32_t> &image, int filterSize)
 
 } // namespace
 
-GlyphGenerator::GlyphGenerator(const std::string &font, float pixelHeight, int outlineSize)
-    : m_initialized(initialize(font, pixelHeight, outlineSize))
+GlyphGenerator::GlyphGenerator(const Font &font)
+    : m_font(font)
+    , m_fontInfo(findOrCreateFontInfo(font.name))
+    , m_scale(m_fontInfo->scaleForPixelHeight(font.pixelHeight))
 {
 }
 
 GlyphGenerator::~GlyphGenerator() = default;
 
+bool GlyphGenerator::valid() const
+{
+    return m_fontInfo->loaded();
+}
+
 GlyphGenerator::GlyphImage GlyphGenerator::generate(char32_t codepoint) const
 {
-    if (!m_initialized)
+    if (!m_fontInfo->loaded())
         return {};
 
-    int advance, lsb;
-    stbtt_GetCodepointHMetrics(&m_font, codepoint, &advance, &lsb);
+    const auto advance = m_scale * m_fontInfo->horizontalAdvance(codepoint);
+    const auto baseline = m_scale * m_fontInfo->ascent();
+    const auto margin = kGlyphMargin + m_font.outlineSize;
 
-    int x0, y0, x1, y1;
-    stbtt_GetCodepointBitmapBox(&m_font, codepoint, m_scale, m_scale, &x0, &y0, &x1, &y1);
+    const auto [box, image8] = m_fontInfo->bitmap(codepoint, {m_scale, m_scale});
 
-    const auto margin = kGlyphMargin + m_outlineSize;
-    const auto width = x1 - x0;
-    const auto height = y1 - y0;
-    Image<uint8_t> image8(width + 2 * margin, height + 2 * margin);
+    Image<uint32_t> image32(image8.width() + 2 * margin, image8.height() + 2 * margin);
 
-    auto pixels8 = image8.pixels();
-    const auto stride = image8.width();
-    stbtt_MakeCodepointBitmap(&m_font, pixels8.data() + stride * margin + margin, width, height, stride, m_scale,
-                              m_scale, codepoint);
-
-    Image<uint32_t> image32(image8.width(), image8.height());
+    const auto sourcePixels = std::mdspan(image8.pixels().data(), image8.height(), image8.width());
 
     static_assert(sizeof(glm::u8vec4) == sizeof(*image32.pixels().data()));
-    auto *destPixels = reinterpret_cast<glm::u8vec4 *>(image32.pixels().data());
-    std::transform(pixels8.begin(), pixels8.end(), destPixels,
-                   [](uint8_t alpha) { return glm::u8vec4(255, 255, 255, alpha); });
+    auto destPixels =
+        std::mdspan(reinterpret_cast<glm::u8vec4 *>(image32.pixels().data()), image32.height(), image32.width());
 
-    if (m_outlineSize > 0)
-        dilateAlpha(image32, 2 * m_outlineSize + 1);
+    for (size_t i = 0; i < image8.height(); ++i)
+    {
+        const auto *sourceRow = &sourcePixels[i, 0];
+        auto *destRow = &destPixels[i + margin, margin];
+        std::transform(sourceRow, sourceRow + image8.width(), destRow,
+                       [](uint8_t alpha) { return glm::u8vec4(255, 255, 255, alpha); });
+    }
 
-    return GlyphImage{.advance = advance * m_scale,
-                      .topLeft = glm::vec2{x0 - margin, y0 + m_baseline - margin},
+    if (m_font.outlineSize > 0)
+        dilateAlpha(image32, 2 * m_font.outlineSize + 1);
+
+    return GlyphImage{.advance = advance,
+                      .topLeft = glm::vec2{box.left() - margin, box.top() + baseline - margin},
                       .image = std::move(image32)};
 }
 
 Image<uint32_t> GlyphGenerator::generate(std::u32string_view text) const
 {
-    if (!m_initialized || text.empty())
+    if (!m_fontInfo->loaded() || text.empty())
         return {};
 
-    const auto margin = kGlyphMargin + m_outlineSize;
+    const auto margin = kGlyphMargin + m_font.outlineSize;
+
+    // collect bitmaps
+
+    std::vector<FontInfo::Bitmap> bitmaps;
+    float xPos = 0.0f;
+    for (size_t i = 0; i < text.size(); ++i)
+    {
+        const auto codepoint = text[i];
+
+        const auto xShift = xPos - std::floorf(xPos);
+        auto bitmap = m_fontInfo->bitmap(codepoint, {m_scale, m_scale}, {xShift, 0.0f});
+        bitmap.box.setLeft(static_cast<int>(xPos) + bitmap.box.left());
+        bitmaps.push_back(std::move(bitmap));
+
+        xPos += m_scale * m_fontInfo->horizontalAdvance(codepoint);
+        if (i < text.size() - 1)
+            xPos += m_scale * m_fontInfo->kernAdvance(text[i], text[i + 1]);
+    }
 
     // figure out label width
 
     int xMax = std::numeric_limits<int>::lowest();
     int xMin = std::numeric_limits<int>::max();
-    float xPos = 0.0f;
-    for (size_t i = 0; i < text.size(); ++i)
+    for (const auto &[box, _] : bitmaps)
     {
-        const auto ch = text[i];
-
-        int advance, lsb;
-        stbtt_GetCodepointHMetrics(&m_font, ch, &advance, &lsb);
-
-        const auto xShift = xPos - floorf(xPos);
-        int x0, y0, x1, y1;
-        stbtt_GetCodepointBitmapBoxSubpixel(&m_font, ch, m_scale, m_scale, xShift, 0, &x0, &y0, &x1, &y1);
-
-        xMin = std::min(xMin, static_cast<int>(xPos + x0));
-        xMax = std::max(xMax, static_cast<int>(xPos + x0) + (x1 - x0));
-
-        xPos += advance * m_scale;
-        if (i < text.size() - 1)
-            xPos += m_scale * stbtt_GetCodepointKernAdvance(&m_font, text[i], text[i + 1]);
+        xMin = std::min(xMin, box.left());
+        xMax = std::max(xMax, box.right());
     }
     const auto labelWidth = xMax - xMin;
 
     // render label
 
-    Image<uint32_t> labelImage(labelWidth + 2 * margin, m_pixelHeight + 2 * margin);
-    const auto stride = labelImage.width();
-    auto labelPixels = labelImage.pixels();
+    const auto baseline = static_cast<int>(m_scale * m_fontInfo->ascent());
 
-    xPos = -xMin;
-    for (size_t i = 0; i < text.size(); ++i)
+    Image<uint32_t> labelImage(labelWidth + 2 * margin, m_font.pixelHeight + 2 * margin);
+    static_assert(sizeof(glm::u8vec4) == sizeof(*labelImage.pixels().data()));
+    auto labelPixels = std::mdspan(reinterpret_cast<glm::u8vec4 *>(labelImage.pixels().data()), labelImage.height(),
+                                   labelImage.width());
+
+    for (const auto &[glyphBox, glyphImage] : bitmaps)
     {
-        const auto ch = text[i];
+        assert(glyphBox.width() == glyphImage.width());
+        assert(glyphBox.height() == glyphImage.height());
+        const auto glyphWidth = glyphBox.width();
+        const auto glyphHeight = glyphBox.height();
 
-        int advance, lsb;
-        stbtt_GetCodepointHMetrics(&m_font, ch, &advance, &lsb);
-
-        const auto xShift = xPos - floorf(xPos);
-        int x0, y0, x1, y1;
-        stbtt_GetCodepointBitmapBoxSubpixel(&m_font, ch, m_scale, m_scale, xShift, 0, &x0, &y0, &x1, &y1);
-        const auto glyphWidth = x1 - x0;
-        const auto glyphHeight = y1 - y0;
-
-        const auto left = static_cast<int>(xPos + x0);
-
+        const auto left = glyphBox.left() - xMin;
         assert(left >= 0);
         assert(left + glyphWidth <= labelImage.width());
-        assert(m_baseline + y0 >= 0);
-        assert(m_baseline + y1 <= labelImage.height());
+        assert(baseline + glyphBox.top() >= 0);
+        assert(baseline + glyphBox.bottom() <= labelImage.height());
 
-        // write glyph to a temporary buffer
-        Image<uint8_t> glyphImage(glyphWidth, glyphHeight);
-        auto glyphPixels = glyphImage.pixels();
-        stbtt_MakeCodepointBitmapSubpixel(&m_font, glyphPixels.data(), glyphImage.width(), glyphImage.height(),
-                                          glyphImage.width(), m_scale, m_scale, xShift, 0, ch);
-
-        // blend glyph into the label buffer
+        // blend glyph image into the label image
+        auto glyphPixels = std::mdspan(glyphImage.pixels().data(), glyphImage.height(), glyphImage.width());
         for (size_t j = 0; j < glyphHeight; ++j)
         {
-            const auto *src = glyphPixels.data() + j * glyphImage.width();
-            static_assert(sizeof(glm::u8vec4) == sizeof(*labelPixels.data()));
-            auto *dest = reinterpret_cast<glm::u8vec4 *>(labelPixels.data() + (m_baseline + y0 + j + margin) * stride +
-                                                         left + margin);
+            const auto *src = &glyphPixels[j, 0];
+            auto *dest = &labelPixels[baseline + glyphBox.top() + j + margin, left + margin];
             for (size_t k = 0; k < glyphWidth; ++k)
             {
                 const auto alpha = std::min(uint32_t(*src) + uint32_t(dest->a), uint32_t(255));
@@ -207,65 +204,10 @@ Image<uint32_t> GlyphGenerator::generate(std::u32string_view text) const
                 ++dest;
             }
         }
-
-        xPos += advance * m_scale;
-        if (i < text.size() - 1)
-            xPos += m_scale * stbtt_GetCodepointKernAdvance(&m_font, text[i], text[i + 1]);
     }
 
-    if (m_outlineSize > 0)
-        dilateAlpha(labelImage, 2 * m_outlineSize + 1);
+    if (m_font.outlineSize > 0)
+        dilateAlpha(labelImage, 2 * m_font.outlineSize + 1);
 
     return labelImage;
-}
-
-float GlyphGenerator::kernAdvance(char32_t a, char32_t b) const
-{
-    return m_scale * stbtt_GetCodepointKernAdvance(&m_font, a, b);
-}
-
-float GlyphGenerator::textWidth(std::u32string_view text) const
-{
-    float width = 0.0f;
-    for (std::size_t i = 0; i < text.size(); ++i)
-    {
-        int advance, lsb;
-        stbtt_GetCodepointHMetrics(&m_font, text[i], &advance, &lsb);
-        width += m_scale * advance;
-        if (i < text.size() - 1)
-            width += m_scale * stbtt_GetCodepointKernAdvance(&m_font, text[i], text[i + 1]);
-    }
-    return width;
-}
-
-bool GlyphGenerator::initialize(const std::string &font, float pixelHeight, int outlineSize)
-{
-    m_fontBuffer = readFile(font);
-    if (m_fontBuffer.empty())
-    {
-        std::println(stderr, "Failed to read font {}", font);
-        return false;
-    }
-
-    const auto *fontData = reinterpret_cast<const unsigned char *>(m_fontBuffer.data());
-    int result = stbtt_InitFont(&m_font, fontData, stbtt_GetFontOffsetForIndex(fontData, 0));
-    if (result == 0)
-    {
-        std::println(stderr, "Failed to parse font {}", font);
-        return false;
-    }
-
-    std::println("Loaded font {}", font);
-
-    m_pixelHeight = pixelHeight;
-
-    m_scale = stbtt_ScaleForPixelHeight(&m_font, pixelHeight);
-
-    int ascent;
-    stbtt_GetFontVMetrics(&m_font, &ascent, 0, 0);
-    m_baseline = static_cast<int>(ascent * m_scale);
-
-    m_outlineSize = outlineSize;
-
-    return true;
 }

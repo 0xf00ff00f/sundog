@@ -10,7 +10,7 @@ void printUsage(const char *argv0)
 {
     std::cout << "Usage: " << argv0 << " [OPTIONS] OUTFILE\n\n"
               << "Options:\n"
-              << "  -f, --font-path=PATH       Font path\n"
+              << "  -f, --font-name=PATH       Font name\n"
               << "  -s, --font-size=SIZE       Font pixel height\n"
               << "  -o, --outline-size=PIXELS  Outline size in pixels\n"
               << "  -w, --sheet-width=WIDTH    Sheet width\n"
@@ -19,7 +19,7 @@ void printUsage(const char *argv0)
 
 int main(int argc, const char *argv[])
 {
-    std::string fontPath{"OpenSans_Bold.ttf"};
+    std::string fontName{"OpenSans_Bold.ttf"};
     int fontSize{120};
     int outlineSize{0};
     std::string outFile;
@@ -27,7 +27,7 @@ int main(int argc, const char *argv[])
     size_t sheetHeight{512};
 
     ArgParser parser;
-    parser.addOption(fontPath, 'f', "font-path");
+    parser.addOption(fontName, 'f', "font-name");
     parser.addOption(fontSize, 's', "font-size");
     parser.addOption(outlineSize, 'o', "outline-size");
     parser.addOption(sheetWidth, 'w', "sheet-width");
@@ -41,8 +41,8 @@ int main(int argc, const char *argv[])
     }
     outFile = unused.front();
 
-    GlyphGenerator generator(fontPath, fontSize, outlineSize);
-    if (!generator.isValid())
+    GlyphGenerator generator(Font(fontName, fontSize, outlineSize));
+    if (!generator.valid())
         return 1;
 
     SpriteBook spriteBook{sheetWidth, sheetHeight};
