@@ -33,6 +33,8 @@ target_sources(
           glyph_cache.cc
           tile_batcher.h
           tile_batcher.cc
+          shader_manager.h
+          shader_manager.cc
           painter.h
           painter.cc)
 target_compile_features(infrastructure PUBLIC cxx_std_23)
@@ -50,9 +52,7 @@ target_sources(
          lambert.h
          lambert.cc
          universe.h
-         universe.cc
-         shader_manager.h
-         shader_manager.cc)
+         universe.cc)
 target_compile_features(game PUBLIC cxx_std_23)
 target_compile_definitions(game PUBLIC GLM_ENABLE_EXPERIMENTAL)
 target_link_libraries(game PRIVATE glfw nlohmann_json::nlohmann_json
