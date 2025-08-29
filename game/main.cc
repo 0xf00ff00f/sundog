@@ -6,6 +6,7 @@
 #include "shader_manager.h"
 #include "lambert.h"
 #include "painter.h"
+#include "universe_map.h"
 
 #include <GLFW/glfw3.h>
 
@@ -19,7 +20,6 @@
 #include <chrono>
 #include <fstream>
 #include <cassert>
-#include <cstdio>
 
 int main(int argc, char *argv[])
 {
@@ -59,6 +59,12 @@ int main(int argc, char *argv[])
     std::println("OpenGL renderer: {}", reinterpret_cast<const char *>(glGetString(GL_RENDERER)));
     std::println("OpenGL version: {}", reinterpret_cast<const char *>(glGetString(GL_VERSION)));
 
+    std::ifstream f(dataFilePath("universe.json"));
+    const nlohmann::json universeJson = nlohmann::json::parse(f);
+
+    Universe universe;
+    universe.load(universeJson);
+
     {
         using namespace gl;
 
@@ -69,12 +75,7 @@ int main(int argc, char *argv[])
             return 1;
         }
 
-        std::ifstream f(dataFilePath("universe.json"));
-        const nlohmann::json universeJson = nlohmann::json::parse(f);
-
-        Universe universe;
-        universe.load(universeJson);
-
+#if 0
         const auto transitInterval = JulianClock::duration{253.5};
         const auto timeDeparture = JulianDate{JulianClock::duration{2455892.126389}};
         const auto timeArrival = timeDeparture + transitInterval;
@@ -102,32 +103,13 @@ int main(int argc, char *argv[])
         }
 
         auto modelMatrix = glm::mat4(1.0f);
+#endif
 
         double lastCursorX = 0.0, lastCursorY = 0.0;
         glfwGetCursorPos(window, &lastCursorX, &lastCursorY);
 
-        constexpr auto kCircleMeshVertexCount = 20;
-        Mesh circleMesh;
-        {
-            constexpr auto kRadius = 0.05;
-
-            // clang-format off
-            const std::vector<glm::vec2> verts = std::views::iota(0, kCircleMeshVertexCount)
-                                                 | std::views::transform([](const std::size_t i) -> glm::vec2 {
-                                                       const auto a = i * 2.0f * glm::pi<float>() / kCircleMeshVertexCount;
-                                                       const auto x = kRadius * glm::cos(a);
-                                                       const auto y = kRadius * glm::sin(a);
-                                                       return {x, y};
-                                                   })
-                                                 | std::ranges::to<std::vector>();
-            // clang-format on
-            circleMesh.setVertexData(std::as_bytes(std::span{verts}));
-            const std::array<Mesh::VertexAttribute, 1> attributes = {Mesh::VertexAttribute{2, Mesh::Type::Float, 0}};
-            circleMesh.setVertexAttributes(attributes, sizeof(glm::vec2));
-        }
-
-        const Font font{"DejaVuSans.ttf", 20.0f, 0};
-        Painter painter;
+        Painter painter(&shaderManager);
+        UniverseMap universeMap(&universe, &shaderManager, &painter);
 
         glEnable(GL_LINE_SMOOTH);
         glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
@@ -135,12 +117,17 @@ int main(int argc, char *argv[])
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+#if 0
         auto currentTime = timeDeparture; // JulianClock::now();
+#else
+        auto currentTime = JulianClock::now();
+#endif
 
         while (!glfwWindowShouldClose(window))
         {
             glfwPollEvents();
 
+#if 0
             // TODO: proper arcball camera
             double cursorX = 0.0, cursorY = 0.0;
             glfwGetCursorPos(window, &cursorX, &cursorY);
@@ -242,6 +229,22 @@ int main(int argc, char *argv[])
                 shaderManager.setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
                 painter.end();
             }
+#endif
+
+            int width, height;
+            glfwGetWindowSize(window, &width, &height);
+
+            glViewport(0, 0, width, height);
+            glClearColor(0.0, 0.0, 0.0, 1.0);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            universeMap.setViewport(width, height);
+            painter.setViewport(width, height);
+
+            painter.begin();
+            universeMap.render(currentTime);
+            painter.drawText(glm::vec2(0), std::format("DATE={}", currentTime.time_since_epoch().count()));
+            painter.end();
 
             glfwSwapBuffers(window);
 

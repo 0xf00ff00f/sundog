@@ -1,6 +1,5 @@
 #pragma once
 
-#include "mesh.h"
 #include "orbital_elements.h"
 
 #include <nlohmann/json.hpp>
@@ -12,8 +11,8 @@ public:
 
     void setOrbitalElements(const OrbitalElements &orbit);
     OrbitalElements orbitalElements() const { return m_orbit; }
+    glm::mat3 orbitRotationMatrix() const { return m_orbitRotationMatrix; }
 
-    void renderOrbit() const;
     float meanAnomaly(JulianDate when) const;      // radians
     float eccentricAnomaly(JulianDate when) const; // radians
     glm::vec3 position(JulianDate when) const;
@@ -21,14 +20,10 @@ public:
 private:
     void updatePeriod();
     void updateOrbitRotationMatrix();
-    void initializeOrbitMesh();
-
-    static constexpr auto kOrbitVertexCount = 300;
 
     OrbitalElements m_orbit;
     float m_period = 0.0f;
     glm::mat3 m_orbitRotationMatrix;
-    Mesh m_orbitMesh;
 };
 
 struct World
@@ -52,6 +47,7 @@ public:
     Universe();
 
     bool load(const nlohmann::json &json);
+
     std::span<const World> worlds() const;
 
 private:

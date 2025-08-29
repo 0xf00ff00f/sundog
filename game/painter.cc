@@ -1,5 +1,6 @@
 #include "painter.h"
 
+#include "shader_manager.h"
 #include "tile_batcher.h"
 #include "glyph_cache.h"
 #include "sprite_texture_book.h"
@@ -10,13 +11,25 @@ constexpr auto kSpriteSheetHeight = 1024;
 constexpr auto kSpriteSheetWidth = 1024;
 } // namespace
 
-Painter::Painter()
-    : m_tileBatcher(std::make_unique<TileBatcher>())
+Painter::Painter(ShaderManager *shaderManager)
+    : m_shaderManager(shaderManager)
+    , m_tileBatcher(std::make_unique<TileBatcher>())
     , m_spriteBook(std::make_unique<SpriteTextureBook>(kSpriteSheetHeight, kSpriteSheetWidth))
 {
 }
 
 Painter::~Painter() = default;
+
+void Painter::setViewport(int width, int height)
+{
+    m_viewportWidth = width;
+    m_viewportHeight = height;
+
+    m_projectionMatrix = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f);
+
+    m_shaderManager->setCurrent(ShaderManager::Shader::Text);
+    m_shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, m_projectionMatrix);
+}
 
 void Painter::begin()
 {
@@ -27,6 +40,7 @@ void Painter::begin()
 
 void Painter::end()
 {
+    m_shaderManager->setCurrent(ShaderManager::Shader::Text);
     m_tileBatcher->blit();
 }
 

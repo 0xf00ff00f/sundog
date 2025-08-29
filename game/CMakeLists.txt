@@ -52,7 +52,9 @@ target_sources(
          lambert.h
          lambert.cc
          universe.h
-         universe.cc)
+         universe.cc
+         universe_map.h
+         universe_map.cc)
 target_compile_features(game PUBLIC cxx_std_23)
 target_compile_definitions(game PUBLIC GLM_ENABLE_EXPERIMENTAL)
 target_link_libraries(game PRIVATE glfw nlohmann_json::nlohmann_json

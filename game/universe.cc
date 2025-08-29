@@ -1,22 +1,18 @@
 #include "universe.h"
 
-#include <ranges>
+#include <glm/gtx/transform.hpp>
 
 // https://farside.ph.utexas.edu/teaching/celestial/Celestial/node34.html
 // http://astro.if.ufrgs.br/trigesf/position.html
 // http://www.davidcolarusso.com/astro/
 
-Body::Body()
-{
-    initializeOrbitMesh();
-}
+Body::Body() = default;
 
 void Body::setOrbitalElements(const OrbitalElements &orbit)
 {
     m_orbit = orbit;
     updatePeriod();
     updateOrbitRotationMatrix();
-    initializeOrbitMesh();
 }
 
 float Body::meanAnomaly(JulianDate when) const
@@ -79,41 +75,6 @@ void Body::updateOrbitRotationMatrix()
     const auto rN = glm::mat3(glm::rotate(glm::mat4(1.0), N, glm::vec3(0.0, 0.0, 1.0)));
 
     m_orbitRotationMatrix = rN * ri * rw;
-}
-
-void Body::initializeOrbitMesh()
-{
-    const auto semiMajorAxis = m_orbit.semiMajorAxis;
-    const auto semiMinorAxis = semiMajorAxis * std::sqrt(1.0 - m_orbit.eccentricity * m_orbit.eccentricity);
-    const auto focus = std::sqrt(semiMajorAxis * semiMajorAxis - semiMinorAxis * semiMinorAxis);
-
-    struct Vertex
-    {
-        glm::vec3 position;
-    };
-    // clang-format off
-    const std::vector<Vertex> verts =
-        std::views::iota(0, kOrbitVertexCount)
-        | std::views::transform([this, semiMajorAxis, semiMinorAxis, focus](const std::size_t i) -> Vertex {
-              const auto t = i * 2.0f * glm::pi<float>() / kOrbitVertexCount;
-              const auto x = semiMajorAxis * glm::cos(t) - focus;
-              const auto y = semiMinorAxis * glm::sin(t);
-              const auto position = m_orbitRotationMatrix * glm::vec3(x, y, 0.0f);
-              return Vertex{.position = position};
-          })
-        | std::ranges::to<std::vector>();
-    // clang-format on
-    m_orbitMesh.setVertexData(std::as_bytes(std::span{verts}));
-
-    const std::array<Mesh::VertexAttribute, 1> attributes = {
-        Mesh::VertexAttribute{3, Mesh::Type::Float, offsetof(Vertex, position)},
-    };
-    m_orbitMesh.setVertexAttributes(attributes, sizeof(Vertex));
-}
-
-void Body::renderOrbit() const
-{
-    m_orbitMesh.draw(Mesh::Primitive::LineLoop, 0, kOrbitVertexCount);
 }
 
 World::World() = default;
