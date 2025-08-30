@@ -61,7 +61,7 @@ public:
     virtual void handleMouseMove(double x, double y);
 
 protected:
-    virtual void initializeResources() = 0;
+    virtual bool initializeResources() = 0;
     virtual void update(Seconds elapsed) = 0;
     virtual void render() const = 0;
 

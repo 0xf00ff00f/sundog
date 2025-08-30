@@ -56,7 +56,11 @@ target_sources(
          universe.h
          universe.cc
          universe_map.h
-         universe_map.cc)
+         universe_map.cc
+         game_window.h
+         game_window.cc
+         game.h
+         game.cc)
 target_compile_features(game PUBLIC cxx_std_23)
 target_compile_definitions(game PUBLIC GLM_ENABLE_EXPERIMENTAL)
 target_link_libraries(game PRIVATE nlohmann_json::nlohmann_json infrastructure)
