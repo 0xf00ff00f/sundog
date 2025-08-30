@@ -49,6 +49,7 @@ add_executable(game)
 target_sources(
   game
   PUBLIC main.cc
+         julian_clock.h
          orbital_elements.h
          orbital_elements.cc
          lambert.h

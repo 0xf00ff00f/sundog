@@ -1,7 +1,7 @@
 #pragma once
 
 #include "window_base.h"
-#include "orbital_elements.h"
+#include "julian_clock.h"
 
 #include <glm/glm.hpp>
 
