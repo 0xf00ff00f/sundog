@@ -36,10 +36,12 @@ target_sources(
           shader_manager.h
           shader_manager.cc
           painter.h
-          painter.cc)
+          painter.cc
+          window_base.h
+          window_base.cc)
 target_compile_features(infrastructure PUBLIC cxx_std_23)
 target_compile_definitions(infrastructure PUBLIC GLM_ENABLE_EXPERIMENTAL)
-target_link_libraries(infrastructure PUBLIC glm glad muslots stb)
+target_link_libraries(infrastructure PUBLIC glfw glm glad muslots stb)
 target_compile_definitions(
   infrastructure PUBLIC ASSETSDIR="${CMAKE_CURRENT_SOURCE_DIR}/../assets/")
 
@@ -57,8 +59,7 @@ target_sources(
          universe_map.cc)
 target_compile_features(game PUBLIC cxx_std_23)
 target_compile_definitions(game PUBLIC GLM_ENABLE_EXPERIMENTAL)
-target_link_libraries(game PRIVATE glfw nlohmann_json::nlohmann_json
-                                   infrastructure)
+target_link_libraries(game PRIVATE nlohmann_json::nlohmann_json infrastructure)
 set_target_properties(game PROPERTIES CXX_STANDARD_REQUIRED ON)
 
 add_executable(test-glyph-generator test_glyph_generator.cc)
