@@ -4,10 +4,10 @@
 
 #include <nlohmann/json.hpp>
 
-struct Body
+struct Orbit
 {
 public:
-    Body();
+    Orbit();
 
     void setOrbitalElements(const OrbitalElements &orbit);
     OrbitalElements orbitalElements() const { return m_orbit; }
@@ -34,11 +34,11 @@ public:
     void load(const nlohmann::json &json);
 
     std::string_view name() const { return m_name; }
-    const Body &body() const { return m_body; }
+    const Orbit &orbit() const { return m_orbit; }
 
 private:
     std::string m_name;
-    Body m_body;
+    Orbit m_orbit;
 };
 
 struct Universe

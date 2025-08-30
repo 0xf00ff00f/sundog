@@ -6,22 +6,22 @@
 // http://astro.if.ufrgs.br/trigesf/position.html
 // http://www.davidcolarusso.com/astro/
 
-Body::Body() = default;
+Orbit::Orbit() = default;
 
-void Body::setOrbitalElements(const OrbitalElements &orbit)
+void Orbit::setOrbitalElements(const OrbitalElements &orbit)
 {
     m_orbit = orbit;
     updatePeriod();
     updateOrbitRotationMatrix();
 }
 
-float Body::meanAnomaly(JulianDate when) const
+float Orbit::meanAnomaly(JulianDate when) const
 {
     const float Mepoch = m_orbit.meanAnomalyAtEpoch;
     return Mepoch + 2.0 * glm::pi<float>() * (when - m_orbit.epoch).count() / m_period;
 }
 
-float Body::eccentricAnomaly(JulianDate when) const
+float Orbit::eccentricAnomaly(JulianDate when) const
 {
     const float e = m_orbit.eccentricity;
     const float M = meanAnomaly(when);
@@ -42,7 +42,7 @@ float Body::eccentricAnomaly(JulianDate when) const
     return E;
 }
 
-glm::vec3 Body::position(JulianDate when) const
+glm::vec3 Orbit::position(JulianDate when) const
 {
     const auto e = m_orbit.eccentricity;
     const auto a = m_orbit.semiMajorAxis;
@@ -57,13 +57,13 @@ glm::vec3 Body::position(JulianDate when) const
     return m_orbitRotationMatrix * glm::vec3(x, y, 0.0);
 }
 
-void Body::updatePeriod()
+void Orbit::updatePeriod()
 {
     constexpr auto kEarthYearInDays = 365.2425;
     m_period = std::pow(m_orbit.semiMajorAxis, 3.0 / 2.0) * kEarthYearInDays;
 }
 
-void Body::updateOrbitRotationMatrix()
+void Orbit::updateOrbitRotationMatrix()
 {
     const float w = m_orbit.longitudePerihelion - m_orbit.longitudeAscendingNode;
     const auto rw = glm::mat3(glm::rotate(glm::mat4(1.0), w, glm::vec3(0.0, 0.0, 1.0)));
@@ -118,7 +118,7 @@ void World::load(const nlohmann::json &json)
     assert(meanAnomaly.is_number());
     orbitalElements.meanAnomalyAtEpoch = glm::radians(meanAnomaly.get<float>());
 
-    m_body.setOrbitalElements(orbitalElements);
+    m_orbit.setOrbitalElements(orbitalElements);
 }
 
 Universe::Universe() = default;

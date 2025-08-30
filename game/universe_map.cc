@@ -10,13 +10,13 @@ namespace
 static constexpr auto kOrbitVertexCount = 300;
 static constexpr auto kCircleMeshVertexCount = 20;
 
-std::unique_ptr<Mesh> createOrbitMesh(const Body &body)
+std::unique_ptr<Mesh> createOrbitMesh(const Orbit &orbit)
 {
-    const auto orbit = body.orbitalElements();
-    const auto rotationMatrix = body.orbitRotationMatrix();
+    const auto elems = orbit.orbitalElements();
+    const auto rotationMatrix = orbit.orbitRotationMatrix();
 
-    const auto semiMajorAxis = orbit.semiMajorAxis;
-    const auto semiMinorAxis = semiMajorAxis * std::sqrt(1.0 - orbit.eccentricity * orbit.eccentricity);
+    const auto semiMajorAxis = elems.semiMajorAxis;
+    const auto semiMinorAxis = semiMajorAxis * std::sqrt(1.0 - elems.eccentricity * elems.eccentricity);
     const auto focus = std::sqrt(semiMajorAxis * semiMajorAxis - semiMinorAxis * semiMinorAxis);
 
     struct Vertex
@@ -132,8 +132,8 @@ void UniverseMap::render(JulianDate when) const
     {
         // render world billboard
 
-        const auto &body = world.body();
-        const auto position = body.position(when);
+        const auto &orbit = world.orbit();
+        const auto position = orbit.position(when);
         const auto bodyModelMatrix = modelMatrix * glm::translate(glm::mat4(1.0), position);
         const auto mvp = m_projectionMatrix * viewMatrix * bodyModelMatrix;
         m_shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
@@ -157,7 +157,7 @@ void UniverseMap::initializeMeshes()
     const auto worlds = m_universe->worlds();
     for (const auto &world : worlds)
     {
-        auto orbitMesh = createOrbitMesh(world.body());
+        auto orbitMesh = createOrbitMesh(world.orbit());
         m_orbitMeshes[&world] = std::move(orbitMesh);
     }
 
