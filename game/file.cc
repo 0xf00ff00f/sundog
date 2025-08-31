@@ -2,7 +2,7 @@
 
 #include <cstdio>
 
-std::vector<std::byte> readFile(const std::filesystem::path& path)
+std::vector<std::byte> readFile(const std::filesystem::path &path)
 {
     auto stream = std::unique_ptr<FILE, decltype(&fclose)>(fopen(path.string().c_str(), "rb"), &fclose);
     if (!stream)

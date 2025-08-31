@@ -44,7 +44,7 @@ public:
     WindowBase(const WindowBase &) = delete;
     WindowBase &operator=(const WindowBase &) = delete;
 
-    bool initialize(int width, int height, const char* title);
+    bool initialize(int width, int height, const char *title);
     void run();
 
     SizeI size() const;

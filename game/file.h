@@ -3,4 +3,4 @@
 #include <filesystem>
 #include <vector>
 
-std::vector<std::byte> readFile(const std::filesystem::path& path);
+std::vector<std::byte> readFile(const std::filesystem::path &path);

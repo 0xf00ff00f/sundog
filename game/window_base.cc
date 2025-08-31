@@ -60,26 +60,20 @@ void WindowBase::handleMouseMove(GLFWwindow *window, double x, double y)
 
 void WindowBase::handleWindowSize(const SizeI & /* size */) {}
 
-void WindowBase::handleKey(int /* key */, int /* scancode */, KeyAction /* action */, Modifier /* mods */)
-{
-}
+void WindowBase::handleKey(int /* key */, int /* scancode */, KeyAction /* action */, Modifier /* mods */) {}
 
-void WindowBase::handleMouseButton(int /* button */, MouseAction /* action */, Modifier /* mods */)
-{
-}
+void WindowBase::handleMouseButton(int /* button */, MouseAction /* action */, Modifier /* mods */) {}
 
-void WindowBase::handleMouseMove(double /* x */, double /* y */)
-{
-}
+void WindowBase::handleMouseMove(double /* x */, double /* y */) {}
 
 void WindowBase::run()
 {
-    auto tPrev = Seconds{ 0.0 };
+    auto tPrev = Seconds{0.0};
     glfwSetTime(0.0);
 
     for (;;)
     {
-        const auto t = Seconds{ glfwGetTime() };
+        const auto t = Seconds{glfwGetTime()};
         const auto elapsed = t - tPrev;
         tPrev = t;
 

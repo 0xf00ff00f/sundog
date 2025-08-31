@@ -101,14 +101,8 @@ void Game::update(Seconds elapsed)
     m_currentTime += elapsed.count() * JulianClock::duration{20.0};
 }
 
-void Game::handleKey(int /* key */, int /* scancode */, KeyAction /* action */, Modifier /* mods */)
-{
-}
+void Game::handleKey(int /* key */, int /* scancode */, KeyAction /* action */, Modifier /* mods */) {}
 
-void Game::handleMouseButton(int /* button */, MouseAction /* action */, Modifier /* mods */)
-{
-}
+void Game::handleMouseButton(int /* button */, MouseAction /* action */, Modifier /* mods */) {}
 
-void Game::handleMouseMove(double /* x */, double /* y */)
-{
-}
+void Game::handleMouseMove(double /* x */, double /* y */) {}
