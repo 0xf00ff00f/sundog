@@ -42,18 +42,17 @@ bool Game::initialize()
     return true;
 }
 
-void Game::setViewport(int width, int height)
+void Game::setViewportSize(const SizeI &size)
 {
-    m_viewportWidth = width;
-    m_viewportHeight = height;
+    m_viewportSize = size;
 
-    m_universeMap->setViewport(width, height);
-    m_overlayPainter->setViewport(width, height);
+    m_universeMap->setViewportSize(size);
+    m_overlayPainter->setViewportSize(size);
 }
 
 void Game::render() const
 {
-    glViewport(0, 0, m_viewportWidth, m_viewportHeight);
+    glViewport(0, 0, m_viewportSize.width(), m_viewportSize.height());
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

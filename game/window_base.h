@@ -55,7 +55,7 @@ public:
     static void handleMouseButton(GLFWwindow *window, int button, int action, int mods);
     static void handleMouseMove(GLFWwindow *window, double x, double y);
 
-    virtual void handleWindowSize(int width, int height);
+    virtual void handleWindowSize(const SizeI &size);
     virtual void handleKey(int key, int scancode, KeyAction action, Modifier mods);
     virtual void handleMouseButton(int button, MouseAction action, Modifier mods);
     virtual void handleMouseMove(double x, double y);

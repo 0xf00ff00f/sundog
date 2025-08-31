@@ -37,7 +37,7 @@ bool WindowBase::initialize(int width, int height, const char *title)
 void WindowBase::handleWindowSize(GLFWwindow *window, int width, int height)
 {
     auto *self = static_cast<WindowBase *>(glfwGetWindowUserPointer(window));
-    self->handleWindowSize(width, height);
+    self->handleWindowSize(SizeI(width, height));
 }
 
 void WindowBase::handleKey(GLFWwindow *window, int key, int scancode, int action, int mods)
@@ -58,9 +58,7 @@ void WindowBase::handleMouseMove(GLFWwindow *window, double x, double y)
     self->handleMouseMove(x, y);
 }
 
-void WindowBase::handleWindowSize(int /* width */, int /* height */)
-{
-}
+void WindowBase::handleWindowSize(const SizeI & /* size */) {}
 
 void WindowBase::handleKey(int /* key */, int /* scancode */, KeyAction /* action */, Modifier /* mods */)
 {

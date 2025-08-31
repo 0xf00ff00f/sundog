@@ -24,7 +24,7 @@ public:
 
     bool initialize();
 
-    void setViewport(int width, int height);
+    void setViewportSize(const SizeI &size);
     void render() const;
     void update(Seconds elapsed);
 
@@ -35,8 +35,7 @@ public:
 
 private:
     bool m_playing = false;
-    int m_viewportWidth{0};
-    int m_viewportHeight{0};
+    SizeI m_viewportSize;
     std::unique_ptr<Universe> m_universe;
     std::unique_ptr<ShaderManager> m_shaderManager;
     std::unique_ptr<Painter> m_overlayPainter;

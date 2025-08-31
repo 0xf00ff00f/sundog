@@ -84,11 +84,11 @@ UniverseMap::UniverseMap(const Universe *universe, ShaderManager *shaderManager,
 
 UniverseMap::~UniverseMap() = default;
 
-void UniverseMap::setViewport(int width, int height)
+void UniverseMap::setViewportSize(const SizeI &size)
 {
-    m_viewportWidth = width;
-    m_viewportHeight = height;
-    m_projectionMatrix = glm::perspective(glm::radians(45.0f), static_cast<float>(width) / height, 0.1f, 100.0f);
+    m_viewportSize = size;
+    m_projectionMatrix =
+        glm::perspective(glm::radians(45.0f), static_cast<float>(size.width()) / size.height(), 0.1f, 100.0f);
 }
 
 void UniverseMap::render(JulianDate when) const
@@ -144,9 +144,10 @@ void UniverseMap::render(JulianDate when) const
 
         const auto positionProjected = mvp * glm::vec4(0.0, 0.0, 0.0, 1.0);
         glm::vec2 labelPosition;
-        labelPosition.x = 0.5f * ((positionProjected.x / positionProjected.w) + 1.0) * m_viewportWidth + 5.0;
+        labelPosition.x = 0.5f * ((positionProjected.x / positionProjected.w) + 1.0) * m_viewportSize.width() + 5.0;
         labelPosition.y =
-            (1.0f - 0.5f * ((positionProjected.y / positionProjected.w) + 1.0)) * m_viewportHeight - font.pixelHeight;
+            (1.0f - 0.5f * ((positionProjected.y / positionProjected.w) + 1.0)) * m_viewportSize.height() -
+            font.pixelHeight;
 
         m_overlayPainter->drawText(labelPosition, world.name());
     }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "rect.h"
 #include "font.h"
 
 #include <glm/glm.hpp>
@@ -20,7 +21,7 @@ public:
     explicit Painter(ShaderManager *shaderManager);
     ~Painter();
 
-    void setViewport(int width, int height);
+    void setViewportSize(const SizeI &size);
 
     void begin();
     void end();
@@ -32,8 +33,7 @@ public:
 
 private:
     ShaderManager *m_shaderManager{nullptr};
-    int m_viewportWidth{0};
-    int m_viewportHeight{0};
+    SizeI m_viewportSize;
 
     Font m_font;
     std::optional<FontMetrics> m_fontMetrics;

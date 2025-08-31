@@ -11,15 +11,14 @@ bool GameWindow::initializeResources()
     if (!m_game->initialize())
         return false;
 
-    const auto size = this->size();
-    m_game->setViewport(size.width(), size.height());
+    m_game->setViewportSize(size());
 
     return true;
 }
 
-void GameWindow::handleWindowSize(int width, int height)
+void GameWindow::handleWindowSize(const SizeI &size)
 {
-    m_game->setViewport(width, height);
+    m_game->setViewportSize(size);
 }
 
 void GameWindow::handleKey(int key, int scancode, KeyAction action, Modifier mods)

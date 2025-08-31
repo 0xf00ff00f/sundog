@@ -12,7 +12,7 @@ public:
     GameWindow();
     ~GameWindow() override;
 
-    void handleWindowSize(int width, int height) override;
+    void handleWindowSize(const SizeI &size) override;
     void handleKey(int key, int scancode, KeyAction action, Modifier mods) override;
     void handleMouseButton(int button, MouseAction action, Modifier mods) override;
     void handleMouseMove(double x, double y) override;

@@ -20,12 +20,11 @@ Painter::Painter(ShaderManager *shaderManager)
 
 Painter::~Painter() = default;
 
-void Painter::setViewport(int width, int height)
+void Painter::setViewportSize(const SizeI &size)
 {
-    m_viewportWidth = width;
-    m_viewportHeight = height;
+    m_viewportSize = size;
 
-    m_projectionMatrix = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f);
+    m_projectionMatrix = glm::ortho(0.0f, static_cast<float>(size.width()), static_cast<float>(size.height()), 0.0f);
 
     m_shaderManager->setCurrent(ShaderManager::Shader::Text);
     m_shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, m_projectionMatrix);

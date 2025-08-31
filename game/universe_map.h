@@ -1,5 +1,6 @@
 #pragma once
 
+#include "rect.h"
 #include "universe.h"
 
 #include <cstddef>
@@ -17,7 +18,7 @@ public:
     explicit UniverseMap(const Universe *universe, ShaderManager *shaderManager, Painter *overlayPainter);
     ~UniverseMap();
 
-    void setViewport(int width, int height);
+    void setViewportSize(const SizeI &size);
     void render(JulianDate when) const;
 
 private:
@@ -26,8 +27,7 @@ private:
     const Universe *m_universe{nullptr};
     ShaderManager *m_shaderManager{nullptr};
     Painter *m_overlayPainter;
-    int m_viewportWidth{0};
-    int m_viewportHeight{0};
+    SizeI m_viewportSize;
     std::unordered_map<const World *, std::unique_ptr<Mesh>> m_orbitMeshes;
     std::unique_ptr<Mesh> m_bodyBillboardMesh;
     glm::mat4 m_projectionMatrix;
