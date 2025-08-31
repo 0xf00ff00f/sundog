@@ -4,6 +4,8 @@
 #include "painter.h"
 #include "mesh.h"
 
+#include <glm/gtx/string_cast.hpp>
+
 namespace
 {
 
@@ -12,7 +14,7 @@ static constexpr auto kCircleMeshVertexCount = 20;
 
 std::unique_ptr<Mesh> createOrbitMesh(const Orbit &orbit)
 {
-    const auto elems = orbit.orbitalElements();
+    const auto elems = orbit.elements();
     const auto rotationMatrix = orbit.orbitRotationMatrix();
 
     const auto semiMajorAxis = elems.semiMajorAxis;
@@ -105,13 +107,23 @@ void UniverseMap::render(JulianDate when) const
     // render orbits
 
     const auto worlds = m_universe->worlds();
+    const auto ships = m_universe->ships();
 
-    for (const auto &world : worlds)
+    for (const auto *world : worlds)
     {
-        auto it = m_orbitMeshes.find(&world);
+        auto it = m_orbitMeshes.find(world);
         assert(it != m_orbitMeshes.end());
         auto &orbitMesh = it->second;
         orbitMesh->draw(Mesh::Primitive::LineLoop, 0, kOrbitVertexCount);
+    }
+
+    for (const auto *ship : ships)
+    {
+        const auto transit = ship->transit();
+        if (transit.has_value() && transit->departureTime < when && when < transit->arrivalTime)
+        {
+            // TODO draw transit orbit
+        }
     }
 
     const Font font{"DejaVuSans.ttf", 20.0f, 0};
@@ -120,27 +132,24 @@ void UniverseMap::render(JulianDate when) const
     m_shaderManager->setCurrent(ShaderManager::Shader::Billboard);
     m_shaderManager->setUniform(ShaderManager::Uniform::ProjectionMatrix, m_projectionMatrix);
     m_shaderManager->setUniform(ShaderManager::Uniform::ViewMatrix, viewMatrix);
-    m_shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4(0.5, 0.5, 0.5, 1.0));
 
     // render sun billboard
 
+    m_shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4(1.0, 1.0, 0.0, 1.0));
     m_shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
     m_shaderManager->setUniform(ShaderManager::Uniform::ModelMatrix, modelMatrix);
     m_bodyBillboardMesh->draw(Mesh::Primitive::LineLoop, 0, kCircleMeshVertexCount);
 
-    for (auto &world : worlds)
-    {
-        // render world billboard
+    auto drawBillboard = [&](const glm::vec3 &position, std::string_view name) {
+        // billboard
 
-        const auto &orbit = world.orbit();
-        const auto position = orbit.position(when);
         const auto bodyModelMatrix = modelMatrix * glm::translate(glm::mat4(1.0), position);
         const auto mvp = m_projectionMatrix * viewMatrix * bodyModelMatrix;
         m_shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
         m_shaderManager->setUniform(ShaderManager::Uniform::ModelMatrix, bodyModelMatrix);
         m_bodyBillboardMesh->draw(Mesh::Primitive::LineLoop, 0, kCircleMeshVertexCount);
 
-        // render label
+        // label
 
         const auto positionProjected = mvp * glm::vec4(0.0, 0.0, 0.0, 1.0);
         glm::vec2 labelPosition;
@@ -149,17 +158,37 @@ void UniverseMap::render(JulianDate when) const
             (1.0f - 0.5f * ((positionProjected.y / positionProjected.w) + 1.0)) * m_viewportSize.height() -
             font.pixelHeight;
 
-        m_overlayPainter->drawText(labelPosition, world.name());
+        m_overlayPainter->drawText(labelPosition, name);
+    };
+
+    // render world billboards
+
+    m_shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4(1.0, 1.0, 1.0, 1.0));
+    for (const auto *world : worlds)
+    {
+        drawBillboard(world->position(when), world->name());
+    }
+
+    // render ship billboards
+
+    m_shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4(1.0, 0.0, 0.0, 1.0));
+    for (const auto *ship : ships)
+    {
+        const auto transit = ship->transit();
+        if (transit.has_value() && transit->departureTime < when && when < transit->arrivalTime)
+        {
+            drawBillboard(transit->orbit.position(when), ship->name());
+        }
     }
 }
 
 void UniverseMap::initializeMeshes()
 {
     const auto worlds = m_universe->worlds();
-    for (const auto &world : worlds)
+    for (const auto *world : worlds)
     {
-        auto orbitMesh = createOrbitMesh(world.orbit());
-        m_orbitMeshes[&world] = std::move(orbitMesh);
+        auto orbitMesh = createOrbitMesh(world->orbit());
+        m_orbitMeshes[world] = std::move(orbitMesh);
     }
 
     m_bodyBillboardMesh = createBodyBillboardMesh();

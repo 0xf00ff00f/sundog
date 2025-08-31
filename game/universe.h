@@ -9,19 +9,20 @@ struct Orbit
 public:
     Orbit();
 
-    void setOrbitalElements(const OrbitalElements &orbit);
-    OrbitalElements orbitalElements() const { return m_orbit; }
-    glm::mat3 orbitRotationMatrix() const { return m_orbitRotationMatrix; }
+    void setElements(const OrbitalElements &elems);
+    OrbitalElements elements() const { return m_elems; }
 
+    glm::mat3 orbitRotationMatrix() const { return m_orbitRotationMatrix; }
+    float period() const { return m_period; }      // Earth years
     float meanAnomaly(JulianDate when) const;      // radians
     float eccentricAnomaly(JulianDate when) const; // radians
-    glm::vec3 position(JulianDate when) const;
+    glm::vec3 position(JulianDate when) const;     // AU
 
 private:
     void updatePeriod();
     void updateOrbitRotationMatrix();
 
-    OrbitalElements m_orbit;
+    OrbitalElements m_elems;
     float m_period = 0.0f;
     glm::mat3 m_orbitRotationMatrix;
 };
@@ -36,9 +37,37 @@ public:
     std::string_view name() const { return m_name; }
     const Orbit &orbit() const { return m_orbit; }
 
+    glm::vec3 position(JulianDate when) const;
+
 private:
     std::string m_name;
     Orbit m_orbit;
+};
+
+struct Transit
+{
+    const World *origin{nullptr};
+    const World *destination{nullptr};
+    JulianDate departureTime;
+    JulianDate arrivalTime;
+    Orbit orbit;
+
+    JulianClock::duration transitTime() const { return arrivalTime - departureTime; }
+};
+
+struct Ship
+{
+public:
+    explicit Ship(std::string_view name);
+
+    std::string_view name() const { return m_name; }
+
+    void setTransit(std::optional<Transit> transit);
+    const std::optional<Transit> &transit() const;
+
+private:
+    std::string m_name;
+    std::optional<Transit> m_transit;
 };
 
 struct Universe
@@ -48,8 +77,19 @@ public:
 
     bool load(const nlohmann::json &json);
 
-    std::span<const World> worlds() const;
+    auto worlds() const
+    {
+        return std::views::transform(m_worlds, [](const auto &world) -> const World * { return world.get(); });
+    }
+
+    auto ships() const
+    {
+        return std::views::transform(m_ships, [](const auto &ship) -> const Ship * { return ship.get(); });
+    }
+
+    Ship *addShip(std::string_view name);
 
 private:
-    std::vector<World> m_worlds;
+    std::vector<std::unique_ptr<World>> m_worlds;
+    std::vector<std::unique_ptr<Ship>> m_ships;
 };

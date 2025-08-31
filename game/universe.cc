@@ -8,22 +8,22 @@
 
 Orbit::Orbit() = default;
 
-void Orbit::setOrbitalElements(const OrbitalElements &orbit)
+void Orbit::setElements(const OrbitalElements &elems)
 {
-    m_orbit = orbit;
+    m_elems = elems;
     updatePeriod();
     updateOrbitRotationMatrix();
 }
 
 float Orbit::meanAnomaly(JulianDate when) const
 {
-    const float Mepoch = m_orbit.meanAnomalyAtEpoch;
-    return Mepoch + 2.0 * glm::pi<float>() * (when - m_orbit.epoch).count() / m_period;
+    const float Mepoch = m_elems.meanAnomalyAtEpoch;
+    return Mepoch + 2.0 * glm::pi<float>() * (when - m_elems.epoch).count() / m_period;
 }
 
 float Orbit::eccentricAnomaly(JulianDate when) const
 {
-    const float e = m_orbit.eccentricity;
+    const float e = m_elems.eccentricity;
     const float M = meanAnomaly(when);
 
     constexpr auto kTolerance = glm::radians(0.01);
@@ -44,8 +44,8 @@ float Orbit::eccentricAnomaly(JulianDate when) const
 
 glm::vec3 Orbit::position(JulianDate when) const
 {
-    const auto e = m_orbit.eccentricity;
-    const auto a = m_orbit.semiMajorAxis;
+    const auto e = m_elems.eccentricity;
+    const auto a = m_elems.semiMajorAxis;
     const auto b = a * std::sqrt(1.0 - e * e); // semi-minor axis
 
     const auto E = eccentricAnomaly(when);
@@ -60,18 +60,18 @@ glm::vec3 Orbit::position(JulianDate when) const
 void Orbit::updatePeriod()
 {
     constexpr auto kEarthYearInDays = 365.2425;
-    m_period = std::pow(m_orbit.semiMajorAxis, 3.0 / 2.0) * kEarthYearInDays;
+    m_period = std::pow(m_elems.semiMajorAxis, 3.0 / 2.0) * kEarthYearInDays;
 }
 
 void Orbit::updateOrbitRotationMatrix()
 {
-    const float w = m_orbit.longitudePerihelion - m_orbit.longitudeAscendingNode;
+    const float w = m_elems.longitudePerihelion - m_elems.longitudeAscendingNode;
     const auto rw = glm::mat3(glm::rotate(glm::mat4(1.0), w, glm::vec3(0.0, 0.0, 1.0)));
 
-    const float i = m_orbit.inclination;
+    const float i = m_elems.inclination;
     const auto ri = glm::mat3(glm::rotate(glm::mat4(1.0), i, glm::vec3(1.0, 0.0, 0.0)));
 
-    const float N = m_orbit.longitudeAscendingNode;
+    const float N = m_elems.longitudeAscendingNode;
     const auto rN = glm::mat3(glm::rotate(glm::mat4(1.0), N, glm::vec3(0.0, 0.0, 1.0)));
 
     m_orbitRotationMatrix = rN * ri * rw;
@@ -118,7 +118,27 @@ void World::load(const nlohmann::json &json)
     assert(meanAnomaly.is_number());
     orbitalElements.meanAnomalyAtEpoch = glm::radians(meanAnomaly.get<float>());
 
-    m_orbit.setOrbitalElements(orbitalElements);
+    m_orbit.setElements(orbitalElements);
+}
+
+glm::vec3 World::position(JulianDate when) const
+{
+    return m_orbit.position(when);
+}
+
+Ship::Ship(std::string_view name)
+    : m_name(name)
+{
+}
+
+void Ship::setTransit(std::optional<Transit> transit)
+{
+    m_transit = std::move(transit);
+}
+
+const std::optional<Transit> &Ship::transit() const
+{
+    return m_transit;
 }
 
 Universe::Universe() = default;
@@ -132,15 +152,16 @@ bool Universe::load(const nlohmann::json &json)
 
     for (const auto &worldJson : worldsJson)
     {
-        World world;
-        world.load(worldJson);
+        auto world = std::make_unique<World>();
+        world->load(worldJson);
         m_worlds.push_back(std::move(world));
     }
 
     return true;
 }
 
-std::span<const World> Universe::worlds() const
+Ship *Universe::addShip(std::string_view name)
 {
-    return m_worlds;
+    m_ships.push_back(std::make_unique<Ship>(name));
+    return m_ships.back().get();
 }

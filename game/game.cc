@@ -5,10 +5,13 @@
 #include "shader_manager.h"
 #include "painter.h"
 #include "universe_map.h"
+#include "lambert.h"
 
 #include <fstream>
 
 #include <nlohmann/json.hpp>
+
+#include <glm/gtx/string_cast.hpp>
 
 Game::Game() = default;
 
@@ -31,7 +34,38 @@ bool Game::initialize()
 
     m_universeMap = std::make_unique<UniverseMap>(m_universe.get(), m_shaderManager.get(), m_overlayPainter.get());
 
-    m_currentTime = JulianClock::now();
+    auto ship = m_universe->addShip("Foo");
+    {
+        const auto transitInterval = JulianClock::duration{253.5};
+        const auto timeDeparture = JulianDate{JulianClock::duration{2455892.126389}};
+        const auto timeArrival = timeDeparture + transitInterval;
+
+        const auto &worlds = m_universe->worlds();
+        const auto *origin = worlds[2];      // Earth
+        const auto *destination = worlds[3]; // Mars
+
+        auto posDeparture = glm::dvec3(origin->position(timeDeparture));
+        auto posArrival = glm::dvec3(destination->position(timeArrival));
+
+        std::println("posDeparture={}", glm::to_string(posDeparture));
+        std::println("posArrival={}", glm::to_string(posArrival));
+        std::println("mu={}", kGMSun);
+        std::println("transit={}", transitInterval.count());
+
+        auto result = lambert_battin(kGMSun, posDeparture, posArrival, transitInterval.count());
+        assert(result.has_value());
+        const auto [velDeparture, velArrival] = *result;
+
+        const auto orbitalElements = orbitalElementsFromStateVector(posArrival, velArrival, timeArrival);
+
+        Transit transit{
+            .origin = origin, .destination = destination, .departureTime = timeDeparture, .arrivalTime = timeArrival};
+        transit.orbit.setElements(orbitalElements);
+
+        ship->setTransit(std::move(transit));
+
+        m_currentTime = timeDeparture;
+    }
 
     glEnable(GL_LINE_SMOOTH);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
