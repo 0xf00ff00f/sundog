@@ -30,8 +30,8 @@ public:
 
     void handleWindowSize(int x, int y);
     void handleKey(int key, int scancode, KeyAction action, Modifier mods);
-    void handleMouseButton(int button, MouseAction action, Modifier mods);
-    void handleMouseMove(double x, double y);
+    void handleMouseButton(MouseButton button, MouseAction action, Modifier mods);
+    void handleMouseMove(const glm::dvec2 &position);
 
 private:
     bool m_playing = false;

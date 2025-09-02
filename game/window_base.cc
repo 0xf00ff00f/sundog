@@ -49,22 +49,23 @@ void WindowBase::handleKey(GLFWwindow *window, int key, int scancode, int action
 void WindowBase::handleMouseButton(GLFWwindow *window, int button, int action, int mods)
 {
     auto *self = static_cast<WindowBase *>(glfwGetWindowUserPointer(window));
-    self->handleMouseButton(button, static_cast<MouseAction>(action), static_cast<Modifier>(mods));
+    self->handleMouseButton(static_cast<MouseButton>(button), static_cast<MouseAction>(action),
+                            static_cast<Modifier>(mods));
 }
 
 void WindowBase::handleMouseMove(GLFWwindow *window, double x, double y)
 {
     auto *self = static_cast<WindowBase *>(glfwGetWindowUserPointer(window));
-    self->handleMouseMove(x, y);
+    self->handleMouseMove(glm::dvec2{x, y});
 }
 
 void WindowBase::handleWindowSize(const SizeI & /* size */) {}
 
 void WindowBase::handleKey(int /* key */, int /* scancode */, KeyAction /* action */, Modifier /* mods */) {}
 
-void WindowBase::handleMouseButton(int /* button */, MouseAction /* action */, Modifier /* mods */) {}
+void WindowBase::handleMouseButton(MouseButton /* button */, MouseAction /* action */, Modifier /* mods */) {}
 
-void WindowBase::handleMouseMove(double /* x */, double /* y */) {}
+void WindowBase::handleMouseMove(const glm::dvec2 & /* position */) {}
 
 void WindowBase::run()
 {

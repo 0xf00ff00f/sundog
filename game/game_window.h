@@ -14,8 +14,8 @@ public:
 
     void handleWindowSize(const SizeI &size) override;
     void handleKey(int key, int scancode, KeyAction action, Modifier mods) override;
-    void handleMouseButton(int button, MouseAction action, Modifier mods) override;
-    void handleMouseMove(double x, double y) override;
+    void handleMouseButton(MouseButton button, MouseAction action, Modifier mods) override;
+    void handleMouseMove(const glm::dvec2 &position) override;
 
 private:
     bool initializeResources() override;

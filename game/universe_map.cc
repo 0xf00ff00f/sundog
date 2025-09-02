@@ -193,3 +193,7 @@ void UniverseMap::initializeMeshes()
 
     m_bodyBillboardMesh = createBodyBillboardMesh();
 }
+
+void UniverseMap::handleMouseButton(MouseButton button, MouseAction action, Modifier mods) {}
+
+void UniverseMap::handleMouseMove(const glm::dvec2 &position) {}

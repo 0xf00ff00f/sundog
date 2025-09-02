@@ -26,14 +26,14 @@ void GameWindow::handleKey(int key, int scancode, KeyAction action, Modifier mod
     m_game->handleKey(key, scancode, action, mods);
 }
 
-void GameWindow::handleMouseButton(int button, MouseAction action, Modifier mods)
+void GameWindow::handleMouseButton(MouseButton button, MouseAction action, Modifier mods)
 {
     m_game->handleMouseButton(button, action, mods);
 }
 
-void GameWindow::handleMouseMove(double x, double y)
+void GameWindow::handleMouseMove(const glm::dvec2 &position)
 {
-    m_game->handleMouseMove(x, y);
+    m_game->handleMouseMove(position);
 }
 
 void GameWindow::update(Seconds elapsed)

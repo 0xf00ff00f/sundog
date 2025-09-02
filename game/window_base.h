@@ -30,6 +30,13 @@ enum class MouseAction
     Release = GLFW_RELEASE
 };
 
+enum class MouseButton
+{
+    Left = GLFW_MOUSE_BUTTON_LEFT,
+    Right = GLFW_MOUSE_BUTTON_RIGHT,
+    Middle = GLFW_MOUSE_BUTTON_MIDDLE
+};
+
 using Seconds = std::chrono::duration<double, std::ratio<1>>;
 
 class WindowBase
@@ -57,8 +64,8 @@ public:
 
     virtual void handleWindowSize(const SizeI &size);
     virtual void handleKey(int key, int scancode, KeyAction action, Modifier mods);
-    virtual void handleMouseButton(int button, MouseAction action, Modifier mods);
-    virtual void handleMouseMove(double x, double y);
+    virtual void handleMouseButton(MouseButton button, MouseAction action, Modifier mods);
+    virtual void handleMouseMove(const glm::dvec2 &position);
 
 protected:
     virtual bool initializeResources() = 0;

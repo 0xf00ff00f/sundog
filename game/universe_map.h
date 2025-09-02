@@ -2,6 +2,7 @@
 
 #include "rect.h"
 #include "universe.h"
+#include "window_base.h"
 
 #include <cstddef>
 
@@ -20,6 +21,9 @@ public:
 
     void setViewportSize(const SizeI &size);
     void render(JulianDate when) const;
+
+    void handleMouseButton(MouseButton button, MouseAction action, Modifier mods);
+    void handleMouseMove(const glm::dvec2 &position);
 
 private:
     void initializeMeshes();

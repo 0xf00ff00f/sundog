@@ -103,6 +103,12 @@ void Game::update(Seconds elapsed)
 
 void Game::handleKey(int /* key */, int /* scancode */, KeyAction /* action */, Modifier /* mods */) {}
 
-void Game::handleMouseButton(int /* button */, MouseAction /* action */, Modifier /* mods */) {}
+void Game::handleMouseButton(MouseButton button, MouseAction action, Modifier mods)
+{
+    m_universeMap->handleMouseButton(button, action, mods);
+}
 
-void Game::handleMouseMove(double /* x */, double /* y */) {}
+void Game::handleMouseMove(const glm::dvec2 &position)
+{
+    m_universeMap->handleMouseMove(position);
+}
