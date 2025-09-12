@@ -91,13 +91,13 @@ void UniverseMap::setViewportSize(const SizeI &size)
     m_viewportSize = size;
     m_projectionMatrix =
         glm::perspective(glm::radians(45.0f), static_cast<float>(size.width()) / size.height(), 0.1f, 100.0f);
+    m_cameraController.setViewportSize(size);
 }
 
 void UniverseMap::render(JulianDate when) const
 {
-    const auto viewMatrix =
-        glm::lookAt(glm::vec3(0.0f, 0.0f, 6.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    const auto modelMatrix = glm::mat4(1.0f);
+    const auto viewMatrix = m_cameraController.viewMatrix();
+    const auto modelMatrix = glm::mat4{1.0f};
     const auto mvp = m_projectionMatrix * viewMatrix * modelMatrix;
 
     m_shaderManager->setCurrent(ShaderManager::Shader::Wireframe);
@@ -194,6 +194,12 @@ void UniverseMap::initializeMeshes()
     m_bodyBillboardMesh = createBodyBillboardMesh();
 }
 
-void UniverseMap::handleMouseButton(MouseButton button, MouseAction action, Modifier mods) {}
+void UniverseMap::handleMouseButton(MouseButton button, MouseAction action, const glm::vec2 &position, Modifier mods)
+{
+    m_cameraController.handleMouseButton(button, action, position, mods);
+}
 
-void UniverseMap::handleMouseMove(const glm::dvec2 &position) {}
+void UniverseMap::handleMouseMove(const glm::vec2 &position)
+{
+    m_cameraController.handleMouseMove(position);
+}

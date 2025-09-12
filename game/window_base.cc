@@ -56,7 +56,7 @@ void WindowBase::handleMouseButton(GLFWwindow *window, int button, int action, i
 void WindowBase::handleMouseMove(GLFWwindow *window, double x, double y)
 {
     auto *self = static_cast<WindowBase *>(glfwGetWindowUserPointer(window));
-    self->handleMouseMove(glm::dvec2{x, y});
+    self->handleMouseMove(glm::vec2{x, y});
 }
 
 void WindowBase::handleWindowSize(const SizeI & /* size */) {}
@@ -65,7 +65,7 @@ void WindowBase::handleKey(int /* key */, int /* scancode */, KeyAction /* actio
 
 void WindowBase::handleMouseButton(MouseButton /* button */, MouseAction /* action */, Modifier /* mods */) {}
 
-void WindowBase::handleMouseMove(const glm::dvec2 & /* position */) {}
+void WindowBase::handleMouseMove(const glm::vec2 & /* position */) {}
 
 void WindowBase::run()
 {
@@ -96,7 +96,7 @@ SizeI WindowBase::size() const
     return SizeI(width, height);
 }
 
-glm::dvec2 WindowBase::cursorPos() const
+glm::vec2 WindowBase::cursorPos() const
 {
     double x, y;
     glfwGetCursorPos(m_window, &x, &y);

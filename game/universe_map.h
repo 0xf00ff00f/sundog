@@ -3,6 +3,7 @@
 #include "rect.h"
 #include "universe.h"
 #include "window_base.h"
+#include "camera_controller.h"
 
 #include <cstddef>
 
@@ -22,8 +23,8 @@ public:
     void setViewportSize(const SizeI &size);
     void render(JulianDate when) const;
 
-    void handleMouseButton(MouseButton button, MouseAction action, Modifier mods);
-    void handleMouseMove(const glm::dvec2 &position);
+    void handleMouseButton(MouseButton button, MouseAction action, const glm::vec2 &position, Modifier mods);
+    void handleMouseMove(const glm::vec2 &position);
 
 private:
     void initializeMeshes();
@@ -35,4 +36,5 @@ private:
     std::unordered_map<const World *, std::unique_ptr<Mesh>> m_orbitMeshes;
     std::unique_ptr<Mesh> m_bodyBillboardMesh;
     glm::mat4 m_projectionMatrix;
+    CameraController m_cameraController;
 };

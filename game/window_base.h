@@ -55,7 +55,7 @@ public:
     void run();
 
     SizeI size() const;
-    glm::dvec2 cursorPos() const;
+    glm::vec2 cursorPos() const;
 
     static void handleWindowSize(GLFWwindow *window, int width, int height);
     static void handleKey(GLFWwindow *window, int key, int scancode, int action, int mods);
@@ -65,7 +65,7 @@ public:
     virtual void handleWindowSize(const SizeI &size);
     virtual void handleKey(int key, int scancode, KeyAction action, Modifier mods);
     virtual void handleMouseButton(MouseButton button, MouseAction action, Modifier mods);
-    virtual void handleMouseMove(const glm::dvec2 &position);
+    virtual void handleMouseMove(const glm::vec2 &position);
 
 protected:
     virtual bool initializeResources() = 0;

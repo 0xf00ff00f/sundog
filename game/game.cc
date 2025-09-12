@@ -98,17 +98,17 @@ void Game::render() const
 
 void Game::update(Seconds elapsed)
 {
-    m_currentTime += elapsed.count() * JulianClock::duration{20.0};
+    // m_currentTime += elapsed.count() * JulianClock::duration{20.0};
 }
 
 void Game::handleKey(int /* key */, int /* scancode */, KeyAction /* action */, Modifier /* mods */) {}
 
-void Game::handleMouseButton(MouseButton button, MouseAction action, Modifier mods)
+void Game::handleMouseButton(MouseButton button, MouseAction action, const glm::vec2 &position, Modifier mods)
 {
-    m_universeMap->handleMouseButton(button, action, mods);
+    m_universeMap->handleMouseButton(button, action, position, mods);
 }
 
-void Game::handleMouseMove(const glm::dvec2 &position)
+void Game::handleMouseMove(const glm::vec2 &position)
 {
     m_universeMap->handleMouseMove(position);
 }
