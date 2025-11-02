@@ -203,3 +203,8 @@ void UniverseMap::handleMouseMove(const glm::vec2 &position)
 {
     m_cameraController.handleMouseMove(position);
 }
+
+void UniverseMap::update(Seconds seconds)
+{
+    m_cameraController.update(seconds);
+}
