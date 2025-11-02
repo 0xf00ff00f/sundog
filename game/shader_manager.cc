@@ -30,7 +30,10 @@ bool ShaderManager::initialize()
         std::string fsPath;
     };
     static const std::array<ShaderInfo, static_cast<size_t>(Shader::Count)> shaders = {
-        {{"wireframe.vert", "wireframe.frag"}, {"billboard.vert", "billboard.frag"}, {"text.vert", "text.frag"}}};
+        {{"wireframe.vert", "wireframe.frag"},
+         {"billboard.vert", "billboard.frag"},
+         {"text.vert", "text.frag"},
+         {"orbit.vert", "orbit.frag"}}};
     for (size_t index = 0; const auto &[vsPath, fsPath] : shaders)
     {
         const auto vertexShader = readFile(shaderFilePath(vsPath));
@@ -76,7 +79,7 @@ int ShaderManager::uniformLocation(Uniform uniform)
     if (locations[index] == -1)
     {
         static const std::array<std::string, static_cast<size_t>(Uniform::Count)> uniforms = {
-            "projectionMatrix", "viewMatrix", "modelMatrix", "mvp", "color"};
+            "projectionMatrix", "viewMatrix", "modelMatrix", "mvp", "color", "semiMajorAxis", "eccentricity"};
         locations[index] = m_currentShader->program.uniformLocation(uniforms[index]);
     }
     return locations[index];

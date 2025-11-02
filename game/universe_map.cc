@@ -12,28 +12,18 @@ namespace
 static constexpr auto kOrbitVertexCount = 300;
 static constexpr auto kCircleMeshVertexCount = 20;
 
-std::unique_ptr<Mesh> createOrbitMesh(const Orbit &orbit)
+std::unique_ptr<Mesh> createOrbitMesh()
 {
-    const auto elems = orbit.elements();
-    const auto rotationMatrix = orbit.orbitRotationMatrix();
-
-    const auto semiMajorAxis = elems.semiMajorAxis;
-    const auto semiMinorAxis = semiMajorAxis * std::sqrt(1.0 - elems.eccentricity * elems.eccentricity);
-    const auto focus = std::sqrt(semiMajorAxis * semiMajorAxis - semiMinorAxis * semiMinorAxis);
-
     struct Vertex
     {
-        glm::vec3 position;
+        float meanAnomaly;
     };
     // clang-format off
     const std::vector<Vertex> verts =
         std::views::iota(0, kOrbitVertexCount)
-        | std::views::transform([&rotationMatrix, semiMajorAxis, semiMinorAxis, focus](const std::size_t i) -> Vertex {
-              const auto t = i * 2.0f * glm::pi<float>() / kOrbitVertexCount;
-              const auto x = semiMajorAxis * glm::cos(t) - focus;
-              const auto y = semiMinorAxis * glm::sin(t);
-              const auto position = rotationMatrix * glm::vec3(x, y, 0.0f);
-              return Vertex{.position = position};
+        | std::views::transform([](const std::size_t i) -> Vertex {
+              const auto meanAnomaly = i * 2.0f * glm::pi<float>() / kOrbitVertexCount;
+              return Vertex{.meanAnomaly = meanAnomaly};
           })
         | std::ranges::to<std::vector>();
     // clang-format on
@@ -42,8 +32,7 @@ std::unique_ptr<Mesh> createOrbitMesh(const Orbit &orbit)
     mesh->setVertexData(std::as_bytes(std::span{verts}));
 
     const std::array<Mesh::VertexAttribute, 1> attributes = {
-        Mesh::VertexAttribute{3, Mesh::Type::Float, offsetof(Vertex, position)},
-    };
+        Mesh::VertexAttribute{1, Mesh::Type::Float, offsetof(Vertex, meanAnomaly)}};
     mesh->setVertexAttributes(attributes, sizeof(Vertex));
 
     return mesh;
@@ -97,11 +86,8 @@ void UniverseMap::setViewportSize(const SizeI &size)
 void UniverseMap::render(JulianDate when) const
 {
     const auto viewMatrix = m_cameraController.viewMatrix();
-    const auto modelMatrix = glm::mat4{1.0f};
-    const auto mvp = m_projectionMatrix * viewMatrix * modelMatrix;
 
-    m_shaderManager->setCurrent(ShaderManager::Shader::Wireframe);
-    m_shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
+    m_shaderManager->setCurrent(ShaderManager::Shader::Orbit);
     m_shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4(0.5, 0.5, 0.5, 1.0));
 
     // render orbits
@@ -111,10 +97,21 @@ void UniverseMap::render(JulianDate when) const
 
     for (const auto *world : worlds)
     {
-        auto it = m_orbitMeshes.find(world);
-        assert(it != m_orbitMeshes.end());
-        auto &orbitMesh = it->second;
-        orbitMesh->draw(Mesh::Primitive::LineLoop, 0, kOrbitVertexCount);
+        const auto &orbit = world->orbit();
+        const auto elems = orbit.elements();
+        const auto rotationMatrix = orbit.orbitRotationMatrix();
+
+        const auto semiMajorAxis = elems.semiMajorAxis;
+        const auto eccentricity = elems.eccentricity;
+
+        const auto modelMatrix = glm::mat4{orbit.orbitRotationMatrix()};
+        const auto mvp = m_projectionMatrix * viewMatrix * modelMatrix;
+
+        m_shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
+        m_shaderManager->setUniform(ShaderManager::Uniform::SemiMajorAxis, semiMajorAxis);
+        m_shaderManager->setUniform(ShaderManager::Uniform::Eccentricity, eccentricity);
+
+        m_orbitMesh->draw(Mesh::Primitive::LineLoop, 0, kOrbitVertexCount);
     }
 
     for (const auto *ship : ships)
@@ -125,6 +122,9 @@ void UniverseMap::render(JulianDate when) const
             // TODO draw transit orbit
         }
     }
+
+    const auto modelMatrix = glm::mat4{1.0f};
+    const auto mvp = m_projectionMatrix * viewMatrix * modelMatrix;
 
     const Font font{"DejaVuSans.ttf", 20.0f, 0};
     m_overlayPainter->setFont(font);
@@ -187,13 +187,7 @@ void UniverseMap::render(JulianDate when) const
 
 void UniverseMap::initializeMeshes()
 {
-    const auto worlds = m_universe->worlds();
-    for (const auto *world : worlds)
-    {
-        auto orbitMesh = createOrbitMesh(world->orbit());
-        m_orbitMeshes[world] = std::move(orbitMesh);
-    }
-
+    m_orbitMesh = createOrbitMesh();
     m_bodyBillboardMesh = createBodyBillboardMesh();
 }
 

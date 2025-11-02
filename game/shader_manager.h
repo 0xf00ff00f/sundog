@@ -12,6 +12,7 @@ public:
         Wireframe,
         Billboard,
         Text,
+        Orbit,
         Count
     };
 
@@ -22,6 +23,8 @@ public:
         ModelMatrix,
         ModelViewProjectionMatrix,
         Color,
+        SemiMajorAxis,
+        Eccentricity,
         Count
     };
 
