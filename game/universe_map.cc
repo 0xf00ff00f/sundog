@@ -152,13 +152,16 @@ void UniverseMap::render(JulianDate when) const
         // label
 
         const auto positionProjected = mvp * glm::vec4(0.0, 0.0, 0.0, 1.0);
-        glm::vec2 labelPosition;
-        labelPosition.x = 0.5f * ((positionProjected.x / positionProjected.w) + 1.0) * m_viewportSize.width() + 5.0;
-        labelPosition.y =
-            (1.0f - 0.5f * ((positionProjected.y / positionProjected.w) + 1.0)) * m_viewportSize.height() -
-            font.pixelHeight;
+        if (positionProjected.z > 0.0f)
+        {
+            glm::vec2 labelPosition;
+            labelPosition.x = 0.5f * ((positionProjected.x / positionProjected.w) + 1.0) * m_viewportSize.width() + 5.0;
+            labelPosition.y =
+                (1.0f - 0.5f * ((positionProjected.y / positionProjected.w) + 1.0)) * m_viewportSize.height() -
+                font.pixelHeight;
 
-        m_overlayPainter->drawText(labelPosition, name);
+            m_overlayPainter->drawText(labelPosition, name);
+        }
     };
 
     // render world billboards
