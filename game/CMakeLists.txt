@@ -38,7 +38,9 @@ target_sources(
           painter.h
           painter.cc
           window_base.h
-          window_base.cc)
+          window_base.cc
+          gui.h
+          gui.cc)
 target_compile_features(infrastructure PUBLIC cxx_std_23)
 target_compile_definitions(infrastructure PUBLIC GLM_ENABLE_EXPERIMENTAL)
 target_link_libraries(infrastructure PUBLIC glfw glm glad muslots stb)
