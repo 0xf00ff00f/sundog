@@ -92,7 +92,6 @@ void CameraController::update(Seconds seconds)
     if (m_dragging)
     {
         m_mouseVelocitySampler.addSample(m_lastPosition, seconds);
-        std::println("**** mouse velocity={}", glm::to_string(m_mouseVelocitySampler.velocity()));
     }
     else
     {
