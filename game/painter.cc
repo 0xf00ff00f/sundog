@@ -61,7 +61,7 @@ Font Painter::font() const
     return m_glyphCache != nullptr ? m_glyphCache->font() : Font{};
 }
 
-void Painter::drawText(const glm::vec2 &pos, const std::string_view text, float depth)
+void Painter::drawText(const glm::vec2 &pos, const std::string_view text, int depth)
 {
     if (!m_glyphCache)
         return;

@@ -62,7 +62,7 @@ void TileBatcher::setTexture(const gl::AbstractTexture *texture)
     m_curTexture = texture;
 }
 
-void TileBatcher::addTile(const Vertex &topLeft, const Vertex &bottomRight, float depth)
+void TileBatcher::addTile(const Vertex &topLeft, const Vertex &bottomRight, int depth)
 {
     m_tiles.emplace_back(topLeft, bottomRight, m_curTexture, depth);
 }

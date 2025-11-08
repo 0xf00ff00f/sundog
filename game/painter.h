@@ -29,7 +29,7 @@ public:
     void setFont(const Font &font);
     Font font() const;
 
-    void drawText(const glm::vec2 &pos, const std::string_view text, float depth = 0.0f);
+    void drawText(const glm::vec2 &pos, const std::string_view text, int depth = 0);
 
 private:
     ShaderManager *m_shaderManager{nullptr};

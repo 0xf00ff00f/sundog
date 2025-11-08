@@ -22,7 +22,7 @@ public:
         glm::vec2 position;
         glm::vec2 texCoords;
     };
-    void addTile(const Vertex &topLeft, const Vertex &bottomRight, float depth = 0.0f);
+    void addTile(const Vertex &topLeft, const Vertex &bottomRight, int depth = 0);
 
     void blit() const;
 
@@ -32,7 +32,7 @@ private:
         Vertex topLeft;
         Vertex bottomRight;
         const gl::AbstractTexture *texture;
-        float depth;
+        int depth;
     };
     const gl::AbstractTexture *m_curTexture = nullptr;
     std::vector<Tile> m_tiles;
