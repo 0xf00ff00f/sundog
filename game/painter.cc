@@ -1,9 +1,13 @@
 #include "painter.h"
 
 #include "shader_manager.h"
-#include "tile_batcher.h"
 #include "glyph_cache.h"
 #include "sprite_texture_book.h"
+
+#include <span>
+#include <tuple>
+#include <algorithm>
+#include <print>
 
 namespace
 {
@@ -11,9 +15,236 @@ constexpr auto kSpriteSheetHeight = 1024;
 constexpr auto kSpriteSheetWidth = 1024;
 } // namespace
 
+enum class VertexType
+{
+    PosColor,
+    PosTexColor
+};
+
+template<typename VertexT>
+class VertexIndexBuffer
+{
+public:
+    VertexIndexBuffer()
+        : m_vertexBuffer(gl::Buffer::Target::ArrayBuffer, gl::Buffer::Usage::DynamicDraw)
+        , m_indexBuffer(gl::Buffer::Target::ElementArrayBuffer, gl::Buffer::Usage::StaticDraw)
+    {
+        m_vertexArray.bind();
+        bindBuffers();
+
+        size_t attribCount = 0;
+        if constexpr (requires { VertexT{}.position; })
+        {
+            glEnableVertexAttribArray(attribCount);
+            glVertexAttribPointer(attribCount, 2, GL_FLOAT, GL_FALSE, sizeof(VertexT),
+                                  reinterpret_cast<GLvoid *>(offsetof(VertexT, position)));
+            ++attribCount;
+        }
+
+        if constexpr (requires { VertexT{}.texCoords; })
+        {
+            glEnableVertexAttribArray(attribCount);
+            glVertexAttribPointer(attribCount, 2, GL_FLOAT, GL_FALSE, sizeof(VertexT),
+                                  reinterpret_cast<GLvoid *>(offsetof(VertexT, texCoords)));
+            ++attribCount;
+        }
+
+        if constexpr (requires { VertexT{}.color; })
+        {
+            glEnableVertexAttribArray(attribCount);
+            glVertexAttribPointer(attribCount, 4, GL_FLOAT, GL_FALSE, sizeof(VertexT),
+                                  reinterpret_cast<GLvoid *>(offsetof(VertexT, color)));
+            ++attribCount;
+        }
+    }
+
+    void bindBuffers() const
+    {
+        m_vertexBuffer.bind();
+        m_indexBuffer.bind();
+    }
+
+    void uploadData()
+    {
+        bindBuffers();
+        m_vertexBuffer.data(std::as_bytes(std::span{vertices}));
+        m_indexBuffer.data(std::as_bytes(std::span{indices}));
+    }
+
+    void draw() const
+    {
+        m_vertexArray.bind();
+        bindBuffers();
+        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+    }
+
+    std::vector<VertexT> vertices;
+    std::vector<uint32_t> indices;
+
+private:
+    gl::VertexArray m_vertexArray;
+    gl::Buffer m_vertexBuffer;
+    gl::Buffer m_indexBuffer;
+};
+
+struct VertexPosColor
+{
+    glm::vec2 position;
+    glm::vec4 color;
+};
+
+struct VertexPosTexColor
+{
+    glm::vec2 position;
+    glm::vec2 texCoords;
+    glm::vec4 color;
+};
+
+using VertexPosColorBuffer = VertexIndexBuffer<VertexPosColor>;
+using VertexPosTexColorBuffer = VertexIndexBuffer<VertexPosTexColor>;
+
+class DrawCommand
+{
+public:
+    explicit DrawCommand(int depth);
+    virtual ~DrawCommand() = default;
+
+    int depth() const { return m_depth; }
+
+    virtual VertexType vertexType() const = 0;
+    virtual const gl::AbstractTexture *texture() const = 0;
+
+private:
+    int m_depth;
+};
+
+class DrawCommandPosColor : public DrawCommand
+{
+public:
+    using DrawCommand::DrawCommand;
+
+    virtual void dumpVertices(VertexPosColorBuffer &buffer) const = 0;
+};
+
+class DrawCommandPosTexColor : public DrawCommand
+{
+public:
+    using DrawCommand::DrawCommand;
+
+    virtual void dumpVertices(VertexPosTexColorBuffer &buffer) const = 0;
+};
+
+class DrawPolyline : public DrawCommandPosColor
+{
+public:
+    explicit DrawPolyline(std::span<const glm::vec2> verts, const glm::vec4 &color, float thickness, bool closed,
+                          int depth);
+    ~DrawPolyline() override = default;
+
+    VertexType vertexType() const override { return VertexType::PosColor; }
+    const gl::AbstractTexture *texture() const override { return nullptr; }
+
+private:
+    std::vector<glm::vec2> m_verts;
+    glm::vec4 m_color;
+    float m_thickness;
+    bool m_closed;
+};
+
+class DrawFilledConvexPolygon : public DrawCommandPosColor
+{
+public:
+    explicit DrawFilledConvexPolygon(std::span<const glm::vec2> verts, const glm::vec4 &color, int depth);
+    ~DrawFilledConvexPolygon() override = default;
+
+    VertexType vertexType() const override { return VertexType::PosColor; }
+    const gl::AbstractTexture *texture() const override { return nullptr; }
+
+private:
+    std::vector<glm::vec2> m_verts;
+    glm::vec4 m_color;
+};
+
+class DrawSpriteBatch : public DrawCommandPosTexColor
+{
+public:
+    explicit DrawSpriteBatch(const gl::AbstractTexture *texture, const glm::vec4 &color, int depth);
+
+    struct Vertex
+    {
+        glm::vec2 position;
+        glm::vec2 texCoords;
+    };
+    void addSprite(const Vertex &topLeft, const Vertex &bottomRight);
+
+    VertexType vertexType() const override { return VertexType::PosTexColor; }
+    const gl::AbstractTexture *texture() const override { return m_texture; }
+
+    void dumpVertices(VertexPosTexColorBuffer &buffer) const override;
+
+private:
+    struct Quad
+    {
+        Vertex topLeft;
+        Vertex bottomRight;
+    };
+
+    const gl::AbstractTexture *m_texture;
+    glm::vec4 m_color;
+    std::vector<Quad> m_quads;
+};
+
+DrawCommand::DrawCommand(int depth)
+    : m_depth(depth)
+{
+}
+
+DrawSpriteBatch::DrawSpriteBatch(const gl::AbstractTexture *texture, const glm::vec4 &color, int depth)
+    : DrawCommandPosTexColor(depth)
+    , m_texture(texture)
+    , m_color(color)
+{
+}
+
+void DrawSpriteBatch::addSprite(const Vertex &topLeft, const Vertex &bottomRight)
+{
+    m_quads.emplace_back(topLeft, bottomRight);
+}
+
+void DrawSpriteBatch::dumpVertices(VertexPosTexColorBuffer &buffer) const
+{
+    auto &vertices = buffer.vertices;
+    auto &indices = buffer.indices;
+
+    auto vertexIndex = buffer.vertices.size();
+
+    for (const auto &quad : m_quads)
+    {
+        const auto &topLeft = quad.topLeft;
+        const auto &bottomRight = quad.bottomRight;
+        vertices.emplace_back(glm::vec2{topLeft.position.x, topLeft.position.y},
+                              glm::vec2{topLeft.texCoords.x, topLeft.texCoords.y}, m_color);
+        vertices.emplace_back(glm::vec2{bottomRight.position.x, topLeft.position.y},
+                              glm::vec2{bottomRight.texCoords.x, topLeft.texCoords.y}, m_color);
+        vertices.emplace_back(glm::vec2{bottomRight.position.x, bottomRight.position.y},
+                              glm::vec2{bottomRight.texCoords.x, bottomRight.texCoords.y}, m_color);
+        vertices.emplace_back(glm::vec2{topLeft.position.x, bottomRight.position.y},
+                              glm::vec2{topLeft.texCoords.x, bottomRight.texCoords.y}, m_color);
+
+        indices.push_back(vertexIndex + 0);
+        indices.push_back(vertexIndex + 1);
+        indices.push_back(vertexIndex + 2);
+
+        indices.push_back(vertexIndex + 2);
+        indices.push_back(vertexIndex + 3);
+        indices.push_back(vertexIndex + 0);
+
+        vertexIndex += 4;
+    }
+}
+
 Painter::Painter(ShaderManager *shaderManager)
     : m_shaderManager(shaderManager)
-    , m_tileBatcher(std::make_unique<TileBatcher>())
     , m_spriteBook(std::make_unique<SpriteTextureBook>(kSpriteSheetHeight, kSpriteSheetWidth))
 {
 }
@@ -32,15 +263,57 @@ void Painter::setViewportSize(const SizeI &size)
 
 void Painter::begin()
 {
+    m_color = glm::vec4{1.0};
     m_fontMetrics.reset();
     m_glyphCache = nullptr;
-    m_tileBatcher->reset();
+    m_commands.clear();
 }
 
 void Painter::end()
 {
-    m_shaderManager->setCurrent(ShaderManager::Shader::Text);
-    m_tileBatcher->blit();
+    std::ranges::sort(m_commands, [](const auto &lhs, const auto &rhs) {
+        return std::tuple(lhs->depth(), lhs->vertexType(), lhs->texture()) <
+               std::tuple(rhs->depth(), rhs->vertexType(), rhs->texture());
+    });
+
+    std::println("rendering {} commands", m_commands.size());
+
+    VertexPosColorBuffer vertexPosColorBuffer;
+    VertexPosTexColorBuffer vertexPosTexColorBuffer;
+
+    auto batchStart = m_commands.begin();
+    while (batchStart != m_commands.end())
+    {
+        const auto vertexType = (*batchStart)->vertexType();
+        const auto *texture = (*batchStart)->texture();
+        const auto batchEnd =
+            std::find_if(std::next(batchStart), m_commands.end(), [vertexType, texture](const auto &command) {
+                return command->vertexType() != vertexType || command->texture() != texture;
+            });
+        switch (vertexType)
+        {
+        case VertexType::PosColor: {
+            // TODO
+            break;
+        }
+        case VertexType::PosTexColor: {
+            auto &buffer = vertexPosTexColorBuffer;
+            buffer.vertices.clear();
+            buffer.indices.clear();
+            for (auto it = batchStart; it != batchEnd; ++it)
+            {
+                const auto *command = static_cast<DrawCommandPosTexColor *>(it->get());
+                command->dumpVertices(buffer);
+            }
+            buffer.uploadData();
+            texture->bind();
+            m_shaderManager->setCurrent(ShaderManager::Shader::Text);
+            buffer.draw();
+            break;
+        }
+        }
+        batchStart = batchEnd;
+    }
 }
 
 void Painter::setFont(const Font &font)
@@ -68,19 +341,30 @@ void Painter::drawText(const glm::vec2 &pos, const std::string_view text, int de
 
     assert(m_fontMetrics.has_value());
 
+    std::unordered_map<const gl::AbstractTexture *, std::unique_ptr<DrawSpriteBatch>> commands;
+
     glm::vec2 p = pos;
     for (size_t index = 0; const char ch : text)
     {
         const auto glyph = m_glyphCache->findOrCreateGlyph(ch);
         if (glyph.has_value())
         {
-            m_tileBatcher->setTexture(glyph->texture);
-            m_tileBatcher->addTile({p + glyph->quad.topLeft(), glyph->texCoords.topLeft()},
-                                   {p + glyph->quad.bottomRight(), glyph->texCoords.bottomRight()});
+            DrawSpriteBatch *command = [this, &glyph, &commands, depth]() {
+                auto it = commands.find(glyph->texture);
+                if (it == commands.end())
+                    it = commands.insert(
+                        it, {glyph->texture, std::make_unique<DrawSpriteBatch>(glyph->texture, m_color, depth)});
+                return it->second.get();
+            }();
+            command->addSprite({p + glyph->quad.topLeft(), glyph->texCoords.topLeft()},
+                               {p + glyph->quad.bottomRight(), glyph->texCoords.bottomRight()});
             p += glm::vec2(glyph->advance, 0);
             if (index < text.size() - 1)
                 p += glm::vec2(m_fontMetrics->kernAdvance(ch, text[index + 1]), 0.0f);
         }
         ++index;
     }
+
+    for (auto &[_, command] : commands)
+        m_commands.push_back(std::move(command));
 }
