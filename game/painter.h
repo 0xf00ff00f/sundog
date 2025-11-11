@@ -26,7 +26,7 @@ public:
     void end();
 
     void setColor(const glm::vec4 &color);
-    glm::vec4 color() const;
+    glm::vec4 color() const { return m_color; }
 
     void setFont(const Font &font);
     Font font() const;

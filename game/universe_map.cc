@@ -160,9 +160,16 @@ void UniverseMap::render(JulianDate when) const
                 (1.0f - 0.5f * ((positionProjected.y / positionProjected.w) + 1.0)) * m_viewportSize.height() -
                 font.pixelHeight;
 
+            m_overlayPainter->setColor({1, 1, 1, 1});
             m_overlayPainter->drawText(labelPosition, name);
         }
     };
+
+    {
+        static const std::array verts = {glm::vec2{10, 10}, glm::vec2{50, 10}, glm::vec2{50, 50}, glm::vec2{10, 50}};
+        m_overlayPainter->setColor({1, 0, 0, 1});
+        m_overlayPainter->drawFilledConvexPolygon(verts);
+    }
 
     // render world billboards
 

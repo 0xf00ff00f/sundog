@@ -160,6 +160,8 @@ public:
     VertexType vertexType() const override { return VertexType::PosColor; }
     const gl::AbstractTexture *texture() const override { return nullptr; }
 
+    void dumpVertices(VertexPosColorBuffer &buffer) const override;
+
 private:
     std::vector<glm::vec2> m_verts;
     glm::vec4 m_color;
@@ -197,6 +199,36 @@ private:
 DrawCommand::DrawCommand(int depth)
     : m_depth(depth)
 {
+}
+
+DrawFilledConvexPolygon::DrawFilledConvexPolygon(std::span<const glm::vec2> verts, const glm::vec4 &color, int depth)
+    : DrawCommandPosColor(depth)
+    , m_verts(verts.begin(), verts.end())
+    , m_color(color)
+{
+}
+
+void DrawFilledConvexPolygon::dumpVertices(VertexPosColorBuffer &buffer) const
+{
+    if (m_verts.size() < 3)
+        return;
+
+    auto &vertices = buffer.vertices;
+    auto &indices = buffer.indices;
+
+    auto vertexIndex = buffer.vertices.size();
+
+    for (const auto &pos : m_verts)
+    {
+        vertices.emplace_back(pos, m_color);
+    }
+
+    for (std::size_t i = 1; i < m_verts.size() - 1; ++i)
+    {
+        indices.push_back(vertexIndex + 0);
+        indices.push_back(vertexIndex + i);
+        indices.push_back(vertexIndex + i + 1);
+    }
 }
 
 DrawSpriteBatch::DrawSpriteBatch(const gl::AbstractTexture *texture, const glm::vec4 &color, int depth)
@@ -259,6 +291,9 @@ void Painter::setViewportSize(const SizeI &size)
 
     m_shaderManager->setCurrent(ShaderManager::Shader::Text);
     m_shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, m_projectionMatrix);
+
+    m_shaderManager->setCurrent(ShaderManager::Shader::Flat);
+    m_shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, m_projectionMatrix);
 }
 
 void Painter::begin()
@@ -293,7 +328,18 @@ void Painter::end()
         switch (vertexType)
         {
         case VertexType::PosColor: {
-            // TODO
+            // TODO: make this generic
+            auto &buffer = vertexPosColorBuffer;
+            buffer.vertices.clear();
+            buffer.indices.clear();
+            for (auto it = batchStart; it != batchEnd; ++it)
+            {
+                const auto *command = static_cast<DrawCommandPosColor *>(it->get());
+                command->dumpVertices(buffer);
+            }
+            buffer.uploadData();
+            m_shaderManager->setCurrent(ShaderManager::Shader::Flat);
+            buffer.draw();
             break;
         }
         case VertexType::PosTexColor: {
@@ -316,6 +362,11 @@ void Painter::end()
     }
 }
 
+void Painter::setColor(const glm::vec4 &color)
+{
+    m_color = color;
+}
+
 void Painter::setFont(const Font &font)
 {
     if (font == this->font())
@@ -332,6 +383,11 @@ void Painter::setFont(const Font &font)
 Font Painter::font() const
 {
     return m_glyphCache != nullptr ? m_glyphCache->font() : Font{};
+}
+
+void Painter::drawFilledConvexPolygon(std::span<const glm::vec2> verts, int depth)
+{
+    m_commands.push_back(std::make_unique<DrawFilledConvexPolygon>(verts, m_color, depth));
 }
 
 void Painter::drawText(const glm::vec2 &pos, const std::string_view text, int depth)

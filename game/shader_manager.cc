@@ -32,6 +32,7 @@ bool ShaderManager::initialize()
     static const std::array<ShaderInfo, static_cast<size_t>(Shader::Count)> shaders = {
         {{"wireframe.vert", "wireframe.frag"},
          {"billboard.vert", "billboard.frag"},
+         {"flat.vert", "flat.frag"},
          {"text.vert", "text.frag"},
          {"orbit.vert", "orbit.frag"}}};
     for (size_t index = 0; const auto &[vsPath, fsPath] : shaders)

@@ -11,6 +11,7 @@ public:
     {
         Wireframe,
         Billboard,
+        Flat,
         Text,
         Orbit,
         Count
