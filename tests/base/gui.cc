@@ -1,0 +1,59 @@
+#include <catch2/catch_test_macros.hpp>
+
+#include <gui.h>
+
+TEST_CASE("column", "[column]")
+{
+    Column column;
+
+    REQUIRE(column.childCount() == 0);
+    REQUIRE(column.size() == SizeF{0.0f, 0.0f});
+
+    auto *rc1 = column.appendChild<Rectangle>(20.0f, 30.0f);
+    REQUIRE(column.childCount() == 1);
+    REQUIRE(column.size() == SizeF{20.0f, 30.0f});
+
+    rc1->setSize(30.0f, 80.0f);
+    REQUIRE(column.size() == SizeF{30.0f, 80.0f});
+
+    auto *rc2 = column.appendChild<Rectangle>(120.0f, 20.0);
+    REQUIRE(column.childCount() == 2);
+    REQUIRE(column.spacing() == 4.0f);
+    REQUIRE(column.size() == SizeF{120.0f, 104.0f});
+
+    column.setSpacing(20.0f);
+    REQUIRE(column.spacing() == 20.0f);
+    REQUIRE(column.size() == SizeF{120.0f, 120.0f});
+
+    column.removeChild(0);
+    REQUIRE(column.childCount() == 1);
+    REQUIRE(column.size() == SizeF{120.0f, 20.0f});
+}
+
+TEST_CASE("row", "[row]")
+{
+    Row row;
+
+    REQUIRE(row.childCount() == 0);
+    REQUIRE(row.size() == SizeF{0.0f, 0.0f});
+
+    auto *rc1 = row.appendChild<Rectangle>(30.0f, 50.0f);
+    REQUIRE(row.childCount() == 1);
+    REQUIRE(row.size() == SizeF{30.0f, 50.0f});
+
+    auto *rc2 = row.appendChild<Rectangle>(80.0f, 70.0f);
+    REQUIRE(row.childCount() == 2);
+    REQUIRE(row.spacing() == 4.0f);
+    REQUIRE(row.size() == SizeF{114.0f, 70.0f});
+
+    row.setSpacing(10.0f);
+    REQUIRE(row.spacing() == 10.0f);
+    REQUIRE(row.size() == SizeF{120.0f, 70.0f});
+
+    rc2->setSize(30.0f, 20.0f);
+    REQUIRE(row.size() == SizeF{70.0f, 50.0f});
+
+    row.removeChild(1);
+    REQUIRE(row.childCount() == 1);
+    REQUIRE(row.size() == SizeF{30.0f, 50.0f});
+}

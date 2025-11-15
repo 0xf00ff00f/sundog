@@ -27,9 +27,9 @@ public:
     ChildT *insertChild(std::size_t index, Args &&...args)
     {
         auto it = m_children.emplace(std::next(m_children.begin(), index),
-                                     std::make_unique<ChildT>(std::forward<Args>(args)...));
+                                     std::make_unique<ChildT>(std::forward<Args>(args)...), this);
         updateLayout();
-        return static_cast<ChildT *>(it->get());
+        return static_cast<ChildT *>(it->m_gizmo.get());
     }
 
     void removeChild(std::size_t index);
@@ -39,7 +39,7 @@ public:
 
     auto children() const
     {
-        return m_children | std::views::transform([](const auto &child) { return child.get(); });
+        return m_children | std::views::transform([](const auto &child) { return child.m_gizmo.get(); });
     }
 
     virtual void updateLayout();
@@ -47,7 +47,22 @@ public:
     muslots::Signal<SizeF> resizedSignal;
 
 protected:
-    std::vector<std::unique_ptr<Gizmo>> m_children;
+    struct ChildGizmo
+    {
+        explicit ChildGizmo(std::unique_ptr<Gizmo> child, Gizmo *parent);
+        ~ChildGizmo();
+
+        ChildGizmo(ChildGizmo &) = delete;
+        ChildGizmo &operator=(ChildGizmo &) = delete;
+
+        ChildGizmo(ChildGizmo &&other) = default;
+        ChildGizmo &operator=(ChildGizmo &&other) = default;
+
+        std::unique_ptr<Gizmo> m_gizmo;
+        muslots::Connection m_resizedConnection;
+    };
+
+    std::vector<ChildGizmo> m_children;
     bool m_fillBackground{true};
     glm::vec4 m_backgroundColor;
 };
@@ -55,10 +70,12 @@ protected:
 class Rectangle : public Gizmo
 {
 public:
+    explicit Rectangle(float width, float height);
     explicit Rectangle(const SizeF &size);
 
     SizeF size() const override { return m_size; }
 
+    void setSize(float width, float height);
     void setSize(const SizeF &size);
 
 protected:

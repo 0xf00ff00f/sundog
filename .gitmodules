@@ -10,3 +10,6 @@
 [submodule "game/muslots"]
 	path = base/muslots
 	url = https://github.com/0xf00ff00f/muslots
+[submodule "tests/base/Catch2"]
+	path = tests/base/Catch2
+	url = https://github.com/catchorg/Catch2.git

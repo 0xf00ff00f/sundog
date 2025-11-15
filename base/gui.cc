@@ -1,5 +1,16 @@
 #include "gui.h"
 
+Gizmo::ChildGizmo::ChildGizmo(std::unique_ptr<Gizmo> gizmo, Gizmo *parent)
+    : m_gizmo(std::move(gizmo))
+    , m_resizedConnection(m_gizmo->resizedSignal.connect([parent](SizeF) { parent->updateLayout(); }))
+{
+}
+
+Gizmo::ChildGizmo::~ChildGizmo()
+{
+    m_resizedConnection.disconnect();
+}
+
 Gizmo::Gizmo() = default;
 
 Gizmo::~Gizmo() = default;
@@ -14,7 +25,7 @@ void Gizmo::removeChild(std::size_t index)
 
 const Gizmo *Gizmo::childAt(std::size_t index) const
 {
-    return index < m_children.size() ? m_children[index].get() : nullptr;
+    return index < m_children.size() ? m_children[index].m_gizmo.get() : nullptr;
 }
 
 Gizmo *Gizmo::childAt(std::size_t index)
@@ -39,28 +50,44 @@ Rectangle::Rectangle(const SizeF &size)
 {
 }
 
+Rectangle::Rectangle(float width, float height)
+    : Rectangle(SizeF{width, height})
+{
+}
+
+void Rectangle::setSize(float width, float height)
+{
+    setSize(SizeF{width, height});
+}
+
 void Rectangle::setSize(const SizeF &size)
 {
+    if (size == m_size)
+        return;
     m_size = size;
+    resizedSignal(m_size);
 }
 
 void Layout::setSpacing(float spacing)
 {
+    if (spacing == m_spacing)
+        return;
     m_spacing = spacing;
+    updateLayout();
 }
 
 void Row::updateLayout()
 {
     float width = 0.0f;
     float height = 0.0f;
-    for (const auto &child : m_children)
+    for (const auto *child : children())
     {
         const auto size = child->size();
         width += size.width();
         height = std::max(height, size.height());
     }
     if (const size_t childCount = m_children.size())
-        width += childCount * m_spacing;
+        width += (childCount - 1) * m_spacing;
     m_size = SizeF{width, height};
 }
 
@@ -68,13 +95,13 @@ void Column::updateLayout()
 {
     float width = 0.0f;
     float height = 0.0f;
-    for (const auto &child : m_children)
+    for (const auto *child : children())
     {
         const auto size = child->size();
         width = std::max(width, size.width());
         height += size.height();
     }
     if (const size_t childCount = m_children.size())
-        width += childCount * m_spacing;
+        height += (childCount - 1) * m_spacing;
     m_size = SizeF{width, height};
 }

@@ -27,6 +27,8 @@ public:
     T width() const { return m_width; }
     T height() const { return m_height; }
 
+    bool operator==(const Size &other) const = default;
+
 private:
     T m_width{0};
     T m_height{0};
