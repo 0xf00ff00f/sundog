@@ -14,7 +14,7 @@ public:
     Gizmo();
     virtual ~Gizmo();
 
-    virtual SizeF size() const = 0;
+    SizeF size() const { return m_size; }
     virtual void paint(Painter *painter, const glm::vec2 &position, int depth) const;
 
     template<std::derived_from<Gizmo> ChildT, typename... Args>
@@ -50,6 +50,8 @@ public:
     glm::vec4 backgroundColor;
 
 protected:
+    void setSize(const SizeF &size);
+
     struct ChildGizmo
     {
         explicit ChildGizmo(std::unique_ptr<Gizmo> child, Gizmo *parent);
@@ -65,6 +67,7 @@ protected:
         muslots::Connection m_resizedConnection;
     };
 
+    SizeF m_size;
     std::vector<ChildGizmo> m_children;
 };
 
@@ -74,13 +77,8 @@ public:
     explicit Rectangle(float width, float height);
     explicit Rectangle(const SizeF &size);
 
-    SizeF size() const override { return m_size; }
-
     void setSize(float width, float height);
-    void setSize(const SizeF &size);
-
-protected:
-    SizeF m_size;
+    using Gizmo::setSize;
 };
 
 class Layout : public Gizmo
@@ -88,15 +86,11 @@ class Layout : public Gizmo
 public:
     using Gizmo::Gizmo;
 
-    SizeF size() const override { return m_size; }
-
     float spacing() const { return m_spacing; }
     void setSpacing(float spacing);
 
 protected:
     float m_spacing{4.0f};
-
-    SizeF m_size;
 };
 
 class Row : public Layout

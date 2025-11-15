@@ -57,3 +57,23 @@ TEST_CASE("row", "[row]")
     REQUIRE(row.childCount() == 1);
     REQUIRE(row.size() == SizeF{30.0f, 50.0f});
 }
+
+TEST_CASE("nested layout", "[nested-layout]")
+{
+    Row row;
+
+    REQUIRE(row.childCount() == 0);
+    REQUIRE(row.size() == SizeF{0.0f, 0.0f});
+
+    auto *col = row.appendChild<Column>();
+    REQUIRE(row.size() == SizeF{0.0f, 0.0f});
+    REQUIRE(col->size() == SizeF{0.0f, 0.0f});
+
+    auto *rc = col->appendChild<Rectangle>(50.0f, 80.0f);
+    REQUIRE(col->size() == SizeF{50.0f, 80.0f});
+    REQUIRE(row.size() == SizeF{50.0f, 80.0f});
+
+    rc->setSize(120.0f, 120.0f);
+    REQUIRE(col->size() == SizeF{120.0f, 120.0f});
+    REQUIRE(row.size() == SizeF{120.0f, 120.0f});
+}

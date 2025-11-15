@@ -48,9 +48,17 @@ void Gizmo::paint(Painter *painter, const glm::vec2 &position, int depth) const
     }
 }
 
-Rectangle::Rectangle(const SizeF &size)
-    : m_size(size)
+void Gizmo::setSize(const SizeF &size)
 {
+    if (size == m_size)
+        return;
+    m_size = size;
+    resizedSignal(m_size);
+}
+
+Rectangle::Rectangle(const SizeF &size)
+{
+    m_size = size;
 }
 
 Rectangle::Rectangle(float width, float height)
@@ -61,14 +69,6 @@ Rectangle::Rectangle(float width, float height)
 void Rectangle::setSize(float width, float height)
 {
     setSize(SizeF{width, height});
-}
-
-void Rectangle::setSize(const SizeF &size)
-{
-    if (size == m_size)
-        return;
-    m_size = size;
-    resizedSignal(m_size);
 }
 
 void Layout::setSpacing(float spacing)
@@ -91,7 +91,7 @@ void Row::updateLayout()
     }
     if (const size_t childCount = m_children.size())
         width += (childCount - 1) * m_spacing;
-    m_size = SizeF{width, height};
+    setSize(SizeF{width, height});
 }
 
 void Row::paint(Painter *painter, const glm::vec2 &position, int depth) const
@@ -119,7 +119,7 @@ void Column::updateLayout()
     }
     if (const size_t childCount = m_children.size())
         height += (childCount - 1) * m_spacing;
-    m_size = SizeF{width, height};
+    setSize(SizeF{width, height});
 }
 
 void Column::paint(Painter *painter, const glm::vec2 &position, int depth) const
