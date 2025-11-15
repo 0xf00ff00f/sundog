@@ -37,12 +37,15 @@ void Gizmo::updateLayout() {}
 
 void Gizmo::paint(Painter *painter, const glm::vec2 &position, int depth) const
 {
-    const auto size = this->size();
-    const std::array<glm::vec2, 4> verts = {position, position + glm::vec2(size.width(), 0),
-                                            position + glm::vec2(size.width(), size.height()),
-                                            position + glm::vec2(0, size.height())};
-    painter->setColor(m_backgroundColor);
-    painter->drawFilledConvexPolygon(verts, depth);
+    if (fillBackground)
+    {
+        const auto size = this->size();
+        const std::array<glm::vec2, 4> verts = {position, position + glm::vec2(size.width(), 0),
+                                                position + glm::vec2(size.width(), size.height()),
+                                                position + glm::vec2(0, size.height())};
+        painter->setColor(backgroundColor);
+        painter->drawFilledConvexPolygon(verts, depth);
+    }
 }
 
 Rectangle::Rectangle(const SizeF &size)
@@ -91,6 +94,19 @@ void Row::updateLayout()
     m_size = SizeF{width, height};
 }
 
+void Row::paint(Painter *painter, const glm::vec2 &position, int depth) const
+{
+    Gizmo::paint(painter, position, depth);
+    auto p = position;
+    for (const auto *child : children())
+    {
+        // TODO alignment
+        const auto childSize = child->size();
+        child->paint(painter, p, depth + 1);
+        p.x += childSize.width() + m_spacing;
+    }
+}
+
 void Column::updateLayout()
 {
     float width = 0.0f;
@@ -104,4 +120,17 @@ void Column::updateLayout()
     if (const size_t childCount = m_children.size())
         height += (childCount - 1) * m_spacing;
     m_size = SizeF{width, height};
+}
+
+void Column::paint(Painter *painter, const glm::vec2 &position, int depth) const
+{
+    Gizmo::paint(painter, position, depth);
+    auto p = position;
+    for (const auto *child : children())
+    {
+        // TODO alignment
+        const auto childSize = child->size();
+        child->paint(painter, p, depth + 1);
+        p.y += childSize.height() + m_spacing;
+    }
 }

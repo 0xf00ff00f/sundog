@@ -46,6 +46,9 @@ public:
 
     muslots::Signal<SizeF> resizedSignal;
 
+    bool fillBackground{true};
+    glm::vec4 backgroundColor;
+
 protected:
     struct ChildGizmo
     {
@@ -63,8 +66,6 @@ protected:
     };
 
     std::vector<ChildGizmo> m_children;
-    bool m_fillBackground{true};
-    glm::vec4 m_backgroundColor;
 };
 
 class Rectangle : public Gizmo
@@ -104,6 +105,7 @@ public:
     using Layout::Layout;
 
     void updateLayout() override;
+    void paint(Painter *painter, const glm::vec2 &position, int depth) const override;
 };
 
 class Column : public Layout
@@ -112,4 +114,5 @@ public:
     using Layout::Layout;
 
     void updateLayout() override;
+    void paint(Painter *painter, const glm::vec2 &position, int depth) const override;
 };

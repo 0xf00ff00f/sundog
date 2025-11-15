@@ -31,7 +31,12 @@ bool WindowBase::initialize(int width, int height, const char *title)
     glfwSetMouseButtonCallback(m_window, WindowBase::handleMouseButton);
     glfwSetCursorPosCallback(m_window, WindowBase::handleMouseMove);
 
-    return initializeResources();
+    if (!initializeResources())
+        return false;
+
+    handleWindowSize(size());
+
+    return true;
 }
 
 void WindowBase::handleWindowSize(GLFWwindow *window, int width, int height)

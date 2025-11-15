@@ -165,12 +165,6 @@ void UniverseMap::render(JulianDate when) const
         }
     };
 
-    {
-        static const std::array verts = {glm::vec2{10, 10}, glm::vec2{50, 10}, glm::vec2{50, 50}, glm::vec2{10, 50}};
-        m_overlayPainter->setColor({1, 0, 0, 1});
-        m_overlayPainter->drawFilledConvexPolygon(verts);
-    }
-
     // render world billboards
 
     m_shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4(1.0, 1.0, 1.0, 1.0));
