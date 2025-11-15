@@ -36,6 +36,7 @@ TestWindow::TestWindow()
 
     auto row = std::make_unique<Row>();
     row->backgroundColor = kRed;
+    row->setMargins(Margins{8.0f, 8.0f, 8.0f, 8.0f});
 
     auto *r1 = row->appendChild<Rectangle>(60.0, 100.0);
     r1->backgroundColor = kGreen;
@@ -48,11 +49,12 @@ TestWindow::TestWindow()
 
     auto *col = row->appendChild<Column>();
     col->backgroundColor = kBlue;
+    col->setMargins(Margins{8.0f, 8.0f, 8.0f, 8.0f});
 
-    auto *r4 = col->appendChild<Rectangle>(100.0, 20.0);
+    auto *r4 = col->appendChild<Rectangle>(100.0, 60.0);
     r4->backgroundColor = kRed;
 
-    auto *r5 = col->appendChild<Rectangle>(100.0, 20.0);
+    auto *r5 = col->appendChild<Rectangle>(100.0, 60.0);
     r5->backgroundColor = kRed;
 
     m_uiRoot = std::move(row);

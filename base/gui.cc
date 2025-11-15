@@ -79,6 +79,14 @@ void Layout::setSpacing(float spacing)
     updateLayout();
 }
 
+void Layout::setMargins(const Margins &margins)
+{
+    if (margins == m_margins)
+        return;
+    m_margins = margins;
+    updateLayout();
+}
+
 void Row::updateLayout()
 {
     float width = 0.0f;
@@ -91,13 +99,15 @@ void Row::updateLayout()
     }
     if (const size_t childCount = m_children.size())
         width += (childCount - 1) * m_spacing;
+    width += m_margins.left + m_margins.right;
+    height += m_margins.top + m_margins.bottom;
     setSize(SizeF{width, height});
 }
 
 void Row::paint(Painter *painter, const glm::vec2 &position, int depth) const
 {
     Gizmo::paint(painter, position, depth);
-    auto p = position;
+    auto p = position + glm::vec2{m_margins.left, m_margins.top};
     for (const auto *child : children())
     {
         // TODO alignment
@@ -119,13 +129,15 @@ void Column::updateLayout()
     }
     if (const size_t childCount = m_children.size())
         height += (childCount - 1) * m_spacing;
+    width += m_margins.left + m_margins.right;
+    height += m_margins.top + m_margins.bottom;
     setSize(SizeF{width, height});
 }
 
 void Column::paint(Painter *painter, const glm::vec2 &position, int depth) const
 {
     Gizmo::paint(painter, position, depth);
-    auto p = position;
+    auto p = position + glm::vec2{m_margins.left, m_margins.top};
     for (const auto *child : children())
     {
         // TODO alignment

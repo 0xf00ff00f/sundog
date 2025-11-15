@@ -28,6 +28,9 @@ TEST_CASE("column", "[column]")
     column.removeChild(0);
     REQUIRE(column.childCount() == 1);
     REQUIRE(column.size() == SizeF{120.0f, 20.0f});
+
+    column.setMargins(Margins{5.0f, 10.0f, 15.0f, 20.0f});
+    REQUIRE(column.size() == SizeF{135.0f, 55.0f});
 }
 
 TEST_CASE("row", "[row]")
@@ -56,6 +59,9 @@ TEST_CASE("row", "[row]")
     row.removeChild(1);
     REQUIRE(row.childCount() == 1);
     REQUIRE(row.size() == SizeF{30.0f, 50.0f});
+
+    row.setMargins(Margins{5.0f, 10.0f, 15.0f, 20.0f});
+    REQUIRE(row.size() == SizeF{45.0f, 85.0f});
 }
 
 TEST_CASE("nested layout", "[nested-layout]")
@@ -76,4 +82,7 @@ TEST_CASE("nested layout", "[nested-layout]")
     rc->setSize(120.0f, 120.0f);
     REQUIRE(col->size() == SizeF{120.0f, 120.0f});
     REQUIRE(row.size() == SizeF{120.0f, 120.0f});
+
+    col->setMargins(Margins{5.0f, 10.0f, 15.0f, 20.0f});
+    REQUIRE(row.size() == SizeF{135.0f, 155.0f});
 }

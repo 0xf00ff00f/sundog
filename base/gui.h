@@ -8,6 +8,16 @@
 #include "painter.h"
 #include "rect.h"
 
+struct Margins
+{
+    float left = 0.0f;
+    float right = 0.0f;
+    float top = 0.0f;
+    float bottom = 0.0f;
+
+    bool operator==(const Margins &) const = default;
+};
+
 class Gizmo
 {
 public:
@@ -89,8 +99,12 @@ public:
     float spacing() const { return m_spacing; }
     void setSpacing(float spacing);
 
+    Margins margins() const { return m_margins; }
+    void setMargins(const Margins &margins);
+
 protected:
     float m_spacing{4.0f};
+    Margins m_margins;
 };
 
 class Row : public Layout
