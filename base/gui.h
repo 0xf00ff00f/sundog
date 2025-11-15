@@ -18,6 +18,20 @@ struct Margins
     bool operator==(const Margins &) const = default;
 };
 
+enum class HorizontalAlign
+{
+    Left,
+    Center,
+    Right
+};
+
+enum class VerticalAlign
+{
+    Top,
+    Center,
+    Bottom
+};
+
 class Gizmo
 {
 public:
@@ -58,6 +72,8 @@ public:
 
     bool fillBackground{true};
     glm::vec4 backgroundColor;
+    HorizontalAlign horizontalAlign{HorizontalAlign::Left}; // only used if in a Column
+    VerticalAlign verticalAlign{VerticalAlign::Top};        // only used if in a Row
 
 protected:
     void setSize(const SizeF &size);

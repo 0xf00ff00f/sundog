@@ -116,13 +116,28 @@ void Row::updateLayout()
 void Row::paint(Painter *painter, const glm::vec2 &position, int depth) const
 {
     Gizmo::paint(painter, position, depth);
-    auto p = position + glm::vec2{m_margins.left, m_margins.top};
+    float x = position.x + m_margins.left;
     for (const auto *child : children())
     {
-        // TODO alignment
         const auto childSize = child->size();
-        child->paint(painter, p, depth + 1);
-        p.x += childSize.width() + m_spacing;
+        const auto y = position.y + [this, child, &childSize] {
+            switch (child->verticalAlign)
+            {
+            case VerticalAlign::Top:
+            default: {
+                return m_margins.top;
+            }
+            case VerticalAlign::Center: {
+                const auto usableHeight = m_size.height() - (m_margins.top + m_margins.bottom);
+                return m_margins.top + 0.5f * (usableHeight - childSize.height());
+            }
+            case VerticalAlign::Bottom: {
+                return m_size.height() - m_margins.bottom - childSize.height();
+            }
+            }
+        }();
+        child->paint(painter, position + glm::vec2{x, y}, depth + 1);
+        x += childSize.width() + m_spacing;
     }
 }
 
@@ -155,12 +170,27 @@ void Column::updateLayout()
 void Column::paint(Painter *painter, const glm::vec2 &position, int depth) const
 {
     Gizmo::paint(painter, position, depth);
-    auto p = position + glm::vec2{m_margins.left, m_margins.top};
+    float y = position.y + m_margins.top;
     for (const auto *child : children())
     {
-        // TODO alignment
         const auto childSize = child->size();
-        child->paint(painter, p, depth + 1);
-        p.y += childSize.height() + m_spacing;
+        const auto x = position.x + [this, child, &childSize] {
+            switch (child->horizontalAlign)
+            {
+            case HorizontalAlign::Left:
+            default: {
+                return m_margins.left;
+            }
+            case HorizontalAlign::Center: {
+                const auto usableWidth = m_size.width() - (m_margins.left + m_margins.right);
+                return m_margins.left + 0.5f * (usableWidth - childSize.width());
+            }
+            case HorizontalAlign::Right: {
+                return m_size.width() - m_margins.right - childSize.width();
+            }
+            }
+        }();
+        child->paint(painter, glm::vec2{x, y}, depth + 1);
+        y += childSize.height() + m_spacing;
     }
 }
