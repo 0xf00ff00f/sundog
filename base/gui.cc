@@ -87,6 +87,14 @@ void Layout::setMargins(const Margins &margins)
     updateLayout();
 }
 
+void Row::setMinimumHeight(float height)
+{
+    if (height == m_minimumHeight)
+        return;
+    m_minimumHeight = height;
+    updateLayout();
+}
+
 void Row::updateLayout()
 {
     float width = 0.0f;
@@ -101,6 +109,7 @@ void Row::updateLayout()
         width += (childCount - 1) * m_spacing;
     width += m_margins.left + m_margins.right;
     height += m_margins.top + m_margins.bottom;
+    height = std::max(m_minimumHeight, height);
     setSize(SizeF{width, height});
 }
 
@@ -117,6 +126,14 @@ void Row::paint(Painter *painter, const glm::vec2 &position, int depth) const
     }
 }
 
+void Column::setMinimumWidth(float width)
+{
+    if (width == m_minimumWidth)
+        return;
+    m_minimumWidth = width;
+    updateLayout();
+}
+
 void Column::updateLayout()
 {
     float width = 0.0f;
@@ -130,6 +147,7 @@ void Column::updateLayout()
     if (const size_t childCount = m_children.size())
         height += (childCount - 1) * m_spacing;
     width += m_margins.left + m_margins.right;
+    width = std::max(m_minimumWidth, width);
     height += m_margins.top + m_margins.bottom;
     setSize(SizeF{width, height});
 }

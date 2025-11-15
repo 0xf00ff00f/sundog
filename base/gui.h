@@ -114,6 +114,11 @@ public:
 
     void updateLayout() override;
     void paint(Painter *painter, const glm::vec2 &position, int depth) const override;
+
+    void setMinimumHeight(float height);
+
+private:
+    float m_minimumHeight{0.0f};
 };
 
 class Column : public Layout
@@ -123,4 +128,9 @@ public:
 
     void updateLayout() override;
     void paint(Painter *painter, const glm::vec2 &position, int depth) const override;
+
+    void setMinimumWidth(float width);
+
+private:
+    float m_minimumWidth{0.0f};
 };

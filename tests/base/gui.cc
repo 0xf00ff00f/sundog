@@ -31,6 +31,12 @@ TEST_CASE("column", "[column]")
 
     column.setMargins(Margins{5.0f, 10.0f, 15.0f, 20.0f});
     REQUIRE(column.size() == SizeF{135.0f, 55.0f});
+
+    column.setMinimumWidth(150.0f);
+    REQUIRE(column.size() == SizeF{150.0f, 55.0f});
+
+    column.setMinimumWidth(10.0f);
+    REQUIRE(column.size() == SizeF{135.0f, 55.0f});
 }
 
 TEST_CASE("row", "[row]")
@@ -61,6 +67,12 @@ TEST_CASE("row", "[row]")
     REQUIRE(row.size() == SizeF{30.0f, 50.0f});
 
     row.setMargins(Margins{5.0f, 10.0f, 15.0f, 20.0f});
+    REQUIRE(row.size() == SizeF{45.0f, 85.0f});
+
+    row.setMinimumHeight(120.0f);
+    REQUIRE(row.size() == SizeF{45.0f, 120.0f});
+
+    row.setMinimumHeight(10.0f);
     REQUIRE(row.size() == SizeF{45.0f, 85.0f});
 }
 
