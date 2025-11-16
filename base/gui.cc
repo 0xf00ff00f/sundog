@@ -6,6 +6,10 @@ namespace ui
 Gizmo::ChildGizmo::ChildGizmo(std::unique_ptr<Gizmo> gizmo, Gizmo *parent)
     : m_gizmo(std::move(gizmo))
     , m_resizedConnection(m_gizmo->resizedSignal.connect([parent](SizeF) { parent->updateLayout(); }))
+    , m_horizontalAlignChangedConnection(
+          m_gizmo->horizontalAlignChangedSignal.connect([parent](HorizontalAlign) { parent->updateLayout(); }))
+    , m_verticalAlignChangedConnection(
+          m_gizmo->verticalAlignChangedSignal.connect([parent](VerticalAlign) { parent->updateLayout(); }))
 {
 }
 
@@ -49,6 +53,12 @@ void Gizmo::paint(Painter *painter, const glm::vec2 &position, int depth) const
         painter->setColor(backgroundColor);
         painter->drawFilledConvexPolygon(verts, depth);
     }
+
+    for (const auto &item : m_children)
+    {
+        const auto *child = item.m_gizmo.get();
+        child->paint(painter, position + item.m_offset, depth + 1);
+    }
 }
 
 void Gizmo::setSize(const SizeF &size)
@@ -57,6 +67,22 @@ void Gizmo::setSize(const SizeF &size)
         return;
     m_size = size;
     resizedSignal(m_size);
+}
+
+void Gizmo::setHorizontalAlign(HorizontalAlign align)
+{
+    if (align == m_horizontalAlign)
+        return;
+    m_horizontalAlign = align;
+    horizontalAlignChangedSignal(m_horizontalAlign);
+}
+
+void Gizmo::setVerticalAlign(VerticalAlign align)
+{
+    if (align == m_verticalAlign)
+        return;
+    m_verticalAlign = align;
+    verticalAlignChangedSignal(m_verticalAlign);
 }
 
 Rectangle::Rectangle(const SizeF &size)
@@ -100,6 +126,7 @@ void Row::setMinimumHeight(float height)
 
 void Row::updateLayout()
 {
+    // update size
     float width = 0.0f;
     float height = 0.0f;
     for (const auto *child : children())
@@ -114,17 +141,15 @@ void Row::updateLayout()
     height += m_margins.top + m_margins.bottom;
     height = std::max(m_minimumHeight, height);
     setSize(SizeF{width, height});
-}
 
-void Row::paint(Painter *painter, const glm::vec2 &position, int depth) const
-{
-    Gizmo::paint(painter, position, depth);
-    float x = position.x + m_margins.left;
-    for (const auto *child : children())
+    // update child offsets
+    float x = m_margins.left;
+    for (auto &item : m_children)
     {
+        const auto *child = item.m_gizmo.get();
         const auto childSize = child->size();
-        const auto y = position.y + [this, child, &childSize] {
-            switch (child->verticalAlign)
+        const auto y = [this, child, &childSize] {
+            switch (child->verticalAlign())
             {
             case VerticalAlign::Top:
             default: {
@@ -139,7 +164,7 @@ void Row::paint(Painter *painter, const glm::vec2 &position, int depth) const
             }
             }
         }();
-        child->paint(painter, position + glm::vec2{x, y}, depth + 1);
+        item.m_offset = glm::vec2{x, y};
         x += childSize.width() + m_spacing;
     }
 }
@@ -154,6 +179,7 @@ void Column::setMinimumWidth(float width)
 
 void Column::updateLayout()
 {
+    // update size
     float width = 0.0f;
     float height = 0.0f;
     for (const auto *child : children())
@@ -168,17 +194,15 @@ void Column::updateLayout()
     width = std::max(m_minimumWidth, width);
     height += m_margins.top + m_margins.bottom;
     setSize(SizeF{width, height});
-}
 
-void Column::paint(Painter *painter, const glm::vec2 &position, int depth) const
-{
-    Gizmo::paint(painter, position, depth);
-    float y = position.y + m_margins.top;
-    for (const auto *child : children())
+    // update child offsets
+    float y = m_margins.top;
+    for (auto &item : m_children)
     {
+        const auto *child = item.m_gizmo.get();
         const auto childSize = child->size();
-        const auto x = position.x + [this, child, &childSize] {
-            switch (child->horizontalAlign)
+        const auto x = [this, child, &childSize] {
+            switch (child->horizontalAlign())
             {
             case HorizontalAlign::Left:
             default: {
@@ -193,7 +217,7 @@ void Column::paint(Painter *painter, const glm::vec2 &position, int depth) const
             }
             }
         }();
-        child->paint(painter, glm::vec2{x, y}, depth + 1);
+        item.m_offset = glm::vec2{x, y};
         y += childSize.height() + m_spacing;
     }
 }

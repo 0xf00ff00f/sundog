@@ -71,12 +71,18 @@ public:
 
     virtual void updateLayout();
 
+    HorizontalAlign horizontalAlign() const { return m_horizontalAlign; }
+    void setHorizontalAlign(HorizontalAlign align);
+
+    VerticalAlign verticalAlign() const { return m_verticalAlign; }
+    void setVerticalAlign(VerticalAlign align);
+
     muslots::Signal<SizeF> resizedSignal;
+    muslots::Signal<HorizontalAlign> horizontalAlignChangedSignal;
+    muslots::Signal<VerticalAlign> verticalAlignChangedSignal;
 
     bool fillBackground{true};
     glm::vec4 backgroundColor;
-    HorizontalAlign horizontalAlign{HorizontalAlign::Left}; // only used if in a Column
-    VerticalAlign verticalAlign{VerticalAlign::Top};        // only used if in a Row
 
 protected:
     void setSize(const SizeF &size);
@@ -93,11 +99,16 @@ protected:
         ChildGizmo &operator=(ChildGizmo &&other) = default;
 
         std::unique_ptr<Gizmo> m_gizmo;
+        glm::vec2 m_offset{0.0f};
         muslots::Connection m_resizedConnection;
+        muslots::Connection m_horizontalAlignChangedConnection;
+        muslots::Connection m_verticalAlignChangedConnection;
     };
 
     SizeF m_size;
     std::vector<ChildGizmo> m_children;
+    HorizontalAlign m_horizontalAlign{HorizontalAlign::Left}; // only used if in a Column
+    VerticalAlign m_verticalAlign{VerticalAlign::Top};        // only used if in a Row
 };
 
 class Rectangle : public Gizmo
@@ -132,7 +143,6 @@ public:
     using Layout::Layout;
 
     void updateLayout() override;
-    void paint(Painter *painter, const glm::vec2 &position, int depth) const override;
 
     void setMinimumHeight(float height);
 
@@ -146,7 +156,6 @@ public:
     using Layout::Layout;
 
     void updateLayout() override;
-    void paint(Painter *painter, const glm::vec2 &position, int depth) const override;
 
     void setMinimumWidth(float width);
 
