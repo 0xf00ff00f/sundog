@@ -1,5 +1,7 @@
 #include "gui.h"
 
+#include <cassert>
+
 namespace ui
 {
 
@@ -16,9 +18,14 @@ Gizmo::ChildGizmo::ChildGizmo(std::unique_ptr<Gizmo> gizmo, Gizmo *parent)
 Gizmo::ChildGizmo::~ChildGizmo()
 {
     m_resizedConnection.disconnect();
+    m_horizontalAlignChangedConnection.disconnect();
+    m_verticalAlignChangedConnection.disconnect();
 }
 
-Gizmo::Gizmo() = default;
+Gizmo::Gizmo(Gizmo *parent)
+    : m_parent(parent)
+{
+}
 
 Gizmo::~Gizmo() = default;
 
@@ -85,13 +92,37 @@ void Gizmo::setVerticalAlign(VerticalAlign align)
     verticalAlignChangedSignal(m_verticalAlign);
 }
 
-Rectangle::Rectangle(const SizeF &size)
+glm::vec2 Gizmo::globalPosition() const
+{
+    glm::vec2 position{0.0f};
+    auto *gizmo = this;
+    while (gizmo->m_parent)
+    {
+        position += gizmo->m_parent->childOffset(gizmo);
+        gizmo = gizmo->m_parent;
+    }
+    return position;
+}
+
+glm::vec2 Gizmo::childOffset(const Gizmo *gizmo) const
+{
+    auto it = std::ranges::find_if(m_children, [gizmo](const auto &item) { return item.m_gizmo.get() == gizmo; });
+    assert(it != m_children.end());
+    if (it == m_children.end())
+    {
+        return {};
+    }
+    return it->m_offset;
+}
+
+Rectangle::Rectangle(const SizeF &size, Gizmo *parent)
+    : Gizmo(parent)
 {
     m_size = size;
 }
 
-Rectangle::Rectangle(float width, float height)
-    : Rectangle(SizeF{width, height})
+Rectangle::Rectangle(float width, float height, Gizmo *parent)
+    : Rectangle(SizeF{width, height}, parent)
 {
 }
 

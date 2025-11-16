@@ -38,7 +38,7 @@ enum class VerticalAlign
 class Gizmo
 {
 public:
-    Gizmo();
+    explicit Gizmo(Gizmo *parent = nullptr);
     virtual ~Gizmo();
 
     SizeF size() const { return m_size; }
@@ -54,7 +54,7 @@ public:
     ChildT *insertChild(std::size_t index, Args &&...args)
     {
         auto it = m_children.emplace(std::next(m_children.begin(), index),
-                                     std::make_unique<ChildT>(std::forward<Args>(args)...), this);
+                                     std::make_unique<ChildT>(std::forward<Args>(args)..., this), this);
         updateLayout();
         return static_cast<ChildT *>(it->m_gizmo.get());
     }
@@ -77,6 +77,8 @@ public:
     VerticalAlign verticalAlign() const { return m_verticalAlign; }
     void setVerticalAlign(VerticalAlign align);
 
+    glm::vec2 globalPosition() const;
+
     muslots::Signal<SizeF> resizedSignal;
     muslots::Signal<HorizontalAlign> horizontalAlignChangedSignal;
     muslots::Signal<VerticalAlign> verticalAlignChangedSignal;
@@ -86,6 +88,7 @@ public:
 
 protected:
     void setSize(const SizeF &size);
+    glm::vec2 childOffset(const Gizmo *gizmo) const;
 
     struct ChildGizmo
     {
@@ -105,6 +108,7 @@ protected:
         muslots::Connection m_verticalAlignChangedConnection;
     };
 
+    Gizmo *m_parent{nullptr};
     SizeF m_size;
     std::vector<ChildGizmo> m_children;
     HorizontalAlign m_horizontalAlign{HorizontalAlign::Left}; // only used if in a Column
@@ -114,8 +118,8 @@ protected:
 class Rectangle : public Gizmo
 {
 public:
-    explicit Rectangle(float width, float height);
-    explicit Rectangle(const SizeF &size);
+    explicit Rectangle(float width, float height, Gizmo *parent = nullptr);
+    explicit Rectangle(const SizeF &size, Gizmo *parent = nullptr);
 
     void setSize(float width, float height);
     using Gizmo::setSize;

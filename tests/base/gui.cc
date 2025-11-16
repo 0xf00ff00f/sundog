@@ -100,3 +100,25 @@ TEST_CASE("nested layout", "[nested-layout]")
     col->setMargins(Margins{5.0f, 10.0f, 15.0f, 20.0f});
     REQUIRE(row.size() == SizeF{135.0f, 155.0f});
 }
+
+TEST_CASE("gizmo positions", "[gizmo-positions]")
+{
+    Row row;
+
+    REQUIRE(row.childCount() == 0);
+    REQUIRE(row.globalPosition() == glm::vec2{0.0f});
+    REQUIRE(row.margins() == Margins{0.0f, 0.0f, 0.0f, 0.0f});
+    REQUIRE(row.spacing() == 4.0f);
+
+    auto *rc1 = row.appendChild<Rectangle>(10.0f, 10.0f);
+    REQUIRE(rc1->globalPosition() == glm::vec2{0.0f});
+
+    row.setMargins(Margins{10.0f, 10.0f, 20.0f, 10.0f});
+    REQUIRE(rc1->globalPosition() == glm::vec2{10.0f, 20.0f});
+
+    auto *rc2 = row.appendChild<Rectangle>(10.0f, 10.0f);
+    REQUIRE(rc2->globalPosition() == glm::vec2{24.0f, 20.0f});
+
+    row.removeChild(0);
+    REQUIRE(rc2->globalPosition() == glm::vec2{10.0f, 20.0f});
+}
