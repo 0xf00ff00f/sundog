@@ -7,6 +7,7 @@
 
 #include "painter.h"
 #include "rect.h"
+#include "window_base.h"
 
 namespace ui
 {
@@ -79,6 +80,15 @@ public:
 
     glm::vec2 globalPosition() const;
 
+    virtual bool handleMousePress(const glm::vec2 &pos);
+
+    // these will only be called if returned true to corresponding handleMousePress
+    virtual void handleMouseRelease(const glm::vec2 &pos);
+    virtual void handleMouseMove(const glm::vec2 &pos);
+
+    virtual void handleMouseEnter();
+    virtual void handleMouseLeave();
+
     muslots::Signal<SizeF> resizedSignal;
     muslots::Signal<HorizontalAlign> horizontalAlignChangedSignal;
     muslots::Signal<VerticalAlign> verticalAlignChangedSignal;
@@ -113,6 +123,8 @@ protected:
     std::vector<ChildGizmo> m_children;
     HorizontalAlign m_horizontalAlign{HorizontalAlign::Left}; // only used if in a Column
     VerticalAlign m_verticalAlign{VerticalAlign::Top};        // only used if in a Row
+
+    friend class EventManager;
 };
 
 class Rectangle : public Gizmo
@@ -165,6 +177,22 @@ public:
 
 private:
     float m_minimumWidth{0.0f};
+};
+
+class EventManager
+{
+public:
+    EventManager();
+
+    void setRoot(Gizmo *root);
+
+    void handleMouseButton(MouseButton button, MouseAction action, const glm::vec2 &pos, Modifier mods);
+    void handleMouseMove(const glm::vec2 &position);
+
+private:
+    Gizmo *m_root{nullptr};
+    Gizmo *m_mouseEventTarget{nullptr};
+    Gizmo *m_underCursor{nullptr};
 };
 
 } // namespace ui

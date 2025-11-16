@@ -311,8 +311,6 @@ void Painter::end()
                std::tuple(rhs->depth(), rhs->vertexType(), rhs->texture());
     });
 
-    std::println("rendering {} commands", m_commands.size());
-
     VertexPosColorBuffer vertexPosColorBuffer;
     VertexPosTexColorBuffer vertexPosTexColorBuffer;
 

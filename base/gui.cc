@@ -115,6 +115,19 @@ glm::vec2 Gizmo::childOffset(const Gizmo *gizmo) const
     return it->m_offset;
 }
 
+bool Gizmo::handleMousePress(const glm::vec2 &)
+{
+    return false;
+}
+
+void Gizmo::handleMouseRelease(const glm::vec2 &) {}
+
+void Gizmo::handleMouseMove(const glm::vec2 &) {}
+
+void Gizmo::handleMouseEnter() {}
+
+void Gizmo::handleMouseLeave() {}
+
 Rectangle::Rectangle(const SizeF &size, Gizmo *parent)
     : Gizmo(parent)
 {
@@ -250,6 +263,82 @@ void Column::updateLayout()
         }();
         item.m_offset = glm::vec2{x, y};
         y += childSize.height() + m_spacing;
+    }
+}
+
+EventManager::EventManager() = default;
+
+void EventManager::setRoot(Gizmo *root)
+{
+    m_root = root;
+}
+
+void EventManager::handleMouseButton(MouseButton button, MouseAction action, const glm::vec2 &pos, Modifier mods)
+{
+    if (button != MouseButton::Left)
+        return;
+    switch (action)
+    {
+    case MouseAction::Press: {
+        auto *target = [button, mods](this auto self, Gizmo *gizmo, const glm::vec2 &pos) -> Gizmo * {
+            const auto size = gizmo->m_size;
+            if (pos.x < 0.0f || pos.x >= size.width() || pos.y < 0.0f || pos.y >= size.height())
+                return nullptr;
+            // does any children accept this event?
+            for (const auto &item : gizmo->m_children)
+            {
+                if (auto *target = self(item.m_gizmo.get(), pos - item.m_offset))
+                    return target;
+            }
+            // else try with this gizmo
+            if (gizmo->handleMousePress(pos))
+                return gizmo;
+            return nullptr;
+        }(m_root, pos);
+        if (target)
+        {
+            // found a gizmo that accepts the mouse press, will get mouse move and the mouse release event
+            m_mouseEventTarget = target;
+        }
+        break;
+    }
+    case MouseAction::Release: {
+        if (m_mouseEventTarget)
+        {
+            m_mouseEventTarget->handleMouseRelease(pos - m_mouseEventTarget->globalPosition());
+            m_mouseEventTarget = nullptr;
+        }
+        break;
+    }
+    }
+}
+
+void EventManager::handleMouseMove(const glm::vec2 &pos)
+{
+    auto *underCursor = [](this auto self, Gizmo *gizmo, const glm::vec2 &pos) -> Gizmo * {
+        const auto size = gizmo->m_size;
+        if (pos.x < 0.0f || pos.x >= size.width() || pos.y < 0.0f || pos.y >= size.height())
+            return nullptr;
+        // is it inside any of the children?
+        for (const auto &item : gizmo->m_children)
+        {
+            if (auto *underCursor = self(item.m_gizmo.get(), pos - item.m_offset))
+                return underCursor;
+        }
+        return gizmo;
+    }(m_root, pos);
+    if (m_underCursor != underCursor)
+    {
+        if (m_underCursor)
+            m_underCursor->handleMouseLeave();
+        m_underCursor = underCursor;
+        if (m_underCursor)
+            m_underCursor->handleMouseEnter();
+    }
+
+    if (m_mouseEventTarget)
+    {
+        m_mouseEventTarget->handleMouseMove(pos - m_mouseEventTarget->globalPosition());
     }
 }
 
