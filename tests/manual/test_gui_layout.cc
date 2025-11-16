@@ -7,6 +7,8 @@
 
 #include <print>
 
+using namespace ui;
+
 class TestWindow : public WindowBase
 {
 public:

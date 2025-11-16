@@ -8,6 +8,9 @@
 #include "painter.h"
 #include "rect.h"
 
+namespace ui
+{
+
 struct Margins
 {
     float left = 0.0f;
@@ -150,3 +153,5 @@ public:
 private:
     float m_minimumWidth{0.0f};
 };
+
+} // namespace ui

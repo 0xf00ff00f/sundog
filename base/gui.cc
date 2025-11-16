@@ -1,5 +1,8 @@
 #include "gui.h"
 
+namespace ui
+{
+
 Gizmo::ChildGizmo::ChildGizmo(std::unique_ptr<Gizmo> gizmo, Gizmo *parent)
     : m_gizmo(std::move(gizmo))
     , m_resizedConnection(m_gizmo->resizedSignal.connect([parent](SizeF) { parent->updateLayout(); }))
@@ -194,3 +197,5 @@ void Column::paint(Painter *painter, const glm::vec2 &position, int depth) const
         y += childSize.height() + m_spacing;
     }
 }
+
+} // namespace ui

@@ -2,6 +2,8 @@
 
 #include <gui.h>
 
+using namespace ui;
+
 TEST_CASE("column", "[column]")
 {
     Column column;
