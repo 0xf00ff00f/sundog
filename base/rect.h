@@ -27,6 +27,8 @@ public:
     T width() const { return m_width; }
     T height() const { return m_height; }
 
+    bool isNull() const { return m_width == 0 || m_height == 0; }
+
     bool operator==(const Size &other) const = default;
 
 private:
@@ -87,6 +89,10 @@ public:
     void setRight(T right) { m_topLeft.x = right - m_size.width(); }
     void setTop(T top) { m_topLeft.y = top; }
     void setBottom(T bottom) { m_topLeft.y = bottom - m_size.height(); }
+
+    bool isNull() const { return m_size.isNull(); }
+
+    bool operator==(const Rect &other) const = default;
 
 private:
     Point m_topLeft{0};

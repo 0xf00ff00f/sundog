@@ -31,16 +31,22 @@ public:
     void setFont(const Font &font);
     Font font() const;
 
+    void setClipRect(const RectF &clipRect);
+    RectF clipRect() const { return m_clipRect; }
+
     void drawPolyline(std::span<const glm::vec2> verts, float thickness, bool closed, int depth = 0);
     void drawFilledConvexPolygon(std::span<const glm::vec2> verts, int depth = 0);
     void drawText(const glm::vec2 &pos, const std::string_view text, int depth = 0);
 
 private:
+    void flushCommandQueue();
+
     ShaderManager *m_shaderManager{nullptr};
     SizeI m_viewportSize;
 
     std::vector<std::unique_ptr<DrawCommand>> m_commands;
     glm::vec4 m_color = glm::vec4{1.0};
+    RectF m_clipRect;
     std::optional<FontMetrics> m_fontMetrics;
     std::unique_ptr<SpriteTextureBook> m_spriteBook;
     std::unordered_map<Font, std::unique_ptr<GlyphCache>> m_glyphCaches;

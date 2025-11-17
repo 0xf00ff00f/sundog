@@ -114,6 +114,9 @@ public:
     virtual VertexType vertexType() const = 0;
     virtual const gl::AbstractTexture *texture() const = 0;
 
+    virtual void dumpVertices(VertexPosColorBuffer &) const {};
+    virtual void dumpVertices(VertexPosTexColorBuffer &) const {};
+
 private:
     int m_depth;
 };
@@ -122,16 +125,12 @@ class DrawCommandPosColor : public DrawCommand
 {
 public:
     using DrawCommand::DrawCommand;
-
-    virtual void dumpVertices(VertexPosColorBuffer &buffer) const = 0;
 };
 
 class DrawCommandPosTexColor : public DrawCommand
 {
 public:
     using DrawCommand::DrawCommand;
-
-    virtual void dumpVertices(VertexPosTexColorBuffer &buffer) const = 0;
 };
 
 class DrawPolyline : public DrawCommandPosColor
@@ -302,9 +301,20 @@ void Painter::begin()
     m_fontMetrics.reset();
     m_glyphCache = nullptr;
     m_commands.clear();
+
+    // TODO: save this instead
+    glDisable(GL_SCISSOR_TEST);
 }
 
 void Painter::end()
+{
+    flushCommandQueue();
+
+    // TODO: restore to what it was before begin() call
+    glDisable(GL_SCISSOR_TEST);
+}
+
+void Painter::flushCommandQueue()
 {
     std::ranges::sort(m_commands, [](const auto &lhs, const auto &rhs) {
         return std::tuple(lhs->depth(), lhs->vertexType(), lhs->texture()) <
@@ -323,41 +333,35 @@ void Painter::end()
             std::find_if(std::next(batchStart), m_commands.end(), [vertexType, texture](const auto &command) {
                 return command->vertexType() != vertexType || command->texture() != texture;
             });
+        auto fillBuffer = [batchStart, batchEnd](auto &buffer) {
+            buffer.vertices.clear();
+            buffer.indices.clear();
+            for (auto it = batchStart; it != batchEnd; ++it)
+            {
+                (*it)->dumpVertices(buffer);
+            }
+            buffer.uploadData();
+        };
         switch (vertexType)
         {
         case VertexType::PosColor: {
-            // TODO: make this generic
-            auto &buffer = vertexPosColorBuffer;
-            buffer.vertices.clear();
-            buffer.indices.clear();
-            for (auto it = batchStart; it != batchEnd; ++it)
-            {
-                const auto *command = static_cast<DrawCommandPosColor *>(it->get());
-                command->dumpVertices(buffer);
-            }
-            buffer.uploadData();
+            fillBuffer(vertexPosColorBuffer);
             m_shaderManager->setCurrent(ShaderManager::Shader::Flat);
-            buffer.draw();
+            vertexPosColorBuffer.draw();
             break;
         }
         case VertexType::PosTexColor: {
-            auto &buffer = vertexPosTexColorBuffer;
-            buffer.vertices.clear();
-            buffer.indices.clear();
-            for (auto it = batchStart; it != batchEnd; ++it)
-            {
-                const auto *command = static_cast<DrawCommandPosTexColor *>(it->get());
-                command->dumpVertices(buffer);
-            }
-            buffer.uploadData();
+            fillBuffer(vertexPosTexColorBuffer);
             texture->bind();
             m_shaderManager->setCurrent(ShaderManager::Shader::Text);
-            buffer.draw();
+            vertexPosTexColorBuffer.draw();
             break;
         }
         }
         batchStart = batchEnd;
     }
+
+    m_commands.clear();
 }
 
 void Painter::setColor(const glm::vec4 &color)
@@ -381,6 +385,40 @@ void Painter::setFont(const Font &font)
 Font Painter::font() const
 {
     return m_glyphCache != nullptr ? m_glyphCache->font() : Font{};
+}
+
+void Painter::setClipRect(const RectF &clipRect)
+{
+    if (clipRect == m_clipRect)
+        return;
+
+    // Temporary hack just to get this over with. Ideally we want to batch and draw everything outside the clipRect,
+    // before setting the clip rect and drawing stuff inside the clip rect! How?
+    // * Store clip rect in draw commands, sort by clip rect and depth?
+    // * Clip draw commands on the CPU (maybe too expensive and complicated, especially for things like stroked paths)?
+    // * Store a tree of draw commands, with the clip rect on each node, then instead of setClipRect we could have
+    // pushClipRect/popClipRect?
+    //
+    //     struct Node
+    //     {
+    //        RectF clipRect;
+    //        std::vector<std::unique_ptr<DrawCommand>> commands;
+    //        std::vector<std::unique_ptr<Node>> children;
+    //     };
+    //
+    flushCommandQueue();
+
+    m_clipRect = clipRect;
+    if (m_clipRect.isNull())
+    {
+        glDisable(GL_SCISSOR_TEST);
+    }
+    else
+    {
+        glScissor(m_clipRect.left(), m_viewportSize.height() - (m_clipRect.top() + m_clipRect.height()),
+                  m_clipRect.width(), m_clipRect.height());
+        glEnable(GL_SCISSOR_TEST);
+    }
 }
 
 void Painter::drawFilledConvexPolygon(std::span<const glm::vec2> verts, int depth)
