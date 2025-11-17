@@ -56,6 +56,24 @@ void Gizmo::updateLayout() {}
 
 void Gizmo::paint(Painter *painter, const glm::vec2 &pos, int depth) const
 {
+    auto clipRect = painter->clipRect();
+    if (!clipRect.isNull())
+    {
+        auto rect = RectF{pos, m_size};
+        if (!clipRect.intersects(rect))
+            return;
+    }
+    paintContents(painter, pos, depth);
+}
+
+void Gizmo::paintContents(Painter *painter, const glm::vec2 &pos, int depth) const
+{
+    paintBackground(painter, pos, depth);
+    paintChildren(painter, pos, depth);
+}
+
+void Gizmo::paintBackground(Painter *painter, const glm::vec2 &pos, int depth) const
+{
     if (fillBackground())
     {
         const auto size = this->size();
@@ -65,7 +83,10 @@ void Gizmo::paint(Painter *painter, const glm::vec2 &pos, int depth) const
         painter->setColor(backgroundColor);
         painter->drawFilledConvexPolygon(verts, depth);
     }
+}
 
+void Gizmo::paintChildren(Painter *painter, const glm::vec2 &pos, int depth) const
+{
     for (const auto &item : m_children)
     {
         const auto *child = item.m_gizmo.get();
@@ -283,6 +304,87 @@ void Column::updateLayout()
         item.m_offset = glm::vec2{x, y};
         y += childSize.height() + m_spacing;
     }
+}
+
+ScrollArea::ScrollArea(float width, float height, Gizmo *parent)
+    : ScrollArea(SizeF{width, height}, parent)
+{
+}
+
+ScrollArea::ScrollArea(const SizeF &size, Gizmo *parent)
+    : Gizmo(parent)
+{
+    m_size = size;
+}
+
+void ScrollArea::setSize(float width, float height)
+{
+    setSize(SizeF{width, height});
+}
+
+bool ScrollArea::handleMousePress(const glm::vec2 &pos)
+{
+    m_dragging = true;
+    m_lastMousePos = pos;
+    return true;
+}
+
+void ScrollArea::handleMouseRelease(const glm::vec2 &pos)
+{
+    m_dragging = false;
+}
+
+void ScrollArea::handleMouseMove(const glm::vec2 &pos)
+{
+    if (m_dragging)
+    {
+        const auto delta = pos - m_lastMousePos;
+        setOffset(m_offset + delta);
+        m_lastMousePos = pos;
+    }
+}
+
+void ScrollArea::setOffset(const glm::vec2 &offset)
+{
+    const auto maxOffset =
+        glm::vec2{m_size.width() - m_contentsSize.width(), m_size.height() - m_contentsSize.height()};
+    const auto clampedOffset = glm::min(glm::vec2{0.0f, 0.0f}, glm::max(maxOffset, offset));
+    if (clampedOffset == m_offset)
+        return;
+
+    m_offset = clampedOffset;
+
+    for (auto &item : m_children)
+        item.m_offset = m_offset;
+}
+
+void ScrollArea::updateLayout()
+{
+    float contentsWidth = 0.0f;
+    float contentsHeight = 0.0f;
+    for (const auto *child : children())
+    {
+        const auto childSize = child->size();
+        contentsWidth = std::max(contentsWidth, childSize.width());
+        contentsHeight = std::max(contentsHeight, childSize.height());
+    }
+    m_contentsSize = SizeF{contentsWidth, contentsHeight};
+
+    setOffset(m_offset);
+}
+
+void ScrollArea::paintContents(Painter *painter, const glm::vec2 &pos, int depth) const
+{
+    paintBackground(painter, pos, depth);
+
+    const RectF prevClipRect = painter->clipRect();
+
+    const auto clipRect = RectF{pos, m_size};
+    // TODO intersect clipRect with previous clip rect so we can handle nested scroll areas
+
+    painter->setClipRect(clipRect);
+    paintChildren(painter, pos, depth);
+    painter->setClipRect(prevClipRect);
 }
 
 EventManager::EventManager() = default;

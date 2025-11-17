@@ -14,10 +14,10 @@ namespace ui
 
 struct Margins
 {
-    float left = 0.0f;
-    float right = 0.0f;
-    float top = 0.0f;
-    float bottom = 0.0f;
+    float left{0.0f};
+    float right{0.0f};
+    float top{0.0f};
+    float bottom{0.0f};
 
     bool operator==(const Margins &) const = default;
 };
@@ -67,7 +67,7 @@ public:
     void setOptions(Option options);
 
     SizeF size() const { return m_size; }
-    virtual void paint(Painter *painter, const glm::vec2 &pos, int depth) const;
+    void paint(Painter *painter, const glm::vec2 &pos, int depth) const;
 
     template<std::derived_from<Gizmo> ChildT, typename... Args>
     ChildT *appendChild(Args &&...args)
@@ -146,8 +146,11 @@ public:
     glm::vec4 backgroundColor;
 
 protected:
+    virtual void paintContents(Painter *painter, const glm::vec2 &pos, int depth) const;
     void setSize(const SizeF &size);
     glm::vec2 childOffset(const Gizmo *gizmo) const;
+    void paintBackground(Painter *painter, const glm::vec2 &pos, int depth) const;
+    void paintChildren(Painter *painter, const glm::vec2 &pos, int depth) const;
 
     struct ChildGizmo
     {
@@ -225,6 +228,32 @@ public:
 
 private:
     float m_minimumWidth{0.0f};
+};
+
+class ScrollArea : public Gizmo
+{
+public:
+    explicit ScrollArea(float width, float height, Gizmo *parent = nullptr);
+    explicit ScrollArea(const SizeF &size, Gizmo *parent = nullptr);
+
+    void setSize(float width, float height);
+    using Gizmo::setSize;
+
+    bool handleMousePress(const glm::vec2 &pos) override;
+    void handleMouseRelease(const glm::vec2 &pos) override;
+    void handleMouseMove(const glm::vec2 &pos) override;
+
+    void updateLayout() override;
+
+    void setOffset(const glm::vec2 &offset);
+
+    void paintContents(Painter *painter, const glm::vec2 &pos, int depth) const override;
+
+private:
+    bool m_dragging{false};
+    glm::vec2 m_lastMousePos;
+    glm::vec2 m_offset{0.0f};
+    SizeF m_contentsSize;
 };
 
 class EventManager

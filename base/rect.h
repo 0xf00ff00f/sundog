@@ -90,6 +90,13 @@ public:
     void setTop(T top) { m_topLeft.y = top; }
     void setBottom(T bottom) { m_topLeft.y = bottom - m_size.height(); }
 
+    bool intersects(const Rect &other) const
+    {
+        if (right() < other.left() || left() >= other.right() || bottom() < other.top() || top() >= other.bottom())
+            return false;
+        return true;
+    }
+
     bool isNull() const { return m_size.isNull(); }
 
     bool operator==(const Rect &other) const = default;
