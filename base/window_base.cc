@@ -70,7 +70,7 @@ void WindowBase::handleKey(int /* key */, int /* scancode */, KeyAction /* actio
 
 void WindowBase::handleMouseButton(MouseButton /* button */, MouseAction /* action */, Modifier /* mods */) {}
 
-void WindowBase::handleMouseMove(const glm::vec2 & /* position */) {}
+void WindowBase::handleMouseMove(const glm::vec2 & /* pos */) {}
 
 void WindowBase::run()
 {

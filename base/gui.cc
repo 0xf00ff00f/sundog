@@ -49,14 +49,14 @@ Gizmo *Gizmo::childAt(std::size_t index)
 
 void Gizmo::updateLayout() {}
 
-void Gizmo::paint(Painter *painter, const glm::vec2 &position, int depth) const
+void Gizmo::paint(Painter *painter, const glm::vec2 &pos, int depth) const
 {
     if (fillBackground)
     {
         const auto size = this->size();
-        const std::array<glm::vec2, 4> verts = {position, position + glm::vec2(size.width(), 0),
-                                                position + glm::vec2(size.width(), size.height()),
-                                                position + glm::vec2(0, size.height())};
+        const std::array<glm::vec2, 4> verts = {pos, pos + glm::vec2(size.width(), 0),
+                                                pos + glm::vec2(size.width(), size.height()),
+                                                pos + glm::vec2(0, size.height())};
         painter->setColor(backgroundColor);
         painter->drawFilledConvexPolygon(verts, depth);
     }
@@ -64,7 +64,7 @@ void Gizmo::paint(Painter *painter, const glm::vec2 &position, int depth) const
     for (const auto &item : m_children)
     {
         const auto *child = item.m_gizmo.get();
-        child->paint(painter, position + item.m_offset, depth + 1);
+        child->paint(painter, pos + item.m_offset, depth + 1);
     }
 }
 

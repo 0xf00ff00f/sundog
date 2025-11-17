@@ -16,9 +16,9 @@ class Button : public Gizmo
 public:
     explicit Button(std::string_view name, Gizmo *parent = nullptr);
 
-    bool handleMousePress(const glm::vec2 &position) override;
-    void handleMouseRelease(const glm::vec2 &position) override;
-    void handleMouseMove(const glm::vec2 &position) override;
+    bool handleMousePress(const glm::vec2 &pos) override;
+    void handleMouseRelease(const glm::vec2 &pos) override;
+    void handleMouseMove(const glm::vec2 &pos) override;
     void handleMouseEnter() override;
     void handleMouseLeave() override;
 
@@ -71,7 +71,7 @@ public:
     void handleWindowSize(const SizeI &size) override;
     void handleKey(int key, int scancode, KeyAction action, Modifier mods) override;
     void handleMouseButton(MouseButton button, MouseAction action, Modifier mods) override;
-    void handleMouseMove(const glm::vec2 &position) override;
+    void handleMouseMove(const glm::vec2 &pos) override;
 
 private:
     bool initializeResources() override;

@@ -65,7 +65,7 @@ public:
     virtual void handleWindowSize(const SizeI &size);
     virtual void handleKey(int key, int scancode, KeyAction action, Modifier mods);
     virtual void handleMouseButton(MouseButton button, MouseAction action, Modifier mods);
-    virtual void handleMouseMove(const glm::vec2 &position);
+    virtual void handleMouseMove(const glm::vec2 &pos);
 
 protected:
     virtual bool initializeResources() = 0;

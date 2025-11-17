@@ -43,7 +43,7 @@ public:
     virtual ~Gizmo();
 
     SizeF size() const { return m_size; }
-    virtual void paint(Painter *painter, const glm::vec2 &position, int depth) const;
+    virtual void paint(Painter *painter, const glm::vec2 &pos, int depth) const;
 
     template<std::derived_from<Gizmo> ChildT, typename... Args>
     ChildT *appendChild(Args &&...args)
@@ -207,7 +207,7 @@ public:
     void setRoot(Gizmo *root);
 
     void handleMouseButton(MouseButton button, MouseAction action, const glm::vec2 &pos, Modifier mods);
-    void handleMouseMove(const glm::vec2 &position);
+    void handleMouseMove(const glm::vec2 &pos);
 
 private:
     Gizmo *m_root{nullptr};

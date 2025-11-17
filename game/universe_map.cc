@@ -192,14 +192,14 @@ void UniverseMap::initializeMeshes()
     m_bodyBillboardMesh = createBodyBillboardMesh();
 }
 
-void UniverseMap::handleMouseButton(MouseButton button, MouseAction action, const glm::vec2 &position, Modifier mods)
+void UniverseMap::handleMouseButton(MouseButton button, MouseAction action, const glm::vec2 &pos, Modifier mods)
 {
-    m_cameraController.handleMouseButton(button, action, position, mods);
+    m_cameraController.handleMouseButton(button, action, pos, mods);
 }
 
-void UniverseMap::handleMouseMove(const glm::vec2 &position)
+void UniverseMap::handleMouseMove(const glm::vec2 &pos)
 {
-    m_cameraController.handleMouseMove(position);
+    m_cameraController.handleMouseMove(pos);
 }
 
 void UniverseMap::update(Seconds seconds)

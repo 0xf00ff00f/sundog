@@ -44,8 +44,7 @@ void CameraController::setViewportSize(const SizeI &size)
     m_viewportSize = size;
 }
 
-void CameraController::handleMouseButton(MouseButton button, MouseAction action, const glm::vec2 &position,
-                                         Modifier mods)
+void CameraController::handleMouseButton(MouseButton button, MouseAction action, const glm::vec2 &pos, Modifier mods)
 {
     if (button == MouseButton::Left)
     {
@@ -53,7 +52,7 @@ void CameraController::handleMouseButton(MouseButton button, MouseAction action,
         {
         case MouseAction::Press: {
             m_dragging = true;
-            m_lastPosition = normalizedViewportPos(position);
+            m_lastPosition = normalizedViewportPos(pos);
             m_mouseVelocitySampler.reset(m_lastPosition);
             break;
         }
@@ -82,9 +81,9 @@ void CameraController::updateViewMatrix()
     m_viewMatrix = glm::lookAt(m_cameraEye, m_cameraCenter, m_upDir);
 }
 
-glm::vec2 CameraController::normalizedViewportPos(const glm::vec2 &position) const
+glm::vec2 CameraController::normalizedViewportPos(const glm::vec2 &pos) const
 {
-    return position / glm::vec2{m_viewportSize.width(), m_viewportSize.height()};
+    return pos / glm::vec2{m_viewportSize.width(), m_viewportSize.height()};
 }
 
 void CameraController::update(Seconds seconds)

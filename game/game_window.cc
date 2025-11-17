@@ -31,9 +31,9 @@ void GameWindow::handleMouseButton(MouseButton button, MouseAction action, Modif
     m_game->handleMouseButton(button, action, cursorPos(), mods);
 }
 
-void GameWindow::handleMouseMove(const glm::vec2 &position)
+void GameWindow::handleMouseMove(const glm::vec2 &pos)
 {
-    m_game->handleMouseMove(position);
+    m_game->handleMouseMove(pos);
 }
 
 void GameWindow::update(Seconds elapsed)
