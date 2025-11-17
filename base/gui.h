@@ -39,8 +39,32 @@ enum class VerticalAlign
 class Gizmo
 {
 public:
+    enum class Option
+    {
+        None = 0,
+        FillBackground = 1 << 0,
+        Hoverable = 1 << 1,
+    };
+
+    friend constexpr Option operator&(Option x, Option y)
+    {
+        return static_cast<Option>(static_cast<unsigned>(x) & static_cast<unsigned>(y));
+    }
+    friend constexpr Option &operator&=(Option &x, Option y) { return x = x & y; }
+
+    friend constexpr Option operator|(Option x, Option y)
+    {
+        return static_cast<Option>(static_cast<unsigned>(x) | static_cast<unsigned>(y));
+    }
+    friend constexpr Option &operator|=(Option &x, Option y) { return x = x | y; }
+
+    friend constexpr Option operator~(Option x) { return static_cast<Option>(~static_cast<unsigned>(x)); }
+
     explicit Gizmo(Gizmo *parent = nullptr);
     virtual ~Gizmo();
+
+    Option options() const { return m_options; }
+    void setOptions(Option options);
 
     SizeF size() const { return m_size; }
     virtual void paint(Painter *painter, const glm::vec2 &pos, int depth) const;
@@ -109,13 +133,16 @@ public:
         return nullptr;
     }
 
+    bool fillBackground() const { return (m_options & Option::FillBackground) != Option::None; }
+    void setFillBackground(bool fillBackground);
+
+    bool hoverable() const { return (m_options & Option::Hoverable) != Option::None; }
+    void setHoverable(bool hoverable);
+
     muslots::Signal<SizeF> resizedSignal;
     muslots::Signal<HorizontalAlign> horizontalAlignChangedSignal;
     muslots::Signal<VerticalAlign> verticalAlignChangedSignal;
 
-    // TODO: GizmoFlags
-    bool fillBackground{true};
-    bool hoverable{false};
     glm::vec4 backgroundColor;
 
 protected:
@@ -140,6 +167,7 @@ protected:
         muslots::Connection m_verticalAlignChangedConnection;
     };
 
+    Option m_options{Option::FillBackground};
     Gizmo *m_parent{nullptr};
     SizeF m_size;
     std::vector<ChildGizmo> m_children;

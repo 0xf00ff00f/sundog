@@ -29,6 +29,11 @@ Gizmo::Gizmo(Gizmo *parent)
 
 Gizmo::~Gizmo() = default;
 
+void Gizmo::setOptions(Option options)
+{
+    m_options = options;
+}
+
 void Gizmo::removeChild(std::size_t index)
 {
     if (index >= m_children.size())
@@ -51,7 +56,7 @@ void Gizmo::updateLayout() {}
 
 void Gizmo::paint(Painter *painter, const glm::vec2 &pos, int depth) const
 {
-    if (fillBackground)
+    if (fillBackground())
     {
         const auto size = this->size();
         const std::array<glm::vec2, 4> verts = {pos, pos + glm::vec2(size.width(), 0),
@@ -127,6 +132,20 @@ void Gizmo::handleMouseMove(const glm::vec2 &) {}
 void Gizmo::handleMouseEnter() {}
 
 void Gizmo::handleMouseLeave() {}
+
+void Gizmo::setHoverable(bool hoverable)
+{
+    m_options &= ~Option::Hoverable;
+    if (hoverable)
+        m_options |= Option::Hoverable;
+}
+
+void Gizmo::setFillBackground(bool fillBackground)
+{
+    m_options &= ~Option::FillBackground;
+    if (fillBackground)
+        m_options |= Option::FillBackground;
+}
 
 Rectangle::Rectangle(const SizeF &size, Gizmo *parent)
     : Gizmo(parent)
@@ -302,7 +321,7 @@ void EventManager::handleMouseButton(MouseButton button, MouseAction action, con
 
 void EventManager::handleMouseMove(const glm::vec2 &pos)
 {
-    auto *underCursor = m_root->findChildAt(pos, [](Gizmo *gizmo, const glm::vec2 &) { return gizmo->hoverable; });
+    auto *underCursor = m_root->findChildAt(pos, [](Gizmo *gizmo, const glm::vec2 &) { return gizmo->hoverable(); });
     if (m_underCursor != underCursor)
     {
         if (m_underCursor)
