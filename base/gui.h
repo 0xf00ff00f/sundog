@@ -89,11 +89,30 @@ public:
     virtual void handleMouseEnter();
     virtual void handleMouseLeave();
 
+    template<typename Pred>
+    Gizmo *findChildAt(const glm::vec2 &pos, const Pred &pred)
+    {
+        if (pos.x < 0.0f || pos.x >= m_size.width() || pos.y < 0.0f || pos.y >= m_size.height())
+            return nullptr;
+        // try children
+        for (const auto &item : m_children)
+        {
+            if (auto *target = item.m_gizmo->findChildAt(pos - item.m_offset, pred))
+                return target;
+        }
+        // try this
+        if (pred(this, pos))
+            return this;
+        return nullptr;
+    }
+
     muslots::Signal<SizeF> resizedSignal;
     muslots::Signal<HorizontalAlign> horizontalAlignChangedSignal;
     muslots::Signal<VerticalAlign> verticalAlignChangedSignal;
 
+    // TODO: GizmoFlags
     bool fillBackground{true};
+    bool hoverable{false};
     glm::vec4 backgroundColor;
 
 protected:
@@ -123,8 +142,6 @@ protected:
     std::vector<ChildGizmo> m_children;
     HorizontalAlign m_horizontalAlign{HorizontalAlign::Left}; // only used if in a Column
     VerticalAlign m_verticalAlign{VerticalAlign::Top};        // only used if in a Row
-
-    friend class EventManager;
 };
 
 class Rectangle : public Gizmo

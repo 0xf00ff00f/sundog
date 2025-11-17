@@ -280,21 +280,8 @@ void EventManager::handleMouseButton(MouseButton button, MouseAction action, con
     switch (action)
     {
     case MouseAction::Press: {
-        auto *target = [button, mods](this auto self, Gizmo *gizmo, const glm::vec2 &pos) -> Gizmo * {
-            const auto size = gizmo->m_size;
-            if (pos.x < 0.0f || pos.x >= size.width() || pos.y < 0.0f || pos.y >= size.height())
-                return nullptr;
-            // does any children accept this event?
-            for (const auto &item : gizmo->m_children)
-            {
-                if (auto *target = self(item.m_gizmo.get(), pos - item.m_offset))
-                    return target;
-            }
-            // else try with this gizmo
-            if (gizmo->handleMousePress(pos))
-                return gizmo;
-            return nullptr;
-        }(m_root, pos);
+        auto *target =
+            m_root->findChildAt(pos, [](Gizmo *gizmo, const glm::vec2 &pos) { return gizmo->handleMousePress(pos); });
         if (target)
         {
             // found a gizmo that accepts the mouse press, will get mouse move and the mouse release event
@@ -315,18 +302,7 @@ void EventManager::handleMouseButton(MouseButton button, MouseAction action, con
 
 void EventManager::handleMouseMove(const glm::vec2 &pos)
 {
-    auto *underCursor = [](this auto self, Gizmo *gizmo, const glm::vec2 &pos) -> Gizmo * {
-        const auto size = gizmo->m_size;
-        if (pos.x < 0.0f || pos.x >= size.width() || pos.y < 0.0f || pos.y >= size.height())
-            return nullptr;
-        // is it inside any of the children?
-        for (const auto &item : gizmo->m_children)
-        {
-            if (auto *underCursor = self(item.m_gizmo.get(), pos - item.m_offset))
-                return underCursor;
-        }
-        return gizmo;
-    }(m_root, pos);
+    auto *underCursor = m_root->findChildAt(pos, [](Gizmo *gizmo, const glm::vec2 &) { return gizmo->hoverable; });
     if (m_underCursor != underCursor)
     {
         if (m_underCursor)

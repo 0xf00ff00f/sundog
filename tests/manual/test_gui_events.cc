@@ -31,6 +31,7 @@ Button::Button(std::string_view name, Gizmo *parent)
     , m_name(name)
 {
     backgroundColor = glm::vec4{1.0, 0.0, 0.0, 1.0};
+    hoverable = true;
     setSize(SizeF{120.0, 80.0});
 }
 
