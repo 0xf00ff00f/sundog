@@ -90,6 +90,9 @@ public:
     virtual void handleMouseLeave();
 
     template<typename Pred>
+        requires requires(const Pred &pred, Gizmo *gizmo, const glm::vec2 &pos) {
+            { pred(gizmo, pos) } -> std::same_as<bool>;
+        }
     Gizmo *findChildAt(const glm::vec2 &pos, const Pred &pred)
     {
         if (pos.x < 0.0f || pos.x >= m_size.width() || pos.y < 0.0f || pos.y >= m_size.height())
