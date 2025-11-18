@@ -98,7 +98,7 @@ void Game::render() const
 
 void Game::update(Seconds elapsed)
 {
-    // m_currentTime += elapsed.count() * JulianClock::duration{20.0};
+    m_currentTime += elapsed.count() * JulianClock::duration{20.0};
     m_universeMap->update(elapsed);
 }
 

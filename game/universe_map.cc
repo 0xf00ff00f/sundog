@@ -87,17 +87,11 @@ void UniverseMap::render(JulianDate when) const
 {
     const auto viewMatrix = m_cameraController.viewMatrix();
 
-    m_shaderManager->setCurrent(ShaderManager::Shader::Orbit);
-    m_shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4(0.5, 0.5, 0.5, 1.0));
 
     // render orbits
 
-    const auto worlds = m_universe->worlds();
-    const auto ships = m_universe->ships();
-
-    for (const auto *world : worlds)
-    {
-        const auto &orbit = world->orbit();
+    m_shaderManager->setCurrent(ShaderManager::Shader::Orbit);
+    auto drawOrbit = [this, &viewMatrix](const Orbit &orbit, const glm::vec4 &color) {
         const auto elems = orbit.elements();
         const auto rotationMatrix = orbit.orbitRotationMatrix();
 
@@ -107,19 +101,27 @@ void UniverseMap::render(JulianDate when) const
         const auto modelMatrix = glm::mat4{orbit.orbitRotationMatrix()};
         const auto mvp = m_projectionMatrix * viewMatrix * modelMatrix;
 
+        m_shaderManager->setUniform(ShaderManager::Uniform::Color, color);
         m_shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
         m_shaderManager->setUniform(ShaderManager::Uniform::SemiMajorAxis, semiMajorAxis);
         m_shaderManager->setUniform(ShaderManager::Uniform::Eccentricity, eccentricity);
 
         m_orbitMesh->draw(Mesh::Primitive::LineLoop, 0, kOrbitVertexCount);
+    };
+
+    const auto worlds = m_universe->worlds();
+    for (const auto *world : worlds)
+    {
+        drawOrbit(world->orbit(), glm::vec4{0.5, 0.5, 0.5, 1.0});
     }
 
+    const auto ships = m_universe->ships();
     for (const auto *ship : ships)
     {
         const auto transit = ship->transit();
         if (transit.has_value() && transit->departureTime < when && when < transit->arrivalTime)
         {
-            // TODO draw transit orbit
+            drawOrbit(transit->orbit, glm::vec4{1.0, 0.0, 0.0, 1.0});
         }
     }
 
