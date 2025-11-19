@@ -38,7 +38,7 @@ TestWindow::TestWindow()
 
     auto row = std::make_unique<Row>();
     row->backgroundColor = kRed;
-    row->setMargins(Margins{8.0f, 8.0f, 8.0f, 8.0f});
+    row->setMargins(8.0f);
 
     auto *r1 = row->appendChild<Rectangle>(60.0, 100.0);
     r1->setVerticalAlign(VerticalAlign::Top);
@@ -54,7 +54,7 @@ TestWindow::TestWindow()
 
     auto *col = row->appendChild<Column>();
     col->backgroundColor = kBlue;
-    col->setMargins(Margins{8.0f, 8.0f, 8.0f, 8.0f});
+    col->setMargins(8.0f);
     col->setMinimumWidth(180.0);
 
     auto *r4 = col->appendChild<Rectangle>(100.0, 60.0);

@@ -90,7 +90,7 @@ TestWindow::TestWindow()
     constexpr auto kSpacing = 8.0f;
 
     auto outerLayout = std::make_unique<Row>();
-    outerLayout->setMargins(Margins{40.0f, 40.0f, 40.0f, 40.0f});
+    outerLayout->setMargins(40.0f);
     outerLayout->backgroundColor = glm::vec4{1.0f};
 
     auto scrollArea = outerLayout->appendChild<ScrollArea>(400.0f, 400.0f);
@@ -98,7 +98,7 @@ TestWindow::TestWindow()
 
     auto column = scrollArea->appendChild<Column>();
     column->backgroundColor = glm::vec4{0.5f, 0.5f, 0.5f, 1.0f};
-    column->setMargins(Margins{kSpacing, kSpacing, kSpacing, kSpacing});
+    column->setMargins(kSpacing);
     column->setSpacing(kSpacing);
 
     constexpr auto kSize = 16;
@@ -106,7 +106,7 @@ TestWindow::TestWindow()
     {
         auto row = column->appendChild<Row>();
         row->setFillBackground(false);
-        row->setMargins(Margins{0.0f, 0.0f, 0.0f, 0.0f});
+        row->setMargins(0.0f);
         row->setSpacing(kSpacing);
 
         for (size_t c = 0; c < kSize; ++c)

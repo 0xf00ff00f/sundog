@@ -198,6 +198,8 @@ public:
 
     Margins margins() const { return m_margins; }
     void setMargins(const Margins &margins);
+    void setMargins(float left, float right, float top, float bottom);
+    void setMargins(float margins);
 
 protected:
     float m_spacing{4.0f};

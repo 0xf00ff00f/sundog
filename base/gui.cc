@@ -200,6 +200,16 @@ void Layout::setMargins(const Margins &margins)
     updateLayout();
 }
 
+void Layout::setMargins(float left, float right, float top, float bottom)
+{
+    setMargins(Margins{.left = left, .right = right, .top = top, .bottom = bottom});
+}
+
+void Layout::setMargins(float margins)
+{
+    setMargins(Margins{.left = margins, .right = margins, .top = margins, .bottom = margins});
+}
+
 void Row::setMinimumHeight(float height)
 {
     if (height == m_minimumHeight)
