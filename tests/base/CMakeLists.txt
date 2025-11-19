@@ -12,4 +12,3 @@ macro(AddTest)
 endmacro()
 
 AddTest(NAME test-gui SOURCES test_gui.cc)
-AddTest(NAME test-rect SOURCES test_rect.cc)

@@ -10,27 +10,27 @@ template<typename T>
 struct Size
 {
 public:
-    Size() = default;
+    constexpr Size() = default;
 
-    explicit Size(T width, T height)
+    constexpr explicit Size(T width, T height)
         : m_width{width}
         , m_height{height}
     {
     }
 
     template<std::convertible_to<T> U>
-    explicit Size(const Size<U> &other)
+    constexpr explicit Size(const Size<U> &other)
         : m_width(other.width())
         , m_height(other.height())
     {
     }
 
-    T width() const { return m_width; }
-    T height() const { return m_height; }
+    constexpr T width() const { return m_width; }
+    constexpr T height() const { return m_height; }
 
-    bool isNull() const { return m_width == 0 || m_height == 0; }
+    constexpr bool isNull() const { return m_width == 0 || m_height == 0; }
 
-    bool operator==(const Size &other) const = default;
+    constexpr bool operator==(const Size &other) const = default;
 
 private:
     T m_width{0};
@@ -57,71 +57,81 @@ public:
     using Point = glm::vec<2, T>;
     using Size = Size<T>;
 
-    Rect() = default;
+    constexpr Rect() = default;
 
-    explicit Rect(T x, T y, T width, T height)
+    constexpr explicit Rect(T x, T y, T width, T height)
         : m_topLeft{x, y}
         , m_size{width, height}
     {
     }
 
-    explicit Rect(const Point &position, const Size &size)
+    constexpr explicit Rect(const Point &position, const Size &size)
         : m_topLeft{position}
         , m_size{size}
     {
     }
 
-    explicit Rect(const Point &topLeft, const Point &bottomRight)
+    constexpr explicit Rect(const Point &topLeft, const Point &bottomRight)
         : m_topLeft{topLeft}
         , m_size{bottomRight.x - topLeft.x, bottomRight.y - topLeft.y}
     {
     }
 
     template<std::convertible_to<T> U>
-    explicit Rect(const U &other)
+    constexpr explicit Rect(const U &other)
         : m_topLeft(other.topLeft())
         , m_size(other.size())
     {
     }
 
-    T width() const { return m_size.width(); }
-    T height() const { return m_size.height(); }
-    Size size() const { return m_size; }
+    constexpr T width() const { return m_size.width(); }
+    constexpr T height() const { return m_size.height(); }
+    constexpr Size size() const { return m_size; }
 
-    Point topLeft() const { return m_topLeft; }
-    Point bottomRight() const { return m_topLeft + Point{m_size.width(), m_size.height()}; }
+    constexpr Point topLeft() const { return m_topLeft; }
+    constexpr Point bottomRight() const { return m_topLeft + Point{m_size.width(), m_size.height()}; }
 
-    T left() const { return m_topLeft.x; }
-    T right() const { return m_topLeft.x + m_size.width(); }
-    T top() const { return m_topLeft.y; }
-    T bottom() const { return m_topLeft.y + m_size.height(); }
+    constexpr T left() const { return m_topLeft.x; }
+    constexpr T right() const { return m_topLeft.x + m_size.width(); }
+    constexpr T top() const { return m_topLeft.y; }
+    constexpr T bottom() const { return m_topLeft.y + m_size.height(); }
 
-    void setLeft(T left) { m_topLeft.x = left; }
-    void setRight(T right) { m_topLeft.x = right - m_size.width(); }
-    void setTop(T top) { m_topLeft.y = top; }
-    void setBottom(T bottom) { m_topLeft.y = bottom - m_size.height(); }
+    constexpr void setLeft(T left) { m_topLeft.x = left; }
+    constexpr void setRight(T right) { m_topLeft.x = right - m_size.width(); }
+    constexpr void setTop(T top) { m_topLeft.y = top; }
+    constexpr void setBottom(T bottom) { m_topLeft.y = bottom - m_size.height(); }
 
-    bool intersects(const Rect &other) const
+    constexpr bool intersects(const Rect &other) const
     {
         if (right() < other.left() || left() >= other.right() || bottom() < other.top() || top() >= other.bottom())
             return false;
         return true;
     }
 
-    bool isNull() const { return m_size.isNull(); }
+    constexpr bool isNull() const { return m_size.isNull(); }
 
-    bool operator==(const Rect &other) const = default;
+    constexpr bool operator==(const Rect &other) const = default;
 
-    friend Rect operator&(const Rect &lhs, const Rect &rhs)
+    constexpr friend Rect operator&(const Rect &lhs, const Rect &rhs)
     {
+#if 0
+        // TODO: make glm::max constexpr
         const auto topLeft = glm::max(lhs.topLeft(), rhs.topLeft());
         const auto bottomRight = glm::max(topLeft, glm::min(lhs.bottomRight(), rhs.bottomRight()));
         return Rect{topLeft, bottomRight};
+#else
+        const auto left = std::max(lhs.left(), rhs.left());
+        const auto right = std::max(left, std::min(lhs.right(), rhs.right()));
+
+        const auto top = std::max(lhs.top(), rhs.top());
+        const auto bottom = std::max(top, std::min(lhs.bottom(), rhs.bottom()));
+
+        return Rect{Point{left, top}, Point{right, bottom}};
+#endif
     }
+    constexpr Rect &operator&=(const Rect &other) { return *this = *this & other; }
 
-    Rect &operator&=(const Rect &other) { return *this = *this & other; }
-
-    Rect intersected(const Rect &other) const { return *this & other; }
+    constexpr Rect intersected(const Rect &other) const { return *this & other; }
 
 private:
     Point m_topLeft{0};
@@ -140,3 +150,11 @@ struct std::formatter<Rect<T>> : std::formatter<std::string_view>
         return std::formatter<std::string_view>::format(s, ctx);
     }
 };
+
+// Tests
+static_assert(RectI{10, 20, 30, 50}.intersects(RectI{30, 40, 80, 60}));
+static_assert((RectI{10, 20, 30, 50} & RectI{30, 40, 80, 60}) == RectI{30, 40, 10, 30});
+static_assert(RectI{30, 40, 80, 60}.intersects(RectI{10, 20, 30, 50}));
+static_assert((RectI{30, 40, 80, 60} & RectI{10, 20, 30, 50}) == RectI{30, 40, 10, 30});
+static_assert(!RectI{10, 20, 30, 50}.intersects(RectI{50, 40, 80, 60}));
+static_assert((RectI{10, 20, 30, 50} & RectI{50, 40, 80, 60}).isNull());
