@@ -302,15 +302,15 @@ void Painter::begin()
     m_glyphCache = nullptr;
     m_commands.clear();
 
-    // TODO: save this instead
-    glDisable(GL_SCISSOR_TEST);
+    // TODO: restore previous scissor state
+    setClipRect(RectF{glm::vec2{0.0f}, SizeF{m_viewportSize}});
 }
 
 void Painter::end()
 {
     flushCommandQueue();
 
-    // TODO: restore to what it was before begin() call
+    // TODO: restore scissor state to what it was before begin() call
     glDisable(GL_SCISSOR_TEST);
 }
 

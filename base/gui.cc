@@ -1,6 +1,7 @@
 #include "gui.h"
 
 #include <cassert>
+#include <print>
 
 namespace ui
 {
@@ -57,12 +58,11 @@ void Gizmo::updateLayout() {}
 void Gizmo::paint(Painter *painter, const glm::vec2 &pos, int depth) const
 {
     auto clipRect = painter->clipRect();
-    if (!clipRect.isNull())
-    {
-        auto rect = RectF{pos, m_size};
-        if (!clipRect.intersects(rect))
-            return;
-    }
+    if (clipRect.isNull())
+        return;
+    auto rect = RectF{pos, m_size};
+    if (!clipRect.intersects(rect))
+        return;
     paintContents(painter, pos, depth);
 }
 
@@ -380,9 +380,7 @@ void ScrollArea::paintContents(Painter *painter, const glm::vec2 &pos, int depth
     const RectF prevClipRect = painter->clipRect();
 
     const auto clipRect = RectF{pos, m_size};
-    // TODO intersect clipRect with previous clip rect so we can handle nested scroll areas
-
-    painter->setClipRect(clipRect);
+    painter->setClipRect(clipRect & painter->clipRect());
     paintChildren(painter, pos, depth);
     painter->setClipRect(prevClipRect);
 }

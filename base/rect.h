@@ -4,6 +4,7 @@
 
 #include <cstddef>
 #include <concepts>
+#include <format>
 
 template<typename T>
 struct Size
@@ -38,6 +39,16 @@ private:
 
 using SizeI = Size<int>;
 using SizeF = Size<float>;
+
+template<typename T>
+struct std::formatter<Size<T>> : std::formatter<std::string_view>
+{
+    constexpr auto format(const Size<T> &size, std::format_context &ctx) const
+    {
+        auto s = std::format("Size({}x{})", size.width(), size.height());
+        return std::formatter<std::string_view>::format(s, ctx);
+    }
+};
 
 template<typename T>
 class Rect
@@ -101,6 +112,17 @@ public:
 
     bool operator==(const Rect &other) const = default;
 
+    friend Rect operator&(const Rect &lhs, const Rect &rhs)
+    {
+        const auto topLeft = glm::max(lhs.topLeft(), rhs.topLeft());
+        const auto bottomRight = glm::max(topLeft, glm::min(lhs.bottomRight(), rhs.bottomRight()));
+        return Rect{topLeft, bottomRight};
+    }
+
+    Rect &operator&=(const Rect &other) { return *this = *this & other; }
+
+    Rect intersected(const Rect &other) const { return *this & other; }
+
 private:
     Point m_topLeft{0};
     Size m_size;
@@ -108,3 +130,13 @@ private:
 
 using RectI = Rect<int>;
 using RectF = Rect<float>;
+
+template<typename T>
+struct std::formatter<Rect<T>> : std::formatter<std::string_view>
+{
+    constexpr auto format(const Rect<T> &rect, std::format_context &ctx) const
+    {
+        auto s = std::format("Rect({},{} {})", rect.left(), rect.top(), rect.size());
+        return std::formatter<std::string_view>::format(s, ctx);
+    }
+};
