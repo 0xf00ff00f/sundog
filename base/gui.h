@@ -286,6 +286,36 @@ private:
     Font m_font;
 };
 
+class MultiLineText : public Gizmo
+{
+public:
+    using Gizmo::Gizmo;
+    explicit MultiLineText(std::string_view text, Gizmo *parent = nullptr);
+    explicit MultiLineText(const Font &font, std::string_view text, Gizmo *parent = nullptr);
+
+    void setText(std::string_view text);
+    std::string_view text() const { return m_text; }
+
+    void setFont(const Font &font);
+    Font font() const { return m_font; }
+
+    void setLineWidth(float width);
+    float lineWidth() const { return m_lineWidth; }
+
+    glm::vec4 color;
+
+protected:
+    void paintContents(Painter *painter, const glm::vec2 &pos, int depth) const override;
+
+private:
+    void updateTextLayout();
+
+    std::string m_text;
+    Font m_font;
+    std::vector<std::string_view> m_lines;
+    float m_lineWidth{0.0f};
+};
+
 class EventManager
 {
 public:

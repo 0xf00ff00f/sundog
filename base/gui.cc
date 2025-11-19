@@ -418,13 +418,10 @@ void Text::setFont(const Font &font)
 
 void Text::updateSize()
 {
-    SizeF size;
-    if (!m_font.isNull() && !m_text.empty())
-    {
-        const FontMetrics fm{m_font};
-        size = SizeF{fm.horizontalAdvance(m_text), fm.pixelHeight()};
-    }
-    setSize(size);
+    if (m_font.isNull() || m_text.empty())
+        setSize({});
+    const FontMetrics fm{m_font};
+    setSize(SizeF{fm.horizontalAdvance(m_text), fm.pixelHeight()});
 }
 
 void Text::paintContents(Painter *painter, const glm::vec2 &pos, int depth) const
@@ -433,6 +430,120 @@ void Text::paintContents(Painter *painter, const glm::vec2 &pos, int depth) cons
     painter->setColor(color);
     painter->setFont(m_font);
     painter->drawText(pos, m_text, depth);
+}
+
+MultiLineText::MultiLineText(std::string_view text, Gizmo *parent)
+    : MultiLineText({}, text, parent)
+{
+}
+
+MultiLineText::MultiLineText(const Font &font, std::string_view text, Gizmo *parent)
+    : Gizmo(parent)
+    , m_font(font)
+    , m_text(text)
+{
+    updateTextLayout();
+}
+
+void MultiLineText::setText(std::string_view text)
+{
+    std::string compressedText;
+    auto it = text.begin();
+    // skip leading spaces
+    while (it != text.end() && *it == ' ')
+        ++it;
+    // remove extra spaces
+    while (it != text.end())
+    {
+        if (!std::isspace(*it))
+        {
+            compressedText.push_back(*it++);
+        }
+        else
+        {
+            it = std::find_if(it + 1, text.end(), [](auto c) { return !std::isspace(c); });
+            if (it != text.end())
+                compressedText.push_back(' ');
+        }
+    }
+    if (compressedText == m_text)
+        return;
+    m_text = compressedText;
+    updateTextLayout();
+}
+
+void MultiLineText::setFont(const Font &font)
+{
+    if (font == m_font)
+        return;
+    m_font = font;
+    updateTextLayout();
+}
+
+void MultiLineText::setLineWidth(float width)
+{
+    if (width == m_lineWidth)
+        return;
+    m_lineWidth = width;
+    updateTextLayout();
+}
+
+void MultiLineText::updateTextLayout()
+{
+    m_lines.clear();
+
+    if (m_font.isNull() || m_text.empty())
+        setSize({});
+
+    const FontMetrics fm{m_font};
+
+    auto curLineStart = m_text.begin();
+    std::optional<std::string::iterator> prevWordEnd;
+    for (auto it = m_text.begin(); it != m_text.end(); ++it)
+    {
+        if (*it == ' ')
+        {
+            prevWordEnd = it;
+        }
+        else
+        {
+            const auto breakLine = [&] {
+                if (!prevWordEnd)
+                    return false;
+                // FIXME quadratic
+                const auto curLineWidth = fm.horizontalAdvance(std::string_view{curLineStart, std::next(it)});
+                return curLineWidth > m_lineWidth;
+            }();
+            if (breakLine)
+            {
+                assert(prevWordEnd);
+                m_lines.push_back(std::string_view{curLineStart, *prevWordEnd});
+                curLineStart = std::next(*prevWordEnd);
+                prevWordEnd.reset();
+            }
+        }
+    }
+    if (curLineStart != m_text.end())
+    {
+        m_lines.push_back(std::string_view{curLineStart, m_text.end()});
+    }
+
+    setSize(SizeF{m_lineWidth, m_lines.size() * fm.pixelHeight()});
+}
+
+void MultiLineText::paintContents(Painter *painter, const glm::vec2 &pos, int depth) const
+{
+    Gizmo::paintContents(painter, pos, depth);
+    painter->setColor(color);
+    painter->setFont(m_font);
+
+    const auto lineHeight = FontMetrics{m_font}.pixelHeight();
+    auto linePos = pos;
+    for (const auto &line : m_lines)
+    {
+        painter->drawText(linePos, line, depth);
+        linePos.y += lineHeight;
+    }
 }
 
 EventManager::EventManager() = default;

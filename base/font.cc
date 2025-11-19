@@ -48,7 +48,7 @@ float FontMetrics::horizontalAdvance(std::basic_string_view<CharT> text) const
     {
         advance += m_fontInfo->horizontalAdvance(codepoint);
         if (index < text.size() - 1)
-            advance += m_fontInfo->kernAdvance(text[index], text[index + 1]);
+            advance += m_fontInfo->kernAdvance(codepoint, text[index + 1]);
         ++index;
     }
     return m_scale * advance;

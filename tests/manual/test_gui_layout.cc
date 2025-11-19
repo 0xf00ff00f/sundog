@@ -28,27 +28,30 @@ private:
     std::unique_ptr<ShaderManager> m_shaderManager;
     std::unique_ptr<Painter> m_painter;
     std::unique_ptr<Gizmo> m_uiRoot;
+    MultiLineText *m_text{nullptr};
+    double m_time{0.0};
 };
 
 TestWindow::TestWindow()
 {
-    constexpr auto kRed = glm::vec4{1.0, 0.0, 0.0, 1.0};
-    constexpr auto kGreen = glm::vec4{0.0, 1.0, 0.0, 1.0};
-    constexpr auto kBlue = glm::vec4{0.0, 0.0, 1.0, 1.0};
+    constexpr auto kRed = glm::vec4{0.8, 0.6, 0.6, 1.0};
+    constexpr auto kGreen = glm::vec4{0.6, 0.8, 0.6, 1.0};
+    constexpr auto kBlue = glm::vec4{0.6, 0.6, 0.8, 1.0};
+    constexpr auto kWhite = glm::vec4{1.0};
 
     auto row = std::make_unique<Row>();
-    row->backgroundColor = kRed;
+    row->backgroundColor = kWhite;
     row->setMargins(8.0f);
 
-    auto *r1 = row->appendChild<Rectangle>(60.0, 100.0);
+    auto *r1 = row->appendChild<Rectangle>(60.0, 300.0);
     r1->setVerticalAlign(VerticalAlign::Top);
     r1->backgroundColor = kGreen;
 
-    auto *r2 = row->appendChild<Rectangle>(100.0, 60.0);
+    auto *r2 = row->appendChild<Rectangle>(60.0, 300.0);
     r2->setVerticalAlign(VerticalAlign::Center);
     r2->backgroundColor = kBlue;
 
-    auto *r3 = row->appendChild<Rectangle>(100.0, 60.0);
+    auto *r3 = row->appendChild<Rectangle>(60.0, 300.0);
     r3->setVerticalAlign(VerticalAlign::Bottom);
     r3->backgroundColor = kGreen;
 
@@ -68,6 +71,25 @@ TestWindow::TestWindow()
     auto *r6 = col->appendChild<Rectangle>(100.0, 60.0);
     r6->setHorizontalAlign(HorizontalAlign::Right);
     r6->backgroundColor = kRed;
+
+    const Font font{"DejaVuSans.ttf", 16.0f, 0};
+
+    auto *frame = col->appendChild<Row>();
+    frame->backgroundColor = glm::vec4{1.0f};
+    frame->setMargins(8.0);
+
+    m_text = frame->appendChild<MultiLineText>();
+    m_text->setFont(font);
+    m_text->setText(
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris dui eros, scelerisque et consectetur et, "
+        "molestie id mauris. Mauris quis ante quis tellus mollis volutpat sed nec metus. Duis quis dolor velit. Mauris "
+        "sem quam, gravida eu orci et, fermentum vulputate nulla. Praesent interdum semper lacinia. Pellentesque "
+        "habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Aenean et placerat ante. "
+        "Pellentesque lacinia sem nec cursus sodales. Aenean volutpat urna eleifend libero vehicula viverra. Mauris "
+        "vehicula mi a hendrerit sagittis. In nec ante quis enim cursus semper.");
+    m_text->setLineWidth(120.0f);
+    m_text->color = glm::vec4{0.0f, 0.0f, 0.0f, 1.0f};
+    m_text->setFillBackground(false);
 
     m_uiRoot = std::move(row);
 }
@@ -95,13 +117,21 @@ bool TestWindow::initializeResources()
     return true;
 }
 
-void TestWindow::update(Seconds elapsed) {}
+void TestWindow::update(Seconds elapsed)
+{
+    assert(m_text);
+    m_time += elapsed.count();
+    m_text->setLineWidth(300.0f + 120.0f * std::sin(m_time));
+}
 
 void TestWindow::render() const
 {
     glViewport(0, 0, m_viewportSize.width(), m_viewportSize.height());
-    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClearColor(1.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glDisable(GL_DEPTH_TEST);
 
