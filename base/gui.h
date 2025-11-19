@@ -94,6 +94,10 @@ public:
         return m_children | std::views::transform([](const auto &child) { return child.m_gizmo.get(); });
     }
 
+    // called when:
+    //   * children added/removed
+    //   * child size changes
+    //   * child layout alignment changes
     virtual void updateLayout();
 
     HorizontalAlign horizontalAlign() const { return m_horizontalAlign; }
@@ -147,10 +151,9 @@ public:
 
 protected:
     virtual void paintContents(Painter *painter, const glm::vec2 &pos, int depth) const;
+    virtual void paintChildren(Painter *painter, const glm::vec2 &pos, int depth) const;
     void setSize(const SizeF &size);
     glm::vec2 childOffset(const Gizmo *gizmo) const;
-    void paintBackground(Painter *painter, const glm::vec2 &pos, int depth) const;
-    void paintChildren(Painter *painter, const glm::vec2 &pos, int depth) const;
 
     struct ChildGizmo
     {
@@ -249,13 +252,38 @@ public:
 
     void setOffset(const glm::vec2 &offset);
 
-    void paintContents(Painter *painter, const glm::vec2 &pos, int depth) const override;
+    void paintChildren(Painter *painter, const glm::vec2 &pos, int depth) const override;
 
 private:
     bool m_dragging{false};
     glm::vec2 m_lastMousePos;
     glm::vec2 m_offset{0.0f};
     SizeF m_contentsSize;
+};
+
+class Text : public Gizmo
+{
+public:
+    using Gizmo::Gizmo;
+    explicit Text(std::string_view text, Gizmo *parent = nullptr);
+    explicit Text(const Font &font, std::string_view text, Gizmo *parent = nullptr);
+
+    void setText(std::string_view text);
+    std::string_view text() const { return m_text; }
+
+    void setFont(const Font &font);
+    Font font() const { return m_font; }
+
+    glm::vec4 color;
+
+protected:
+    void paintContents(Painter *painter, const glm::vec2 &pos, int depth) const override;
+
+private:
+    void updateSize();
+
+    std::string m_text;
+    Font m_font;
 };
 
 class EventManager

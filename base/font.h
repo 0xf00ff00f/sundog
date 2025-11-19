@@ -9,6 +9,8 @@ struct Font
     float pixelHeight{0.0f};
     int outlineSize{0};
 
+    bool isNull() const { return name.empty() || pixelHeight == 0.0f; }
+
     bool operator==(const Font &) const = default;
 };
 
@@ -27,11 +29,19 @@ public:
 
     bool valid() const;
 
-    float pixelHeight();
     std::string_view name() const;
+    float pixelHeight() const;
     float ascent() const;
     float horizontalAdvance(char32_t codepoint) const;
-    float horizontalAdvance(std::u32string_view text) const;
+    template<typename CharT>
+    float horizontalAdvance(std::basic_string_view<CharT> text) const;
+
+    template<typename CharT>
+    float horizontalAdvance(const std::basic_string<CharT> &text) const
+    {
+        return horizontalAdvance(std::basic_string_view<CharT>{text});
+    }
+
     float kernAdvance(char32_t a, char32_t b) const;
 
 private:

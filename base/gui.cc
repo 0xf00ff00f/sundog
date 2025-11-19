@@ -64,15 +64,10 @@ void Gizmo::paint(Painter *painter, const glm::vec2 &pos, int depth) const
     if (!clipRect.intersects(rect))
         return;
     paintContents(painter, pos, depth);
-}
-
-void Gizmo::paintContents(Painter *painter, const glm::vec2 &pos, int depth) const
-{
-    paintBackground(painter, pos, depth);
     paintChildren(painter, pos, depth);
 }
 
-void Gizmo::paintBackground(Painter *painter, const glm::vec2 &pos, int depth) const
+void Gizmo::paintContents(Painter *painter, const glm::vec2 &pos, int depth) const
 {
     if (fillBackground())
     {
@@ -383,16 +378,61 @@ void ScrollArea::updateLayout()
     setOffset(m_offset);
 }
 
-void ScrollArea::paintContents(Painter *painter, const glm::vec2 &pos, int depth) const
+void ScrollArea::paintChildren(Painter *painter, const glm::vec2 &pos, int depth) const
 {
-    paintBackground(painter, pos, depth);
-
     const RectF prevClipRect = painter->clipRect();
-
     const auto clipRect = RectF{pos, m_size};
     painter->setClipRect(clipRect & painter->clipRect());
-    paintChildren(painter, pos, depth);
+    Gizmo::paintChildren(painter, pos, depth);
     painter->setClipRect(prevClipRect);
+}
+
+Text::Text(std::string_view text, Gizmo *parent)
+    : Text({}, text, parent)
+{
+}
+
+Text::Text(const Font &font, std::string_view text, Gizmo *parent)
+    : Gizmo(parent)
+    , m_font(font)
+    , m_text(text)
+{
+    updateSize();
+}
+
+void Text::setText(std::string_view text)
+{
+    if (text == m_text)
+        return;
+    m_text = text;
+    updateSize();
+}
+
+void Text::setFont(const Font &font)
+{
+    if (font == m_font)
+        return;
+    m_font = font;
+    updateSize();
+}
+
+void Text::updateSize()
+{
+    SizeF size;
+    if (!m_font.isNull() && !m_text.empty())
+    {
+        const FontMetrics fm{m_font};
+        size = SizeF{fm.horizontalAdvance(m_text), fm.pixelHeight()};
+    }
+    setSize(size);
+}
+
+void Text::paintContents(Painter *painter, const glm::vec2 &pos, int depth) const
+{
+    Gizmo::paintContents(painter, pos, depth);
+    painter->setColor(color);
+    painter->setFont(m_font);
+    painter->drawText(pos, m_text, depth);
 }
 
 EventManager::EventManager() = default;
