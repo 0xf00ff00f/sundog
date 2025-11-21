@@ -4,7 +4,7 @@
 
 #include <nlohmann/json.hpp>
 
-struct Orbit
+class Orbit
 {
 public:
     Orbit();
@@ -27,7 +27,7 @@ private:
     glm::mat3 m_orbitRotationMatrix;
 };
 
-struct World
+class World
 {
 public:
     World();
@@ -55,7 +55,7 @@ struct Transit
     JulianClock::duration transitTime() const { return arrivalTime - departureTime; }
 };
 
-struct Ship
+class Ship
 {
 public:
     explicit Ship(std::string_view name);
@@ -79,12 +79,12 @@ public:
 
     auto worlds() const
     {
-        return std::views::transform(m_worlds, [](const auto &world) -> const World * { return world.get(); });
+        return m_worlds | std::views::transform([](const auto &world) -> const World * { return world.get(); });
     }
 
     auto ships() const
     {
-        return std::views::transform(m_ships, [](const auto &ship) -> const Ship * { return ship.get(); });
+        return m_ships | std::views::transform([](const auto &ship) -> const Ship * { return ship.get(); });
     }
 
     Ship *addShip(std::string_view name);
