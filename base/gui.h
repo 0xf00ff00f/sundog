@@ -22,19 +22,35 @@ struct Margins
     bool operator==(const Margins &) const = default;
 };
 
-enum class HorizontalAlign
+enum class Align
 {
-    Left,
-    Center,
-    Right
+    Left = 1 << 0,
+    HorizontalCenter = 1 << 1,
+    Right = 1 << 2,
+    Top = 1 << 3,
+    VerticalCenter = 1 << 4,
+    Bottom = 1 << 5
 };
 
-enum class VerticalAlign
+constexpr Align operator&(Align x, Align y)
 {
-    Top,
-    Center,
-    Bottom
-};
+    return static_cast<Align>(static_cast<unsigned>(x) & static_cast<unsigned>(y));
+}
+
+constexpr Align &operator&=(Align &x, Align y)
+{
+    return x = x & y;
+}
+
+constexpr Align operator|(Align x, Align y)
+{
+    return static_cast<Align>(static_cast<unsigned>(x) | static_cast<unsigned>(y));
+}
+
+constexpr Align &operator|=(Align &x, Align y)
+{
+    return x = x | y;
+}
 
 struct Length
 {
@@ -154,14 +170,13 @@ public:
     //   * child layout alignment changes
     virtual void updateLayout();
 
-    void setHorizontalAlign(HorizontalAlign align);
+    void setAlign(Align align);
     void setLeft(const Length &position);
     void setHorizontalCenter(const Length &position);
     void setRight(const Length &position);
     void setHorizontalAnchor(const HorizontalAnchor &anchor);
     HorizontalAnchor horizontalAnchor() const { return m_horizontalAnchor; }
 
-    void setVerticalAlign(VerticalAlign align);
     void setTop(const Length &position);
     void setVerticalCenter(const Length &position);
     void setBottom(const Length &position);

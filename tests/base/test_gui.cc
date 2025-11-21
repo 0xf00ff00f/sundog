@@ -130,10 +130,10 @@ TEST_CASE("anchors", "[anchors]")
     auto *rc = container.appendChild<Rectangle>(50.0f, 50.0f);
     REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 0.0f});
 
-    rc->setVerticalAlign(VerticalAlign::Bottom);
+    rc->setAlign(Align::Bottom);
     REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 150.0f});
 
-    rc->setVerticalAlign(VerticalAlign::Center);
+    rc->setAlign(Align::VerticalCenter);
     REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 75.0f});
 
     rc->setTop(0.0_px);
@@ -176,10 +176,10 @@ TEST_CASE("layout anchors", "[layout-anchors]")
     auto *rc = row.appendChild<Rectangle>(50.0f, 50.0f);
     REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 0.0f});
 
-    rc->setVerticalAlign(VerticalAlign::Bottom);
+    rc->setAlign(Align::Bottom);
     REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 150.0f});
 
-    rc->setVerticalAlign(VerticalAlign::Center);
+    rc->setAlign(Align::VerticalCenter);
     REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 75.0f});
 
     rc->setTop(0.0_px);

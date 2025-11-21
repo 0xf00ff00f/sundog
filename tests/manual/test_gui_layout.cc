@@ -44,15 +44,15 @@ TestWindow::TestWindow()
     row->setMargins(8.0f);
 
     auto *r1 = row->appendChild<Rectangle>(60.0, 300.0);
-    r1->setVerticalAlign(VerticalAlign::Top);
+    r1->setAlign(Align::Top);
     r1->backgroundColor = kGreen;
 
     auto *r2 = row->appendChild<Rectangle>(60.0, 300.0);
-    r2->setVerticalAlign(VerticalAlign::Center);
+    r2->setAlign(Align::VerticalCenter);
     r2->backgroundColor = kBlue;
 
     auto *r3 = row->appendChild<Rectangle>(60.0, 300.0);
-    r3->setVerticalAlign(VerticalAlign::Bottom);
+    r3->setAlign(Align::Bottom);
     r3->backgroundColor = kGreen;
 
     auto *col = row->appendChild<Column>();
@@ -61,15 +61,15 @@ TestWindow::TestWindow()
     col->setMinimumWidth(180.0);
 
     auto *r4 = col->appendChild<Rectangle>(100.0, 60.0);
-    r4->setHorizontalAlign(HorizontalAlign::Left);
+    r4->setAlign(Align::Left);
     r4->backgroundColor = kRed;
 
     auto *r5 = col->appendChild<Rectangle>(100.0, 60.0);
-    r5->setHorizontalAlign(HorizontalAlign::Center);
+    r5->setAlign(Align::HorizontalCenter);
     r5->backgroundColor = kRed;
 
     auto *r6 = col->appendChild<Rectangle>(100.0, 60.0);
-    r6->setHorizontalAlign(HorizontalAlign::Right);
+    r6->setAlign(Align::Right);
     r6->backgroundColor = kRed;
 
     const Font font{"DejaVuSans.ttf", 16.0f, 0};

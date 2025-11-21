@@ -148,35 +148,34 @@ void Gizmo::setSize(const SizeF &size)
     resizedSignal(m_size);
 }
 
-void Gizmo::setHorizontalAlign(HorizontalAlign align)
+void Gizmo::setAlign(Align align)
 {
-    switch (align)
+    // horizontal
+    switch (align & (Align::Left | Align::HorizontalCenter | Align::Right))
     {
-    case HorizontalAlign::Left:
+    case Align::Left:
     default:
         setHorizontalAnchor({HorizontalAnchor::Type::Left, 0.0_px});
         break;
-    case HorizontalAlign::Center:
+    case Align::HorizontalCenter:
         setHorizontalAnchor({HorizontalAnchor::Type::Center, 50.0_pct});
         break;
-    case HorizontalAlign::Right:
+    case Align::Right:
         setHorizontalAnchor({HorizontalAnchor::Type::Right, 100.0_pct});
         break;
     }
-}
 
-void Gizmo::setVerticalAlign(VerticalAlign align)
-{
-    switch (align)
+    // vertical
+    switch (align & (Align::Top | Align::VerticalCenter | Align::Bottom))
     {
-    case VerticalAlign::Top:
+    case Align::Top:
     default:
         setVerticalAnchor({VerticalAnchor::Type::Top, 0.0_px});
         break;
-    case VerticalAlign::Center:
+    case Align::VerticalCenter:
         setVerticalAnchor({VerticalAnchor::Type::Center, 50.0_pct});
         break;
-    case VerticalAlign::Bottom:
+    case Align::Bottom:
         setVerticalAnchor({VerticalAnchor::Type::Bottom, 100.0_pct});
         break;
     }
