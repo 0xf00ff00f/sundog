@@ -26,7 +26,10 @@ public:
     }
 
     constexpr T width() const { return m_width; }
+    constexpr void setWidth(float width) { m_width = width; }
+
     constexpr T height() const { return m_height; }
+    constexpr void setHeight(float height) { m_height = height; }
 
     constexpr bool isNull() const { return m_width == 0 || m_height == 0; }
 

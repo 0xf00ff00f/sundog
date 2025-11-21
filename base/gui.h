@@ -223,7 +223,7 @@ public:
     muslots::Signal<SizeF> resizedSignal;
     muslots::Signal<> anchorChangedSignal;
 
-    glm::vec4 backgroundColor;
+    glm::vec4 backgroundColor = glm::vec4{0.0f, 0.0f, 0.0f, 1.0f};
 
 protected:
     struct ChildGizmo
@@ -319,21 +319,37 @@ public:
     void setSize(float width, float height);
     using Gizmo::setSize;
 
+    void setOffset(const glm::vec2 &offset);
+
+    void setVerticalScrollbarWidth(float width);
+    float verticalScrollbarWidth() const { return m_verticalScrollbarWidth; }
+
+    void setHorizontalScrollbarHeight(float height);
+    float horizontalScrollbarHeight() const { return m_horizontalScrollbarHeight; }
+
     bool handleMousePress(const glm::vec2 &pos) override;
     void handleMouseRelease(const glm::vec2 &pos) override;
     void handleMouseMove(const glm::vec2 &pos) override;
 
     void updateLayout() override;
 
-    void setOffset(const glm::vec2 &offset);
-
+    void paintContents(Painter *painter, const glm::vec2 &pos, int depth) const override;
     void paintChildren(Painter *painter, const glm::vec2 &pos, int depth) const override;
 
+    glm::vec4 scrollbarColor = glm::vec4{0.75, 0.75, 0.75, 1.0f};
+
 private:
+    static constexpr auto kScrollbarSpacing = 1.0f;
+
     bool m_dragging{false};
     glm::vec2 m_lastMousePos;
     glm::vec2 m_offset{0.0f};
     SizeF m_contentsSize;
+    SizeF m_viewportSize;
+    float m_verticalScrollbarWidth{8.0f};
+    float m_horizontalScrollbarHeight{8.0f};
+    bool m_verticalScrollbarVisible{false};
+    bool m_horizontalScrollbarVisible{false};
 };
 
 class Text : public Gizmo
@@ -349,7 +365,7 @@ public:
     void setFont(const Font &font);
     Font font() const { return m_font; }
 
-    glm::vec4 color;
+    glm::vec4 color = glm::vec4{1.0f};
 
 protected:
     void paintContents(Painter *painter, const glm::vec2 &pos, int depth) const override;

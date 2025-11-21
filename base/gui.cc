@@ -122,12 +122,8 @@ void Gizmo::paintContents(Painter *painter, const glm::vec2 &pos, int depth) con
 {
     if (fillBackground())
     {
-        const auto size = this->size();
-        const std::array<glm::vec2, 4> verts = {pos, pos + glm::vec2(size.width(), 0),
-                                                pos + glm::vec2(size.width(), size.height()),
-                                                pos + glm::vec2(0, size.height())};
         painter->setColor(backgroundColor);
-        painter->drawFilledConvexPolygon(verts, depth);
+        painter->drawRect(RectF{pos, m_size}, depth);
     }
 }
 
@@ -460,6 +456,22 @@ void ScrollArea::setSize(float width, float height)
     setSize(SizeF{width, height});
 }
 
+void ScrollArea::setVerticalScrollbarWidth(float width)
+{
+    if (width == m_verticalScrollbarWidth)
+        return;
+    m_verticalScrollbarWidth = width;
+    updateLayout();
+}
+
+void ScrollArea::setHorizontalScrollbarHeight(float height)
+{
+    if (height == m_horizontalScrollbarHeight)
+        return;
+    m_horizontalScrollbarHeight = height;
+    updateLayout();
+}
+
 bool ScrollArea::handleMousePress(const glm::vec2 &pos)
 {
     m_dragging = true;
@@ -485,7 +497,7 @@ void ScrollArea::handleMouseMove(const glm::vec2 &pos)
 void ScrollArea::setOffset(const glm::vec2 &offset)
 {
     const auto maxOffset =
-        glm::vec2{m_size.width() - m_contentsSize.width(), m_size.height() - m_contentsSize.height()};
+        glm::vec2{m_viewportSize.width() - m_contentsSize.width(), m_viewportSize.height() - m_contentsSize.height()};
     const auto clampedOffset = glm::min(glm::vec2{0.0f, 0.0f}, glm::max(maxOffset, offset));
     if (clampedOffset == m_offset)
         return;
@@ -508,13 +520,63 @@ void ScrollArea::updateLayout()
     }
     m_contentsSize = SizeF{contentsWidth, contentsHeight};
 
+    m_viewportSize = m_size;
+    if (m_contentsSize.height() > m_viewportSize.height())
+    {
+        m_verticalScrollbarVisible = true;
+        m_viewportSize.setWidth(std::max(0.0f, m_viewportSize.width() - m_verticalScrollbarWidth));
+    }
+    else
+    {
+        m_verticalScrollbarVisible = false;
+    }
+
+    if (m_contentsSize.width() > m_viewportSize.width())
+    {
+        m_horizontalScrollbarVisible = true;
+        m_viewportSize.setHeight(std::max(0.0f, m_viewportSize.height() - m_horizontalScrollbarHeight));
+    }
+    else
+    {
+        m_horizontalScrollbarVisible = false;
+    }
+
     setOffset(m_offset);
+}
+
+void ScrollArea::paintContents(Painter *painter, const glm::vec2 &pos, int depth) const
+{
+    Gizmo::paintContents(painter, pos, depth);
+
+    if (m_verticalScrollbarVisible)
+    {
+        const auto scale = m_viewportSize.height() / m_contentsSize.height();
+        const auto handleHeight = scale * m_viewportSize.height();
+        const auto handleY = scale * -m_offset.y;
+
+        painter->setColor(scrollbarColor);
+        const auto topLeft = pos + glm::vec2{m_viewportSize.width() + kScrollbarSpacing, handleY};
+        const auto topRight = topLeft + glm::vec2{m_verticalScrollbarWidth - 2.0f * kScrollbarSpacing, handleHeight};
+        painter->drawRect(RectF{topLeft, topRight}, depth);
+    }
+
+    if (m_horizontalScrollbarVisible)
+    {
+        const auto scale = m_viewportSize.width() / m_contentsSize.width();
+        const auto handleWidth = scale * m_viewportSize.width();
+        const auto handleX = scale * -m_offset.x;
+
+        painter->setColor(scrollbarColor);
+        const auto topLeft = pos + glm::vec2{handleX, m_viewportSize.height() + kScrollbarSpacing};
+        const auto topRight = topLeft + glm::vec2{handleWidth, m_horizontalScrollbarHeight - 2.0f * kScrollbarSpacing};
+        painter->drawRect(RectF{topLeft, topRight}, depth);
+    }
 }
 
 void ScrollArea::paintChildren(Painter *painter, const glm::vec2 &pos, int depth) const
 {
     const RectF prevClipRect = painter->clipRect();
-    const auto clipRect = RectF{pos, m_size};
+    const auto clipRect = RectF{pos, m_viewportSize};
     painter->setClipRect(clipRect & painter->clipRect());
     Gizmo::paintChildren(painter, pos, depth);
     painter->setClipRect(prevClipRect);

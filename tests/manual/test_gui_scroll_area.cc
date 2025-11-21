@@ -94,7 +94,7 @@ TestWindow::TestWindow()
     outerLayout->backgroundColor = glm::vec4{1.0f};
 
     auto scrollArea = outerLayout->appendChild<ScrollArea>(400.0f, 400.0f);
-    scrollArea->backgroundColor = glm::vec4{1.0f};
+    scrollArea->backgroundColor = glm::vec4{0.5f, 0.0f, 0.0f, 1.0f};
 
     auto column = scrollArea->appendChild<Column>();
     column->backgroundColor = glm::vec4{0.5f, 0.5f, 0.5f, 1.0f};

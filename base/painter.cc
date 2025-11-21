@@ -426,6 +426,14 @@ void Painter::drawFilledConvexPolygon(std::span<const glm::vec2> verts, int dept
     m_commands.push_back(std::make_unique<DrawFilledConvexPolygon>(verts, m_color, depth));
 }
 
+void Painter::drawRect(const RectF &rect, int depth)
+{
+    const std::array<glm::vec2, 4> verts = {glm::vec2{rect.left(), rect.top()}, glm::vec2{rect.right(), rect.top()},
+                                            glm::vec2{rect.right(), rect.bottom()},
+                                            glm::vec2{rect.left(), rect.bottom()}};
+    drawFilledConvexPolygon(verts, depth);
+}
+
 void Painter::drawText(const glm::vec2 &pos, const std::string_view text, int depth)
 {
     if (!m_glyphCache)

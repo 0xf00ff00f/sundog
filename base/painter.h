@@ -36,6 +36,7 @@ public:
 
     void drawPolyline(std::span<const glm::vec2> verts, float thickness, bool closed, int depth = 0);
     void drawFilledConvexPolygon(std::span<const glm::vec2> verts, int depth = 0);
+    void drawRect(const RectF &rect, int depth = 0);
     void drawText(const glm::vec2 &pos, const std::string_view text, int depth = 0);
 
 private:
