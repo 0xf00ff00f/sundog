@@ -36,6 +36,60 @@ enum class VerticalAlign
     Bottom
 };
 
+struct Length
+{
+    static constexpr Length pixels(float value) { return {Type::Pixels, value}; }
+    static constexpr Length percent(float value) { return {Type::Percent, value}; }
+
+    enum class Type
+    {
+        Pixels,
+        Percent,
+    };
+    Type type{Type::Pixels};
+    float value{0.0f};
+
+    constexpr bool operator==(const Length &other) const = default;
+};
+
+struct HorizontalAnchor
+{
+    enum class Type
+    {
+        Left,
+        Center,
+        Right
+    };
+    Type type{Type::Left};
+    Length position;
+
+    bool operator==(const HorizontalAnchor &) const = default;
+};
+
+struct VerticalAnchor
+{
+    enum class Type
+    {
+        Top,
+        Center,
+        Bottom
+    };
+    Type type{Type::Top};
+    Length position;
+
+    bool operator==(const VerticalAnchor &) const = default;
+};
+
+constexpr Length operator""_px(long double value)
+{
+    return Length::pixels(value);
+}
+
+constexpr Length operator""_pct(long double value)
+{
+    return Length::percent(value);
+}
+
 class Gizmo
 {
 public:
@@ -100,11 +154,19 @@ public:
     //   * child layout alignment changes
     virtual void updateLayout();
 
-    HorizontalAlign horizontalAlign() const { return m_horizontalAlign; }
     void setHorizontalAlign(HorizontalAlign align);
+    void setLeft(const Length &position);
+    void setHorizontalCenter(const Length &position);
+    void setRight(const Length &position);
+    void setHorizontalAnchor(const HorizontalAnchor &anchor);
+    HorizontalAnchor horizontalAnchor() const { return m_horizontalAnchor; }
 
-    VerticalAlign verticalAlign() const { return m_verticalAlign; }
     void setVerticalAlign(VerticalAlign align);
+    void setTop(const Length &position);
+    void setVerticalCenter(const Length &position);
+    void setBottom(const Length &position);
+    void setVerticalAnchor(const VerticalAnchor &anchor);
+    VerticalAnchor verticalAnchor() const { return m_verticalAnchor; }
 
     glm::vec2 globalPosition() const;
 
@@ -144,17 +206,11 @@ public:
     void setHoverable(bool hoverable);
 
     muslots::Signal<SizeF> resizedSignal;
-    muslots::Signal<HorizontalAlign> horizontalAlignChangedSignal;
-    muslots::Signal<VerticalAlign> verticalAlignChangedSignal;
+    muslots::Signal<> anchorChangedSignal;
 
     glm::vec4 backgroundColor;
 
 protected:
-    virtual void paintContents(Painter *painter, const glm::vec2 &pos, int depth) const;
-    virtual void paintChildren(Painter *painter, const glm::vec2 &pos, int depth) const;
-    void setSize(const SizeF &size);
-    glm::vec2 childOffset(const Gizmo *gizmo) const;
-
     struct ChildGizmo
     {
         explicit ChildGizmo(std::unique_ptr<Gizmo> child, Gizmo *parent);
@@ -169,16 +225,20 @@ protected:
         std::unique_ptr<Gizmo> m_gizmo;
         glm::vec2 m_offset{0.0f};
         muslots::Connection m_resizedConnection;
-        muslots::Connection m_horizontalAlignChangedConnection;
-        muslots::Connection m_verticalAlignChangedConnection;
+        muslots::Connection m_anchorChangedConnection;
     };
+
+    virtual void paintContents(Painter *painter, const glm::vec2 &pos, int depth) const;
+    virtual void paintChildren(Painter *painter, const glm::vec2 &pos, int depth) const;
+    void setSize(const SizeF &size);
+    glm::vec2 childOffset(const Gizmo *gizmo) const;
 
     Option m_options{Option::FillBackground};
     Gizmo *m_parent{nullptr};
     SizeF m_size;
     std::vector<ChildGizmo> m_children;
-    HorizontalAlign m_horizontalAlign{HorizontalAlign::Left}; // only used if in a Column
-    VerticalAlign m_verticalAlign{VerticalAlign::Top};        // only used if in a Row
+    HorizontalAnchor m_horizontalAnchor;
+    VerticalAnchor m_verticalAnchor;
 };
 
 class Rectangle : public Gizmo

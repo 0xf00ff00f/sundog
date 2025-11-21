@@ -122,3 +122,90 @@ TEST_CASE("gizmo positions", "[gizmo-positions]")
     row.removeChild(0);
     REQUIRE(rc2->globalPosition() == glm::vec2{10.0f, 20.0f});
 }
+
+TEST_CASE("anchors", "[anchors]")
+{
+    Rectangle container{200.0f, 200.0f};
+
+    auto *rc = container.appendChild<Rectangle>(50.0f, 50.0f);
+    REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 0.0f});
+
+    rc->setVerticalAlign(VerticalAlign::Bottom);
+    REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 150.0f});
+
+    rc->setVerticalAlign(VerticalAlign::Center);
+    REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 75.0f});
+
+    rc->setTop(0.0_px);
+    REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 0.0f});
+
+    rc->setTop(10.0_px);
+    REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 10.0f});
+
+    rc->setBottom(200.0_px);
+    REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 150.0f});
+
+    rc->setBottom(100.0_pct);
+    REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 150.0f});
+
+    rc->setBottom(80.0_px);
+    REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 30.0f});
+
+    rc->setTop(0.0_px);
+    rc->setLeft(0.0_px);
+    REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 0.0f});
+
+    rc->setLeft(10.0_px);
+    REQUIRE(rc->globalPosition() == glm::vec2{10.0f, 0.0f});
+
+    rc->setRight(200.0_px);
+    REQUIRE(rc->globalPosition() == glm::vec2{150.0f, 0.0f});
+
+    rc->setRight(100.0_pct);
+    REQUIRE(rc->globalPosition() == glm::vec2{150.0f, 0.0f});
+
+    rc->setRight(80.0_px);
+    REQUIRE(rc->globalPosition() == glm::vec2{30.0f, 0.0f});
+}
+
+TEST_CASE("layout anchors", "[layout-anchors]")
+{
+    Row row;
+    row.setMinimumHeight(200.0f);
+
+    auto *rc = row.appendChild<Rectangle>(50.0f, 50.0f);
+    REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 0.0f});
+
+    rc->setVerticalAlign(VerticalAlign::Bottom);
+    REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 150.0f});
+
+    rc->setVerticalAlign(VerticalAlign::Center);
+    REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 75.0f});
+
+    rc->setTop(0.0_px);
+    REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 0.0f});
+
+    rc->setTop(10.0_px);
+    REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 10.0f});
+
+    rc->setTop(180.0_px);
+    REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 150.0f});
+
+    rc->setBottom(200.0_px);
+    REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 150.0f});
+
+    rc->setBottom(100.0_pct);
+    REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 150.0f});
+
+    rc->setBottom(80.0_px);
+    REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 30.0f});
+
+    rc->setBottom(10.0_px);
+    REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 0.0f});
+
+    row.setMargins(20.0f);
+    REQUIRE(rc->globalPosition() == glm::vec2{20.0f, 20.0f});
+
+    rc->setBottom(100.0_pct);
+    REQUIRE(rc->globalPosition() == glm::vec2{20.0f, 130.0f});
+}

@@ -9,18 +9,14 @@ namespace ui
 Gizmo::ChildGizmo::ChildGizmo(std::unique_ptr<Gizmo> gizmo, Gizmo *parent)
     : m_gizmo(std::move(gizmo))
     , m_resizedConnection(m_gizmo->resizedSignal.connect([parent](SizeF) { parent->updateLayout(); }))
-    , m_horizontalAlignChangedConnection(
-          m_gizmo->horizontalAlignChangedSignal.connect([parent](HorizontalAlign) { parent->updateLayout(); }))
-    , m_verticalAlignChangedConnection(
-          m_gizmo->verticalAlignChangedSignal.connect([parent](VerticalAlign) { parent->updateLayout(); }))
+    , m_anchorChangedConnection(m_gizmo->anchorChangedSignal.connect([parent]() { parent->updateLayout(); }))
 {
 }
 
 Gizmo::ChildGizmo::~ChildGizmo()
 {
     m_resizedConnection.disconnect();
-    m_horizontalAlignChangedConnection.disconnect();
-    m_verticalAlignChangedConnection.disconnect();
+    m_anchorChangedConnection.disconnect();
 }
 
 Gizmo::Gizmo(Gizmo *parent)
@@ -53,7 +49,62 @@ Gizmo *Gizmo::childAt(std::size_t index)
     return const_cast<Gizmo *>(const_cast<const Gizmo *>(this)->childAt(index));
 }
 
-void Gizmo::updateLayout() {}
+void Gizmo::updateLayout()
+{
+    for (auto &item : m_children)
+    {
+        const auto *child = item.m_gizmo.get();
+        const auto childSize = child->size();
+        const auto x = [this, child, &childSize] {
+            const auto anchor = child->horizontalAnchor();
+            const auto anchorX = [this, position = anchor.position]() -> float {
+                switch (position.type)
+                {
+                case Length::Type::Pixels:
+                default:
+                    return position.value;
+                case Length::Type::Percent:
+                    return (position.value / 100.0f) * m_size.width();
+                }
+            }();
+            switch (anchor.type)
+            {
+            case HorizontalAnchor::Type::Left:
+            default:
+                return anchorX;
+            case HorizontalAnchor::Type::Center:
+                return anchorX - 0.5f * childSize.width();
+            case HorizontalAnchor::Type::Right:
+                return anchorX - childSize.width();
+            }
+        }();
+        const auto y = [this, child, &childSize] {
+            const auto anchor = child->verticalAnchor();
+            const auto anchorY = [this, position = anchor.position]() -> float {
+                switch (position.type)
+                {
+                case Length::Type::Pixels:
+                default:
+                    return position.value;
+                case Length::Type::Percent:
+                    return (position.value / 100.0f) * m_size.height();
+                }
+            }();
+            switch (anchor.type)
+            {
+            case VerticalAnchor::Type::Top:
+            default:
+                return anchorY;
+            case VerticalAnchor::Type::Center:
+                return anchorY - 0.5f * childSize.height();
+            case VerticalAnchor::Type::Bottom:
+                return anchorY - childSize.height();
+            }
+            return 0.0f;
+        }();
+        item.m_offset = glm::vec2{x, y};
+    }
+}
 
 void Gizmo::paint(Painter *painter, const glm::vec2 &pos, int depth) const
 {
@@ -99,18 +150,82 @@ void Gizmo::setSize(const SizeF &size)
 
 void Gizmo::setHorizontalAlign(HorizontalAlign align)
 {
-    if (align == m_horizontalAlign)
-        return;
-    m_horizontalAlign = align;
-    horizontalAlignChangedSignal(m_horizontalAlign);
+    switch (align)
+    {
+    case HorizontalAlign::Left:
+    default:
+        setHorizontalAnchor({HorizontalAnchor::Type::Left, 0.0_px});
+        break;
+    case HorizontalAlign::Center:
+        setHorizontalAnchor({HorizontalAnchor::Type::Center, 50.0_pct});
+        break;
+    case HorizontalAlign::Right:
+        setHorizontalAnchor({HorizontalAnchor::Type::Right, 100.0_pct});
+        break;
+    }
 }
 
 void Gizmo::setVerticalAlign(VerticalAlign align)
 {
-    if (align == m_verticalAlign)
+    switch (align)
+    {
+    case VerticalAlign::Top:
+    default:
+        setVerticalAnchor({VerticalAnchor::Type::Top, 0.0_px});
+        break;
+    case VerticalAlign::Center:
+        setVerticalAnchor({VerticalAnchor::Type::Center, 50.0_pct});
+        break;
+    case VerticalAlign::Bottom:
+        setVerticalAnchor({VerticalAnchor::Type::Bottom, 100.0_pct});
+        break;
+    }
+}
+
+void Gizmo::setLeft(const Length &pos)
+{
+    setHorizontalAnchor({HorizontalAnchor::Type::Left, pos});
+}
+
+void Gizmo::setHorizontalCenter(const Length &pos)
+{
+    setHorizontalAnchor({HorizontalAnchor::Type::Center, pos});
+}
+
+void Gizmo::setRight(const Length &pos)
+{
+    setHorizontalAnchor({HorizontalAnchor::Type::Right, pos});
+}
+
+void Gizmo::setTop(const Length &pos)
+{
+    setVerticalAnchor({VerticalAnchor::Type::Top, pos});
+}
+
+void Gizmo::setVerticalCenter(const Length &pos)
+{
+    setVerticalAnchor({VerticalAnchor::Type::Center, pos});
+}
+
+void Gizmo::setBottom(const Length &pos)
+{
+    setVerticalAnchor({VerticalAnchor::Type::Bottom, pos});
+}
+
+void Gizmo::setHorizontalAnchor(const HorizontalAnchor &anchor)
+{
+    if (anchor == m_horizontalAnchor)
         return;
-    m_verticalAlign = align;
-    verticalAlignChangedSignal(m_verticalAlign);
+    m_horizontalAnchor = anchor;
+    anchorChangedSignal();
+}
+
+void Gizmo::setVerticalAnchor(const VerticalAnchor &anchor)
+{
+    if (anchor == m_verticalAnchor)
+        return;
+    m_verticalAnchor = anchor;
+    anchorChangedSignal();
 }
 
 glm::vec2 Gizmo::globalPosition() const
@@ -232,27 +347,37 @@ void Row::updateLayout()
     setSize(SizeF{width, height});
 
     // update child offsets
+    const auto usableHeight = m_size.height() - (m_margins.top + m_margins.bottom);
     float x = m_margins.left;
     for (auto &item : m_children)
     {
         const auto *child = item.m_gizmo.get();
         const auto childSize = child->size();
-        const auto y = [this, child, &childSize] {
-            switch (child->verticalAlign())
+        auto y = [this, usableHeight, child, &childSize] {
+            const auto anchor = child->verticalAnchor();
+            const auto anchorY = [this, usableHeight, position = anchor.position]() -> float {
+                switch (position.type)
+                {
+                case Length::Type::Pixels:
+                default:
+                    return position.value;
+                case Length::Type::Percent:
+                    return (position.value / 100.0f) * usableHeight;
+                }
+            }();
+            switch (anchor.type)
             {
-            case VerticalAlign::Top:
-            default: {
-                return m_margins.top;
+            case VerticalAnchor::Type::Top:
+            default:
+                return m_margins.top + anchorY;
+            case VerticalAnchor::Type::Center:
+                return m_margins.top + anchorY - 0.5f * childSize.height();
+            case VerticalAnchor::Type::Bottom:
+                return m_margins.top + anchorY - childSize.height();
             }
-            case VerticalAlign::Center: {
-                const auto usableHeight = m_size.height() - (m_margins.top + m_margins.bottom);
-                return m_margins.top + 0.5f * (usableHeight - childSize.height());
-            }
-            case VerticalAlign::Bottom: {
-                return m_size.height() - m_margins.bottom - childSize.height();
-            }
-            }
+            return 0.0f;
         }();
+        y = std::clamp(y, m_margins.top, m_margins.top + usableHeight - childSize.height());
         item.m_offset = glm::vec2{x, y};
         x += childSize.width() + m_spacing;
     }
@@ -285,27 +410,36 @@ void Column::updateLayout()
     setSize(SizeF{width, height});
 
     // update child offsets
+    const auto usableWidth = m_size.width() - (m_margins.left + m_margins.right);
     float y = m_margins.top;
     for (auto &item : m_children)
     {
         const auto *child = item.m_gizmo.get();
         const auto childSize = child->size();
-        const auto x = [this, child, &childSize] {
-            switch (child->horizontalAlign())
+        auto x = [this, usableWidth, child, &childSize] {
+            const auto anchor = child->horizontalAnchor();
+            const auto anchorX = [this, usableWidth, position = anchor.position]() -> float {
+                switch (position.type)
+                {
+                case Length::Type::Pixels:
+                default:
+                    return position.value;
+                case Length::Type::Percent:
+                    return (position.value / 100.0f) * usableWidth;
+                }
+            }();
+            switch (anchor.type)
             {
-            case HorizontalAlign::Left:
-            default: {
-                return m_margins.left;
-            }
-            case HorizontalAlign::Center: {
-                const auto usableWidth = m_size.width() - (m_margins.left + m_margins.right);
-                return m_margins.left + 0.5f * (usableWidth - childSize.width());
-            }
-            case HorizontalAlign::Right: {
-                return m_size.width() - m_margins.right - childSize.width();
-            }
+            case HorizontalAnchor::Type::Left:
+            default:
+                return m_margins.left + anchorX;
+            case HorizontalAnchor::Type::Center:
+                return m_margins.left + anchorX - 0.5f * childSize.width();
+            case HorizontalAnchor::Type::Right:
+                return m_margins.left + anchorX - childSize.width();
             }
         }();
+        x = std::clamp(x, m_margins.left, m_margins.left + usableWidth - childSize.width());
         item.m_offset = glm::vec2{x, y};
         y += childSize.height() + m_spacing;
     }
