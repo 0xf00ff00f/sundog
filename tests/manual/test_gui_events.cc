@@ -31,6 +31,7 @@ Button::Button(std::string_view name, Gizmo *parent)
     , m_name(name)
 {
     backgroundColor = glm::vec4{1.0, 0.0, 0.0, 1.0};
+    setFillBackground(true);
     setHoverable(true);
     setSize(SizeF{120.0, 80.0});
 }
@@ -89,6 +90,7 @@ TestWindow::TestWindow()
 {
     auto row = std::make_unique<Row>();
     row->backgroundColor = glm::vec4{0.0f, 1.0f, 0.0f, 1.0f};
+    row->setFillBackground(true);
     row->setMargins(Margins{10.0f, 10.0f, 10.0f, 10.0f});
     row->setSpacing(10.0f);
 

@@ -41,41 +41,50 @@ TestWindow::TestWindow()
 
     auto row = std::make_unique<Row>();
     row->backgroundColor = kWhite;
+    row->setFillBackground(true);
     row->setMargins(8.0f);
 
     auto *r1 = row->appendChild<Rectangle>(60.0, 300.0);
     r1->setAlign(Align::Top);
     r1->backgroundColor = kGreen;
+    r1->setFillBackground(true);
 
     auto *r2 = row->appendChild<Rectangle>(60.0, 300.0);
     r2->setAlign(Align::VerticalCenter);
     r2->backgroundColor = kBlue;
+    r2->setFillBackground(true);
 
     auto *r3 = row->appendChild<Rectangle>(60.0, 300.0);
     r3->setAlign(Align::Bottom);
     r3->backgroundColor = kGreen;
+    r3->setFillBackground(true);
 
     auto *col = row->appendChild<Column>();
     col->backgroundColor = kBlue;
+    col->setFillBackground(true);
     col->setMargins(8.0f);
     col->setMinimumWidth(180.0);
 
     auto *r4 = col->appendChild<Rectangle>(100.0, 60.0);
     r4->setAlign(Align::Left);
     r4->backgroundColor = kRed;
+    r4->setFillBackground(true);
 
     auto *r5 = col->appendChild<Rectangle>(100.0, 60.0);
     r5->setAlign(Align::HorizontalCenter);
     r5->backgroundColor = kRed;
+    r5->setFillBackground(true);
 
     auto *r6 = col->appendChild<Rectangle>(100.0, 60.0);
     r6->setAlign(Align::Right);
     r6->backgroundColor = kRed;
+    r6->setFillBackground(true);
 
     const Font font{"DejaVuSans.ttf", 16.0f, 0};
 
     auto *frame = col->appendChild<Row>();
     frame->backgroundColor = glm::vec4{1.0f};
+    frame->setFillBackground(true);
     frame->setMargins(8.0);
 
     m_text = frame->appendChild<MultiLineText>();
@@ -89,7 +98,6 @@ TestWindow::TestWindow()
         "vehicula mi a hendrerit sagittis. In nec ante quis enim cursus semper.");
     m_text->setLineWidth(120.0f);
     m_text->color = glm::vec4{0.0f, 0.0f, 0.0f, 1.0f};
-    m_text->setFillBackground(false);
 
     m_uiRoot = std::move(row);
 }

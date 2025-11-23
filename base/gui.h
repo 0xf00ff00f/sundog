@@ -248,7 +248,7 @@ protected:
     void setSize(const SizeF &size);
     glm::vec2 childOffset(const Gizmo *gizmo) const;
 
-    Option m_options{Option::FillBackground};
+    Option m_options{Option::None};
     Gizmo *m_parent{nullptr};
     SizeF m_size;
     std::vector<ChildGizmo> m_children;
