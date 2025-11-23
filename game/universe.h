@@ -30,9 +30,7 @@ private:
 class World
 {
 public:
-    World();
-
-    void load(const nlohmann::json &json);
+    explicit World(std::string name, const OrbitalElements &elems);
 
     std::string_view name() const { return m_name; }
     const Orbit &orbit() const { return m_orbit; }
@@ -75,7 +73,7 @@ struct Universe
 public:
     Universe();
 
-    bool load(const nlohmann::json &json);
+    void setWorlds(std::vector<std::unique_ptr<World>> worlds);
 
     auto worlds() const
     {
@@ -93,3 +91,5 @@ private:
     std::vector<std::unique_ptr<World>> m_worlds;
     std::vector<std::unique_ptr<Ship>> m_ships;
 };
+
+void from_json(const nlohmann::json &json, Universe &universe);

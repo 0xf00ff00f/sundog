@@ -82,3 +82,14 @@ OrbitalElements orbitalElementsFromStateVector(const glm::dvec3 &r, const glm::d
                            .longitudeAscendingNode = Omega,
                            .meanAnomalyAtEpoch = meanAnomalyFromTrueAnomaly(nu, e)};
 }
+
+void from_json(const nlohmann::json &json, OrbitalElements &elements)
+{
+    elements.epoch = JulianDate{JulianClock::duration{json.at("epoch").get<float>()}};
+    elements.semiMajorAxis = json.at("semimajor_axis").get<float>();
+    elements.eccentricity = json.at("eccentricity").get<float>();
+    elements.inclination = glm::radians(json.at("inclination").get<float>());
+    elements.longitudePerihelion = glm::radians(json.at("longitude_perihelion").get<float>());
+    elements.longitudeAscendingNode = glm::radians(json.at("longitude_ascending_node").get<float>());
+    elements.meanAnomalyAtEpoch = glm::radians(json.at("mean_anomaly").get<float>());
+}

@@ -1,15 +1,22 @@
 add_executable(game)
 target_sources(
   game
-  PUBLIC main.cc
+  PUBLIC camera_controller.cc
+         camera_controller.h
+         date_gizmo.cc
+         date_gizmo.h
+         game.cc
+         game.h
+         game_window.cc
+         game_window.h
          julian_clock.h
-         orbital_elements.h
-         orbital_elements.cc
-         lambert.h
          lambert.cc
-         universe.h
+         lambert.h
+         main.cc
+         orbital_elements.cc
+         orbital_elements.h
          universe.cc
-         universe_map.h
+         universe.h
          universe_map.cc
          game_window.h
          game_window.cc

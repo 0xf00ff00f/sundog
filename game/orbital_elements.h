@@ -2,6 +2,8 @@
 
 #include "julian_clock.h"
 
+#include <nlohmann/json.hpp>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
@@ -24,3 +26,5 @@ inline constexpr auto kGMSun = 7.496 * 1e-6 * 4 * glm::pi<double>() * glm::pi<do
 
 OrbitalElements orbitalElementsFromStateVector(const glm::dvec3 &r, const glm::dvec3 &v, JulianDate epoch,
                                                double mu = kGMSun);
+
+void from_json(const nlohmann::json &json, OrbitalElements &elements);

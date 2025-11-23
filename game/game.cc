@@ -24,10 +24,7 @@ bool Game::initialize()
 {
     std::ifstream f(dataFilePath("universe.json"));
     const nlohmann::json universeJson = nlohmann::json::parse(f);
-
-    m_universe = std::make_unique<Universe>();
-    if (!m_universe->load(universeJson))
-        return false;
+    m_universe = universeJson.get<Universe>();
 
     m_shaderManager = std::make_unique<ShaderManager>();
     if (!m_shaderManager->initialize())
@@ -35,16 +32,16 @@ bool Game::initialize()
 
     m_overlayPainter = std::make_unique<Painter>(m_shaderManager.get());
 
-    m_universeMap = std::make_unique<UniverseMap>(m_universe.get(), m_shaderManager.get(), m_overlayPainter.get());
+    m_universeMap = std::make_unique<UniverseMap>(&m_universe, m_shaderManager.get(), m_overlayPainter.get());
 
 #if 0
-    auto ship = m_universe->addShip("Foo");
+    auto ship = m_universe.addShip("Foo");
     {
         const auto transitInterval = JulianClock::duration{253.5};
         const auto timeDeparture = JulianDate{JulianClock::duration{2455892.126389}};
         const auto timeArrival = timeDeparture + transitInterval;
 
-        const auto &worlds = m_universe->worlds();
+        const auto &worlds = m_universe.worlds();
         const auto *origin = worlds[2];      // Earth
         const auto *destination = worlds[3]; // Mars
 
@@ -111,7 +108,7 @@ void Game::render() const
 void Game::update(Seconds elapsed)
 {
 #if 0
-    m_currentTime += elapsed.count() * JulianClock::duration{};
+    m_currentTime += elapsed.count() * JulianClock::duration{20.0f};
 #else
     m_currentTime += elapsed;
 #endif

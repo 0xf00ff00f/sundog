@@ -77,48 +77,10 @@ void Orbit::updateOrbitRotationMatrix()
     m_orbitRotationMatrix = rN * ri * rw;
 }
 
-World::World() = default;
-
-void World::load(const nlohmann::json &json)
+World::World(std::string name, const OrbitalElements &elems)
+    : m_name(std::move(name))
 {
-    const auto name = json["name"];
-    assert(name.is_string());
-    m_name = name.get<std::string>();
-
-    const auto orbit = json["orbit"];
-    assert(orbit.is_object());
-
-    OrbitalElements orbitalElements;
-
-    const auto epoch = orbit["epoch"];
-    assert(epoch.is_number());
-    orbitalElements.epoch = JulianDate{JulianClock::duration{epoch.get<float>()}};
-
-    const auto semiMajorAxis = orbit["semimajor_axis"];
-    assert(semiMajorAxis.is_number());
-    orbitalElements.semiMajorAxis = semiMajorAxis.get<float>();
-
-    const auto eccentricity = orbit["eccentricity"];
-    assert(eccentricity.is_number());
-    orbitalElements.eccentricity = eccentricity.get<float>();
-
-    const auto inclination = orbit["inclination"];
-    assert(inclination.is_number());
-    orbitalElements.inclination = glm::radians(inclination.get<float>());
-
-    const auto longitudePerihelion = orbit["longitude_perihelion"];
-    assert(longitudePerihelion.is_number());
-    orbitalElements.longitudePerihelion = glm::radians(longitudePerihelion.get<float>());
-
-    const auto longitudeAscendingNode = orbit["longitude_ascending_node"];
-    assert(longitudeAscendingNode.is_number());
-    orbitalElements.longitudeAscendingNode = glm::radians(longitudeAscendingNode.get<float>());
-
-    const auto meanAnomaly = orbit["mean_anomaly"];
-    assert(meanAnomaly.is_number());
-    orbitalElements.meanAnomalyAtEpoch = glm::radians(meanAnomaly.get<float>());
-
-    m_orbit.setElements(orbitalElements);
+    m_orbit.setElements(elems);
 }
 
 glm::vec3 World::position(JulianDate when) const
@@ -143,25 +105,30 @@ const std::optional<Transit> &Ship::transit() const
 
 Universe::Universe() = default;
 
-bool Universe::load(const nlohmann::json &json)
+void Universe::setWorlds(std::vector<std::unique_ptr<World>> worlds)
 {
-    const auto worldsJson = json["worlds"];
-    assert(worldsJson.is_array());
-
-    m_worlds.reserve(worldsJson.size());
-
-    for (const auto &worldJson : worldsJson)
-    {
-        auto world = std::make_unique<World>();
-        world->load(worldJson);
-        m_worlds.push_back(std::move(world));
-    }
-
-    return true;
+    m_worlds = std::move(worlds);
 }
 
 Ship *Universe::addShip(std::string_view name)
 {
     m_ships.push_back(std::make_unique<Ship>(name));
     return m_ships.back().get();
+}
+
+namespace nlohmann
+{
+template<>
+struct adl_serializer<std::unique_ptr<World>>
+{
+    static std::unique_ptr<World> from_json(const json &j)
+    {
+        return std::make_unique<World>(j.at("name").get<std::string>(), j.at("orbit").get<OrbitalElements>());
+    }
+};
+} // namespace nlohmann
+
+void from_json(const nlohmann::json &json, Universe &universe)
+{
+    universe.setWorlds(json.at("worlds").get<std::vector<std::unique_ptr<World>>>());
 }
