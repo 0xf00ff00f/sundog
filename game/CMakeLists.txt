@@ -16,7 +16,9 @@ target_sources(
          game.h
          game.cc
          camera_controller.h
-         camera_controller.cc)
+         camera_controller.cc
+         date_gizmo.h
+         date_gizmo.cc)
 target_compile_features(game PUBLIC cxx_std_23)
 target_compile_definitions(game PUBLIC GLM_ENABLE_EXPERIMENTAL)
 target_link_libraries(game PRIVATE nlohmann_json::nlohmann_json base)

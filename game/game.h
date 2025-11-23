@@ -9,6 +9,7 @@ class Universe;
 class ShaderManager;
 class Painter;
 class UniverseMap;
+class DateGizmo;
 
 class Game
 {
@@ -41,4 +42,5 @@ private:
     std::unique_ptr<Painter> m_overlayPainter;
     std::unique_ptr<UniverseMap> m_universeMap;
     JulianDate m_currentTime;
+    std::unique_ptr<DateGizmo> m_dateGizmo;
 };

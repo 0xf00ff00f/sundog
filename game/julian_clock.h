@@ -4,7 +4,7 @@
 
 struct JulianClock
 {
-    using rep = float;
+    using rep = double;
     using period = std::ratio<60 * 60 * 24>;
     using duration = std::chrono::duration<rep, period>;
     using time_point = std::chrono::time_point<JulianClock>;

@@ -6,6 +6,7 @@
 #include "painter.h"
 #include "universe_map.h"
 #include "lambert.h"
+#include "date_gizmo.h"
 
 #include <fstream>
 
@@ -34,6 +35,7 @@ bool Game::initialize()
 
     m_universeMap = std::make_unique<UniverseMap>(m_universe.get(), m_shaderManager.get(), m_overlayPainter.get());
 
+#if 0
     auto ship = m_universe->addShip("Foo");
     {
         const auto transitInterval = JulianClock::duration{253.5};
@@ -66,6 +68,12 @@ bool Game::initialize()
 
         m_currentTime = timeDeparture;
     }
+#else
+    m_currentTime = JulianClock::now();
+#endif
+
+    m_dateGizmo = std::make_unique<DateGizmo>();
+    m_dateGizmo->setDate(m_currentTime);
 
     glEnable(GL_LINE_SMOOTH);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
@@ -92,13 +100,20 @@ void Game::render() const
 
     m_overlayPainter->begin();
     m_universeMap->render(m_currentTime);
-    m_overlayPainter->drawText(glm::vec2(0), std::format("DATE={}", m_currentTime.time_since_epoch().count()));
+
+    m_dateGizmo->paint(m_overlayPainter.get(), glm::vec2{0.0f, 0.0f}, 0);
+
     m_overlayPainter->end();
 }
 
 void Game::update(Seconds elapsed)
 {
-    m_currentTime += elapsed.count() * JulianClock::duration{20.0};
+#if 0
+    m_currentTime += elapsed.count() * JulianClock::duration{};
+#else
+    m_currentTime += elapsed;
+#endif
+    m_dateGizmo->setDate(m_currentTime);
     m_universeMap->update(elapsed);
 }
 
