@@ -1,12 +1,14 @@
 #include "game.h"
 
-#include "asset_path.h"
 #include "universe.h"
-#include "shader_manager.h"
-#include "painter.h"
 #include "universe_map.h"
 #include "lambert.h"
+
 #include "date_gizmo.h"
+
+#include <base/asset_path.h>
+#include <base/shader_manager.h>
+#include <base/painter.h>
 
 #include <fstream>
 

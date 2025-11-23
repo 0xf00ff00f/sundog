@@ -1,7 +1,8 @@
 #pragma once
 
-#include "window_base.h"
 #include "julian_clock.h"
+
+#include <base/window_base.h>
 
 #include <glm/glm.hpp>
 

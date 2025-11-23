@@ -44,7 +44,7 @@ target_sources(
           gui.cc)
 target_compile_features(base PUBLIC cxx_std_23)
 target_compile_definitions(base PUBLIC GLM_ENABLE_EXPERIMENTAL)
-target_include_directories(base PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(base PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
 target_link_libraries(base PUBLIC glfw glm glad muslots stb)
 target_compile_definitions(base
                            PUBLIC ASSETSDIR="${PROJECT_SOURCE_DIR}/assets/")

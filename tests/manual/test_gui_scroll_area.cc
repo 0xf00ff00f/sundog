@@ -1,7 +1,7 @@
-#include <shader_manager.h>
-#include <window_base.h>
-#include <gui.h>
-#include <painter.h>
+#include <base/shader_manager.h>
+#include <base/window_base.h>
+#include <base/gui.h>
+#include <base/painter.h>
 
 #include <GLFW/glfw3.h>
 

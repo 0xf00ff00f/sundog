@@ -1,8 +1,8 @@
 #include "universe_map.h"
 
-#include "shader_manager.h"
-#include "painter.h"
-#include "mesh.h"
+#include <base/shader_manager.h>
+#include <base/painter.h>
+#include <base/mesh.h>
 
 #include <glm/gtx/string_cast.hpp>
 

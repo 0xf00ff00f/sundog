@@ -1,9 +1,10 @@
 #pragma once
 
-#include "rect.h"
 #include "universe.h"
-#include "window_base.h"
 #include "camera_controller.h"
+
+#include <base/rect.h>
+#include <base/window_base.h>
 
 #include <cstddef>
 

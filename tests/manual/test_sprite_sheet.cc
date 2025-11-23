@@ -1,6 +1,6 @@
-#include "sprite_book.h"
-#include "glyph_generator.h"
-#include "arg_parser.h"
+#include <base/sprite_book.h>
+#include <base/glyph_generator.h>
+#include <base/arg_parser.h>
 
 #include <stb_image_write.h>
 
