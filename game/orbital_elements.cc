@@ -85,7 +85,7 @@ OrbitalElements orbitalElementsFromStateVector(const glm::dvec3 &r, const glm::d
 
 void from_json(const nlohmann::json &json, OrbitalElements &elements)
 {
-    elements.epoch = JulianDate{JulianClock::duration{json.at("epoch").get<float>()}};
+    elements.epoch = JulianDate{JulianClock::duration{json.at("epoch").get<double>()}};
     elements.semiMajorAxis = json.at("semimajor_axis").get<float>();
     elements.eccentricity = json.at("eccentricity").get<float>();
     elements.inclination = glm::radians(json.at("inclination").get<float>());
