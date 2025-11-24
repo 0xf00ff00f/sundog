@@ -1,16 +1,16 @@
 #pragma once
 
 #include "julian_clock.h"
-#include "universe.h"
 
 #include <base/window_base.h>
 
 #include <glm/glm.hpp>
 
-class ShaderManager;
-class Painter;
-class UniverseMap;
 class DateGizmo;
+class Painter;
+class ShaderManager;
+class Universe;
+class UniverseMap;
 
 class Game
 {
@@ -38,7 +38,7 @@ public:
 private:
     bool m_playing = false;
     SizeI m_viewportSize;
-    Universe m_universe;
+    std::unique_ptr<Universe> m_universe;
     std::unique_ptr<ShaderManager> m_shaderManager;
     std::unique_ptr<Painter> m_overlayPainter;
     std::unique_ptr<UniverseMap> m_universeMap;

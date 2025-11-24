@@ -137,7 +137,7 @@
             "orbit": {
                 "epoch": 2460000.5,
                 "semimajor_axis": 2.36303821,
-                "eccentricity": 0.08875750,
+                "eccentricity": 0.0887575,
                 "inclination": 7.13925798,
                 "longitude_perihelion": 255.35646413737,
                 "longitude_ascending_node": 103.75730014935,
@@ -168,5 +168,51 @@
                 "mean_anomaly": 196.50611414572
             }
         }
-    ]
+    ],
+    "market": {
+        "categories": [
+            {
+                "name": "Metals",
+                "items": [
+                    {
+                        "name": "Platinum",
+                        "description": "Lorem ipsum dolor sit amet"
+                    },
+                    {
+                        "name": "Gold",
+                        "description": "Lorem ipsum dolor sit amet"
+                    },
+                    {
+                        "name": "Silver",
+                        "description": "Lorem ipsum dolor sit amet"
+                    },
+                    {
+                        "name": "Palladium",
+                        "description": "Lorem ipsum dolor sit amet"
+                    }
+                ]
+            },
+            {
+                "name": "Food",
+                "items": [
+                    {
+                        "name": "Algae",
+                        "description": "Lorem ipsum dolor sit amet"
+                    },
+                    {
+                        "name": "Coffee",
+                        "description": "Lorem ipsum dolor sit amet"
+                    },
+                    {
+                        "name": "Grain",
+                        "description": "Lorem ipsum dolor sit amet"
+                    },
+                    {
+                        "name": "Tea",
+                        "description": "Lorem ipsum dolor sit amet"
+                    }
+                ]
+            }
+        ]
+    }
 }

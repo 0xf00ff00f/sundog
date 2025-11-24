@@ -10,10 +10,6 @@
 #include <base/shader_manager.h>
 #include <base/painter.h>
 
-#include <fstream>
-
-#include <nlohmann/json.hpp>
-
 #include <glm/gtx/string_cast.hpp>
 
 Game::Game() = default;
@@ -22,9 +18,9 @@ Game::~Game() = default;
 
 bool Game::initialize()
 {
-    std::ifstream f(dataFilePath("universe.json"));
-    const nlohmann::json universeJson = nlohmann::json::parse(f);
-    m_universe = universeJson.get<Universe>();
+    m_universe = std::make_unique<Universe>();
+    if (!m_universe->load(dataFilePath("universe.json")))
+        return false;
 
     m_shaderManager = std::make_unique<ShaderManager>();
     if (!m_shaderManager->initialize())
@@ -32,7 +28,7 @@ bool Game::initialize()
 
     m_overlayPainter = std::make_unique<Painter>(m_shaderManager.get());
 
-    m_universeMap = std::make_unique<UniverseMap>(&m_universe, m_shaderManager.get(), m_overlayPainter.get());
+    m_universeMap = std::make_unique<UniverseMap>(m_universe.get(), m_shaderManager.get(), m_overlayPainter.get());
 
 #if 0
     auto ship = m_universe.addShip("Foo");

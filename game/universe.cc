@@ -1,5 +1,7 @@
 #include "universe.h"
 
+#include <base/file.h>
+
 #include <glm/gtx/transform.hpp>
 
 // https://farside.ph.utexas.edu/teaching/celestial/Celestial/node34.html
@@ -7,6 +9,13 @@
 // http://www.davidcolarusso.com/astro/
 
 Orbit::Orbit() = default;
+
+Orbit::Orbit(const OrbitalElements &elems)
+    : m_elems(elems)
+{
+    updatePeriod();
+    updateOrbitRotationMatrix();
+}
 
 void Orbit::setElements(const OrbitalElements &elems)
 {
@@ -77,10 +86,11 @@ void Orbit::updateOrbitRotationMatrix()
     m_orbitRotationMatrix = rN * ri * rw;
 }
 
-World::World(std::string name, const OrbitalElements &elems)
-    : m_name(std::move(name))
+World::World(const Universe *universe, std::string name, const OrbitalElements &elems)
+    : m_universe(universe)
+    , m_name(std::move(name))
+    , m_orbit(elems)
 {
-    m_orbit.setElements(elems);
 }
 
 glm::vec3 World::position(JulianDate when) const
@@ -91,6 +101,11 @@ glm::vec3 World::position(JulianDate when) const
 Ship::Ship(std::string_view name)
     : m_name(name)
 {
+}
+
+void Ship::setName(std::string_view name)
+{
+    m_name = name;
 }
 
 void Ship::setTransit(std::optional<Transit> transit)
@@ -105,30 +120,40 @@ const std::optional<Transit> &Ship::transit() const
 
 Universe::Universe() = default;
 
-void Universe::setWorlds(std::vector<std::unique_ptr<World>> worlds)
-{
-    m_worlds = std::move(worlds);
-}
-
 Ship *Universe::addShip(std::string_view name)
 {
     m_ships.push_back(std::make_unique<Ship>(name));
     return m_ships.back().get();
 }
 
-namespace nlohmann
+bool Universe::load(const std::string &path)
 {
-template<>
-struct adl_serializer<std::unique_ptr<World>>
-{
-    static std::unique_ptr<World> from_json(const json &j)
-    {
-        return std::make_unique<World>(j.at("name").get<std::string>(), j.at("orbit").get<OrbitalElements>());
-    }
-};
-} // namespace nlohmann
+    const auto jsonData = readFile(path);
+    if (jsonData.empty())
+        return false;
 
-void from_json(const nlohmann::json &json, Universe &universe)
-{
-    universe.setWorlds(json.at("worlds").get<std::vector<std::unique_ptr<World>>>());
+    const nlohmann::json json = nlohmann::json::parse(jsonData);
+
+    // market
+    for (const nlohmann::json &categoryJson : json.at("market").at("categories"))
+    {
+        auto &category = m_marketDescription.categories.emplace_back(std::make_unique<MarketCategory>());
+        category->name = categoryJson.at("name").get<std::string>();
+        for (const nlohmann::json &itemJson : categoryJson.at("items"))
+        {
+            auto &item = category->items.emplace_back(std::make_unique<MarketItemDescription>());
+            item->category = category.get();
+            item->name = itemJson.at("name").get<std::string>();
+            item->description = itemJson.at("description").get<std::string>();
+        }
+    }
+
+    // worlds
+    for (const nlohmann::json &worldJson : json.at("worlds"))
+    {
+        m_worlds.push_back(std::make_unique<World>(this, worldJson.at("name").get<std::string>(),
+                                                   worldJson.at("orbit").get<OrbitalElements>()));
+    }
+
+    return true;
 }

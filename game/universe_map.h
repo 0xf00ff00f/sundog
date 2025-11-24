@@ -36,7 +36,6 @@ private:
     ShaderManager *m_shaderManager{nullptr};
     Painter *m_overlayPainter;
     SizeI m_viewportSize;
-    // std::unordered_map<const World *, std::unique_ptr<Mesh>> m_orbitMeshes;
     std::unique_ptr<Mesh> m_bodyBillboardMesh;
     std::unique_ptr<Mesh> m_orbitMesh;
     glm::mat4 m_projectionMatrix;

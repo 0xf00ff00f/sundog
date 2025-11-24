@@ -1,10 +1,11 @@
 #include "file.h"
 
+#include <memory>
 #include <cstdio>
 
-std::vector<std::byte> readFile(const std::filesystem::path &path)
+std::vector<std::byte> readFile(const std::string &path)
 {
-    auto stream = std::unique_ptr<FILE, decltype(&fclose)>(fopen(path.string().c_str(), "rb"), &fclose);
+    auto stream = std::unique_ptr<FILE, decltype(&fclose)>(fopen(path.c_str(), "rb"), &fclose);
     if (!stream)
         return {};
     fseek(stream.get(), 0l, SEEK_END);
