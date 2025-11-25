@@ -6,11 +6,18 @@
 
 #include <glm/glm.hpp>
 
-class DateGizmo;
 class Painter;
 class ShaderManager;
 class Universe;
 class UniverseMap;
+class DateGizmo;
+class MarketSnapshotGizmo;
+
+namespace ui
+{
+class Rectangle;
+class EventManager;
+}; // namespace ui
 
 class Game
 {
@@ -43,5 +50,8 @@ private:
     std::unique_ptr<Painter> m_overlayPainter;
     std::unique_ptr<UniverseMap> m_universeMap;
     JulianDate m_currentTime;
-    std::unique_ptr<DateGizmo> m_dateGizmo;
+    std::unique_ptr<ui::Rectangle> m_uiRoot;
+    std::unique_ptr<ui::EventManager> m_uiEventManager;
+    DateGizmo *m_dateGizmo{nullptr};
+    MarketSnapshotGizmo *m_marketSnapshotGizmo{nullptr};
 };

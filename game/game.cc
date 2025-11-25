@@ -5,6 +5,7 @@
 #include "lambert.h"
 
 #include "date_gizmo.h"
+#include "market_snapshot_gizmo.h"
 
 #include <base/asset_path.h>
 #include <base/shader_manager.h>
@@ -67,8 +68,18 @@ bool Game::initialize()
     m_currentTime = JulianClock::now();
 #endif
 
-    m_dateGizmo = std::make_unique<DateGizmo>();
+    m_uiRoot = std::make_unique<ui::Rectangle>(100, 100);
+
+    m_dateGizmo = m_uiRoot->appendChild<DateGizmo>();
     m_dateGizmo->setDate(m_currentTime);
+    m_dateGizmo->setAlign(ui::Align::Left | ui::Align::Top);
+
+    m_marketSnapshotGizmo = m_uiRoot->appendChild<MarketSnapshotGizmo>();
+    m_marketSnapshotGizmo->setAlign(ui::Align::HorizontalCenter | ui::Align::VerticalCenter);
+    m_marketSnapshotGizmo->initializeFrom(m_universe->worlds().front());
+
+    m_uiEventManager = std::make_unique<ui::EventManager>();
+    m_uiEventManager->setRoot(m_uiRoot.get());
 
     glEnable(GL_LINE_SMOOTH);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
@@ -85,6 +96,7 @@ void Game::setViewportSize(const SizeI &size)
 
     m_universeMap->setViewportSize(size);
     m_overlayPainter->setViewportSize(size);
+    m_uiRoot->setSize(SizeF{size});
 }
 
 void Game::render() const
@@ -96,7 +108,7 @@ void Game::render() const
     m_overlayPainter->begin();
     m_universeMap->render(m_currentTime);
 
-    m_dateGizmo->paint(m_overlayPainter.get(), glm::vec2{0.0f, 0.0f}, 0);
+    m_uiRoot->paint(m_overlayPainter.get(), glm::vec2{0.0f, 0.0f}, 0);
 
     m_overlayPainter->end();
 }
@@ -116,10 +128,12 @@ void Game::handleKey(int /* key */, int /* scancode */, KeyAction /* action */, 
 
 void Game::handleMouseButton(MouseButton button, MouseAction action, const glm::vec2 &pos, Modifier mods)
 {
-    m_universeMap->handleMouseButton(button, action, pos, mods);
+    if (!m_uiEventManager->handleMouseButton(button, action, pos, mods))
+        m_universeMap->handleMouseButton(button, action, pos, mods);
 }
 
 void Game::handleMouseMove(const glm::vec2 &pos)
 {
-    m_universeMap->handleMouseMove(pos);
+    if (!m_uiEventManager->handleMouseMove(pos))
+        m_universeMap->handleMouseMove(pos);
 }

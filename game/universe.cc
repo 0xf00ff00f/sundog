@@ -4,6 +4,8 @@
 
 #include <glm/gtx/transform.hpp>
 
+#include <random>
+
 // https://farside.ph.utexas.edu/teaching/celestial/Celestial/node34.html
 // http://astro.if.ufrgs.br/trigesf/position.html
 // http://www.davidcolarusso.com/astro/
@@ -91,6 +93,17 @@ World::World(const Universe *universe, std::string name, const OrbitalElements &
     , m_name(std::move(name))
     , m_orbit(elems)
 {
+    std::random_device rnd;
+    const auto &market = m_universe->marketDescription();
+    for (const auto &category : market.categories)
+    {
+        for (const auto &item : category->items)
+        {
+            const auto buyPrice = rnd() % 50000 + 5000;
+            const auto sellPrice = rnd() % 50000 + 5000;
+            m_marketItems.emplace_back(item.get(), buyPrice, sellPrice);
+        }
+    }
 }
 
 glm::vec3 World::position(JulianDate when) const

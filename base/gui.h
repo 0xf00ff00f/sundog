@@ -158,6 +158,7 @@ public:
     const Gizmo *childAt(std::size_t index) const;
     Gizmo *childAt(std::size_t index);
     std::size_t childCount() const { return m_children.size(); }
+    void clear();
 
     auto children() const
     {
@@ -414,8 +415,8 @@ public:
 
     void setRoot(Gizmo *root);
 
-    void handleMouseButton(MouseButton button, MouseAction action, const glm::vec2 &pos, Modifier mods);
-    void handleMouseMove(const glm::vec2 &pos);
+    bool handleMouseButton(MouseButton button, MouseAction action, const glm::vec2 &pos, Modifier mods);
+    bool handleMouseMove(const glm::vec2 &pos);
 
 private:
     Gizmo *m_root{nullptr};

@@ -31,6 +31,14 @@ void Gizmo::setOptions(Option options)
     m_options = options;
 }
 
+void Gizmo::clear()
+{
+    if (m_children.empty())
+        return;
+    m_children.clear();
+    updateLayout();
+}
+
 void Gizmo::removeChild(std::size_t index)
 {
     if (index >= m_children.size())
@@ -142,6 +150,7 @@ void Gizmo::setSize(const SizeF &size)
         return;
     m_size = size;
     resizedSignal(m_size);
+    updateLayout();
 }
 
 void Gizmo::setAlign(Align align)
@@ -748,10 +757,11 @@ void EventManager::setRoot(Gizmo *root)
     m_root = root;
 }
 
-void EventManager::handleMouseButton(MouseButton button, MouseAction action, const glm::vec2 &pos, Modifier mods)
+bool EventManager::handleMouseButton(MouseButton button, MouseAction action, const glm::vec2 &pos, Modifier mods)
 {
     if (button != MouseButton::Left)
-        return;
+        return false;
+    bool accepted = false;
     switch (action)
     {
     case MouseAction::Press: {
@@ -761,6 +771,7 @@ void EventManager::handleMouseButton(MouseButton button, MouseAction action, con
         {
             // found a gizmo that accepts the mouse press, will get mouse move and the mouse release event
             m_mouseEventTarget = target;
+            accepted = true;
         }
         break;
     }
@@ -769,14 +780,17 @@ void EventManager::handleMouseButton(MouseButton button, MouseAction action, con
         {
             m_mouseEventTarget->handleMouseRelease(pos - m_mouseEventTarget->globalPosition());
             m_mouseEventTarget = nullptr;
+            accepted = true;
         }
         break;
     }
     }
+    return accepted;
 }
 
-void EventManager::handleMouseMove(const glm::vec2 &pos)
+bool EventManager::handleMouseMove(const glm::vec2 &pos)
 {
+    bool accepted = false;
     auto *underCursor = m_root->findChildAt(pos, [](Gizmo *gizmo, const glm::vec2 &) { return gizmo->hoverable(); });
     if (m_underCursor != underCursor)
     {
@@ -790,7 +804,9 @@ void EventManager::handleMouseMove(const glm::vec2 &pos)
     if (m_mouseEventTarget)
     {
         m_mouseEventTarget->handleMouseMove(pos - m_mouseEventTarget->globalPosition());
+        accepted = true;
     }
+    return accepted;
 }
 
 } // namespace ui
