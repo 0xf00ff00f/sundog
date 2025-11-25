@@ -15,22 +15,22 @@ void Orbit::setElements(const OrbitalElements &elems)
     updateOrbitRotationMatrix();
 }
 
-float Orbit::meanAnomaly(JulianDate when) const
+double Orbit::meanAnomaly(JulianDate when) const
 {
-    const float Mepoch = m_elems.meanAnomalyAtEpoch;
-    return Mepoch + 2.0 * glm::pi<float>() * (when - m_elems.epoch).count() / m_period;
+    const double Mepoch = m_elems.meanAnomalyAtEpoch;
+    return Mepoch + 2.0 * glm::pi<double>() * (when - m_elems.epoch).count() / m_period;
 }
 
-float Orbit::eccentricAnomaly(JulianDate when) const
+double Orbit::eccentricAnomaly(JulianDate when) const
 {
-    const float e = m_elems.eccentricity;
-    const float M = meanAnomaly(when);
+    const auto e = m_elems.eccentricity;
+    const auto M = meanAnomaly(when);
 
     constexpr auto kTolerance = glm::radians(0.01);
     constexpr auto kMaxIterations = 200;
 
-    float Eprev = M + e * std::sin(M) * (1.0 - e * cos(M));
-    float E;
+    double Eprev = M + e * std::sin(M) * (1.0 - e * std::cos(M));
+    double E;
     for (std::size_t iteration = 0; iteration < kMaxIterations; ++iteration)
     {
         E = Eprev - (Eprev - e * std::sin(Eprev) - M) / (1 - e * std::cos(Eprev));

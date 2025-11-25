@@ -13,9 +13,9 @@ public:
     OrbitalElements elements() const { return m_elems; }
 
     glm::mat3 orbitRotationMatrix() const { return m_orbitRotationMatrix; }
-    float period() const { return m_period; }      // Earth years
-    float meanAnomaly(JulianDate when) const;      // radians
-    float eccentricAnomaly(JulianDate when) const; // radians
+    double period() const { return m_period; }      // Earth years
+    double meanAnomaly(JulianDate when) const;      // radians
+    double eccentricAnomaly(JulianDate when) const; // radians
     glm::vec3 position(JulianDate when) const;     // AU
 
 private:
@@ -23,7 +23,7 @@ private:
     void updateOrbitRotationMatrix();
 
     OrbitalElements m_elems;
-    float m_period = 0.0f;
+    double m_period{0.0};
     glm::mat3 m_orbitRotationMatrix;
 };
 
