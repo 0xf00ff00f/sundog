@@ -94,10 +94,9 @@ World::World(const Universe *universe, std::string name, const OrbitalElements &
     , m_orbit(elems)
 {
     std::random_device rnd;
-    const auto &market = m_universe->marketDescription();
-    for (const auto &category : market.categories)
+    for (const auto *sector : m_universe->marketSectors())
     {
-        for (const auto &item : category->items)
+        for (const auto &item : sector->items)
         {
             const auto buyPrice = rnd() % 50000 + 5000;
             const auto sellPrice = rnd() % 50000 + 5000;
@@ -148,14 +147,14 @@ bool Universe::load(const std::string &path)
     const nlohmann::json json = nlohmann::json::parse(jsonData);
 
     // market
-    for (const nlohmann::json &categoryJson : json.at("market").at("categories"))
+    for (const nlohmann::json &sectorJson : json.at("market").at("sectors"))
     {
-        auto &category = m_marketDescription.categories.emplace_back(std::make_unique<MarketCategory>());
-        category->name = categoryJson.at("name").get<std::string>();
-        for (const nlohmann::json &itemJson : categoryJson.at("items"))
+        auto &sector = m_marketSectors.emplace_back(std::make_unique<MarketSector>());
+        sector->name = sectorJson.at("name").get<std::string>();
+        for (const nlohmann::json &itemJson : sectorJson.at("items"))
         {
-            auto &item = category->items.emplace_back(std::make_unique<MarketItemDescription>());
-            item->category = category.get();
+            auto &item = sector->items.emplace_back(std::make_unique<MarketItemDescription>());
+            item->sector = sector.get();
             item->name = itemJson.at("name").get<std::string>();
             item->description = itemJson.at("description").get<std::string>();
         }
@@ -164,8 +163,8 @@ bool Universe::load(const std::string &path)
     // worlds
     for (const nlohmann::json &worldJson : json.at("worlds"))
     {
-        m_worlds.push_back(std::make_unique<World>(this, worldJson.at("name").get<std::string>(),
-                                                   worldJson.at("orbit").get<OrbitalElements>()));
+        m_worlds.emplace_back(std::make_unique<World>(this, worldJson.at("name").get<std::string>(),
+                                                      worldJson.at("orbit").get<OrbitalElements>()));
     }
 
     return true;

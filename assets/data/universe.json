@@ -170,7 +170,7 @@
         }
     ],
     "market": {
-        "categories": [
+        "sectors": [
             {
                 "name": "Metals",
                 "items": [

@@ -4,24 +4,19 @@
 
 #include <nlohmann/json.hpp>
 
-struct MarketCategory;
+struct MarketSector;
 
 struct MarketItemDescription
 {
-    const MarketCategory *category{nullptr};
+    const MarketSector *sector{nullptr};
     std::string name;
     std::string description;
 };
 
-struct MarketCategory
+struct MarketSector
 {
     std::string name;
     std::vector<std::unique_ptr<MarketItemDescription>> items;
-};
-
-struct MarketDescription
-{
-    std::vector<std::unique_ptr<MarketCategory>> categories;
 };
 
 class Orbit
@@ -110,8 +105,6 @@ public:
 
     bool load(const std::string &path);
 
-    const MarketDescription &marketDescription() const { return m_marketDescription; }
-
     auto worlds() const
     {
         return m_worlds | std::views::transform([](const auto &world) -> const World * { return world.get(); });
@@ -122,10 +115,16 @@ public:
         return m_ships | std::views::transform([](const auto &ship) -> const Ship * { return ship.get(); });
     }
 
+    auto marketSectors() const
+    {
+        return m_marketSectors |
+               std::views::transform([](const auto &sector) -> const MarketSector * { return sector.get(); });
+    }
+
     Ship *addShip(std::string_view name);
 
 private:
-    MarketDescription m_marketDescription;
+    std::vector<std::unique_ptr<MarketSector>> m_marketSectors;
     std::vector<std::unique_ptr<World>> m_worlds;
     std::vector<std::unique_ptr<Ship>> m_ships;
 };

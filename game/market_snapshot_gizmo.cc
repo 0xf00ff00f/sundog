@@ -58,16 +58,14 @@ void MarketSnapshotGizmo::initializeFrom(const World *world)
 
     const auto &items = world->marketItems();
 
-    const auto &marketDescription = world->universe()->marketDescription();
-    for (const auto &category : marketDescription.categories)
+    for (const auto *sector : world->universe()->marketSectors())
     {
-        auto filteredItems = items | std::views::filter([category = category.get()](const auto &item) {
-                                 return item.description->category == category;
-                             });
+        auto filteredItems =
+            items | std::views::filter([sector](const auto &item) { return item.description->sector == sector; });
         if (!filteredItems.empty())
         {
             auto *row = m_itemList->appendChild<ui::Row>();
-            appendPaddedText(kGoodsColumnWidth, Align::Left, category->name, row);
+            appendPaddedText(kGoodsColumnWidth, Align::Left, sector->name, row);
 
             for (const auto &item : filteredItems)
             {
