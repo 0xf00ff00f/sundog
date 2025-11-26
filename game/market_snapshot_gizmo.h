@@ -3,6 +3,7 @@
 #include <base/gui.h>
 
 class World;
+class TableGizmo;
 
 class MarketSnapshotGizmo : public ui::Column
 {
@@ -12,7 +13,5 @@ public:
     void initializeFrom(const World *world);
 
 private:
-    ui::Row *m_headerRow{nullptr};
-    ui::ScrollArea *m_scrollArea{nullptr};
-    ui::Column *m_itemList{nullptr};
+    TableGizmo *m_tableGizmo{nullptr};
 };

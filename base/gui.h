@@ -260,6 +260,7 @@ protected:
 class Rectangle : public Gizmo
 {
 public:
+    using Gizmo::Gizmo;
     explicit Rectangle(float width, float height, Gizmo *parent = nullptr);
     explicit Rectangle(const SizeF &size, Gizmo *parent = nullptr);
 
@@ -314,6 +315,7 @@ private:
 class ScrollArea : public Gizmo
 {
 public:
+    using Gizmo::Gizmo;
     explicit ScrollArea(float width, float height, Gizmo *parent = nullptr);
     explicit ScrollArea(const SizeF &size, Gizmo *parent = nullptr);
 

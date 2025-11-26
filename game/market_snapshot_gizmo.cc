@@ -1,34 +1,9 @@
 #include "market_snapshot_gizmo.h"
 
 #include "universe.h"
+#include "table_gizmo.h"
 
 using namespace ui;
-
-namespace
-{
-
-constexpr auto kGoodsColumnWidth = 200.0f;
-constexpr auto kPriceColumnWidth = 120.0f;
-
-ui::Gizmo *appendPaddedText(float width, Align align, std::string_view text, ui::Gizmo *parent)
-{
-    constexpr auto kFont = "DejaVuSans.ttf";
-    constexpr auto kMargin = 4.0f;
-
-    auto *container = parent->appendChild<Column>();
-    container->setMargins(kMargin);
-    container->setMinimumWidth(width);
-
-    auto *textGizmo = container->appendChild<Text>();
-    textGizmo->setAlign(align);
-    textGizmo->setFont(Font{kFont, 20.0f, 0});
-    textGizmo->setText(text);
-    textGizmo->color = glm::vec4{1.0f};
-
-    return container;
-}
-
-}; // namespace
 
 MarketSnapshotGizmo::MarketSnapshotGizmo(ui::Gizmo *parent)
     : ui::Column(parent)
@@ -37,24 +12,23 @@ MarketSnapshotGizmo::MarketSnapshotGizmo(ui::Gizmo *parent)
     backgroundColor = glm::vec4{0.0f, 0.0f, 0.0f, 0.75f};
     setMargins(4.0f);
 
-    m_headerRow = appendChild<ui::Row>();
-    appendPaddedText(kGoodsColumnWidth, Align::Left, "Goods", m_headerRow);
-    appendPaddedText(kPriceColumnWidth, Align::Right, "Buy", m_headerRow);
-    appendPaddedText(kPriceColumnWidth, Align::Right, "Sell", m_headerRow);
+    m_tableGizmo = appendChild<TableGizmo>(3);
 
-    const auto headerWidth = kGoodsColumnWidth + 2.0f * kPriceColumnWidth + m_headerRow->spacing() * 2;
+    m_tableGizmo->setColumnWidth(0, 200.0f);
+    m_tableGizmo->setColumnAlign(0, Align::Left);
 
-    constexpr auto kScrollbarWidth = 8.0f;
+    m_tableGizmo->setColumnWidth(1, 120.0f);
+    m_tableGizmo->setColumnAlign(1, Align::Right);
 
-    m_scrollArea = appendChild<ui::ScrollArea>(headerWidth + kScrollbarWidth, 200.0f);
-    m_scrollArea->setVerticalScrollbarWidth(kScrollbarWidth);
+    m_tableGizmo->setColumnWidth(2, 120.0f);
+    m_tableGizmo->setColumnAlign(2, Align::Right);
 
-    m_itemList = m_scrollArea->appendChild<ui::Column>();
+    m_tableGizmo->setHeader("Goods", "Buy", "Sell");
 }
 
 void MarketSnapshotGizmo::initializeFrom(const World *world)
 {
-    m_itemList->clear();
+    m_tableGizmo->clearRows();
 
     const auto &items = world->marketItems();
 
@@ -64,16 +38,9 @@ void MarketSnapshotGizmo::initializeFrom(const World *world)
             items | std::views::filter([sector](const auto &item) { return item.description->sector == sector; });
         if (!filteredItems.empty())
         {
-            auto *row = m_itemList->appendChild<ui::Row>();
-            appendPaddedText(kGoodsColumnWidth, Align::Left, sector->name, row);
-
+            m_tableGizmo->appendRow(sector->name);
             for (const auto &item : filteredItems)
-            {
-                auto *row = m_itemList->appendChild<ui::Row>();
-                appendPaddedText(kGoodsColumnWidth, Align::Left, item.description->name, row);
-                appendPaddedText(kPriceColumnWidth, Align::Right, std::to_string(item.buyPrice), row);
-                appendPaddedText(kPriceColumnWidth, Align::Right, std::to_string(item.sellPrice), row);
-            }
+                m_tableGizmo->appendRow(item.description->name, item.buyPrice, item.sellPrice);
         }
     }
 }

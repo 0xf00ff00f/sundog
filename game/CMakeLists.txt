@@ -26,6 +26,8 @@ target_sources(
          camera_controller.cc
          date_gizmo.h
          date_gizmo.cc
+         table_gizmo.h
+         table_gizmo.cc
          market_snapshot_gizmo.h
          market_snapshot_gizmo.cc)
 target_compile_features(game PUBLIC cxx_std_23)
