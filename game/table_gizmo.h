@@ -50,8 +50,6 @@ private:
     void appendCell(ui::Row *row, std::size_t column, std::string_view value);
     void appendCell(ui::Row *row, std::size_t column, uint64_t value);
 
-    void updateChildrenSizes();
-
     std::size_t m_columnCount;
     ui::Row *m_headerRow{nullptr};
     ui::Rectangle *m_headerSeparator{nullptr};

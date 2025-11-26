@@ -34,8 +34,11 @@ TableGizmo::TableGizmo(std::size_t columns, ui::Gizmo *parent)
     m_scrollArea = appendChild<ui::ScrollArea>();
 
     m_dataRows = m_scrollArea->appendChild<ui::Column>();
-
-    updateChildrenSizes();
+    m_dataRows->resizedSignal.connect([this](const SizeF &size) {
+        const auto totalWidth = size.width() + m_scrollArea->verticalScrollbarWidth();
+        m_headerSeparator->setSize(totalWidth, 1.0f);
+        m_scrollArea->setSize(totalWidth, 200.0f); // TODO: height
+    });
 }
 
 void TableGizmo::setColumnWidth(std::size_t column, float width)
@@ -45,7 +48,6 @@ void TableGizmo::setColumnWidth(std::size_t column, float width)
     if (m_columnStyles[column].width == width)
         return;
     m_columnStyles[column].width = width;
-    updateChildrenSizes();
     // TODO update existing columns
 }
 
@@ -62,16 +64,6 @@ void TableGizmo::setColumnAlign(std::size_t column, ui::Align align)
 void TableGizmo::clearRows()
 {
     m_dataRows->clear();
-}
-
-void TableGizmo::updateChildrenSizes()
-{
-    auto totalWidth = std::ranges::fold_left(m_columnStyles, 0.0f,
-                                             [](float width, const ColumnStyle &style) { return width + style.width; });
-    totalWidth += m_headerRow->spacing() * (m_columnCount - 1);
-    totalWidth += m_scrollArea->verticalScrollbarWidth();
-    m_headerSeparator->setSize(totalWidth, 1.0f);
-    m_scrollArea->setSize(totalWidth, 200.0f); // TODO: height
 }
 
 void TableGizmo::appendCell(ui::Row *row, std::size_t column, uint64_t value)
