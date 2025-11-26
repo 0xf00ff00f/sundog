@@ -4,6 +4,15 @@
 
 #include <utility>
 
+class HoverableRow : public ui::Row
+{
+public:
+    explicit HoverableRow(ui::Gizmo *parent);
+
+    void handleMouseEnter() override;
+    void handleMouseLeave() override;
+};
+
 class TableGizmo : public ui::Column
 {
 public:
@@ -24,7 +33,7 @@ public:
     template<typename... Args>
     void appendRow(Args &&...values)
     {
-        auto *row = m_dataRows->appendChild<ui::Row>();
+        auto *row = m_dataRows->appendChild<HoverableRow>();
         initializeRow(row, std::forward<Args>(values)...);
     }
 

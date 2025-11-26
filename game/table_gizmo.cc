@@ -2,6 +2,24 @@
 
 #include <print>
 
+HoverableRow::HoverableRow(ui::Gizmo *parent)
+    : ui::Row(parent)
+{
+    setHoverable(true);
+    setFillBackground(false);
+    backgroundColor = glm::vec4{1.0f, 1.0f, 1.0f, 0.25f};
+}
+
+void HoverableRow::handleMouseEnter()
+{
+    setFillBackground(true);
+}
+
+void HoverableRow::handleMouseLeave()
+{
+    setFillBackground(false);
+}
+
 TableGizmo::TableGizmo(std::size_t columns, ui::Gizmo *parent)
     : ui::Column(parent)
     , m_columnCount(columns)
