@@ -2,6 +2,22 @@
 
 #include <print>
 
+namespace
+{
+
+std::locale thousandsSepLocale()
+{
+    struct ThousandsSepPunct : std::numpunct<char>
+    {
+        char do_thousands_sep() const override { return ','; }
+        std::string do_grouping() const override { return "\3"; }
+    };
+    static std::locale locale{std::locale{}, new ThousandsSepPunct};
+    return locale;
+}
+
+} // namespace
+
 HoverableRow::HoverableRow(ui::Gizmo *parent)
     : ui::Row(parent)
 {
@@ -68,7 +84,7 @@ void TableGizmo::clearRows()
 
 void TableGizmo::appendCell(ui::Row *row, std::size_t column, uint64_t value)
 {
-    appendCell(row, column, std::to_string(value));
+    appendCell(row, column, std::format(thousandsSepLocale(), "{:L}", value));
 }
 
 void TableGizmo::appendCell(ui::Row *row, std::size_t column, std::string_view value)
