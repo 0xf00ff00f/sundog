@@ -32,6 +32,7 @@ public:
     constexpr void setHeight(float height) { m_height = height; }
 
     constexpr bool isNull() const { return m_width == 0 || m_height == 0; }
+    constexpr explicit operator bool() const { return !isNull(); }
 
     constexpr bool operator==(const Size &other) const = default;
 
@@ -111,7 +112,13 @@ public:
         return true;
     }
 
+    constexpr bool contains(const Point &p) const
+    {
+        return p.x >= left() && p.x < right() && p.y >= top() && p.y < bottom();
+    }
+
     constexpr bool isNull() const { return m_size.isNull(); }
+    constexpr explicit operator bool() const { return !isNull(); }
 
     constexpr bool operator==(const Rect &other) const = default;
 

@@ -344,13 +344,23 @@ public:
 private:
     static constexpr auto kScrollbarSpacing = 1.0f;
 
-    bool m_dragging{false};
+    enum class DragState
+    {
+        None,
+        HorizontalScrollbar,
+        VerticalScrollbar
+    };
+
+    RectF verticalScrollbarRect() const;
+    RectF horizontalScrollbarRect() const;
+
+    DragState m_dragState{DragState::None};
     glm::vec2 m_lastMousePos;
     glm::vec2 m_offset{0.0f};
     SizeF m_contentsSize;
     SizeF m_viewportSize;
-    float m_verticalScrollbarWidth{8.0f};
-    float m_horizontalScrollbarHeight{8.0f};
+    float m_verticalScrollbarWidth{12.0f};
+    float m_horizontalScrollbarHeight{12.0f};
     bool m_verticalScrollbarVisible{false};
     bool m_horizontalScrollbarVisible{false};
 };

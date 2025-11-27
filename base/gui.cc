@@ -1,5 +1,7 @@
 #include "gui.h"
 
+#include <glm/gtx/string_cast.hpp>
+
 #include <cassert>
 #include <print>
 
@@ -483,23 +485,48 @@ void ScrollArea::setHorizontalScrollbarHeight(float height)
 
 bool ScrollArea::handleMousePress(const glm::vec2 &pos)
 {
-    m_dragging = true;
-    m_lastMousePos = pos;
-    return true;
+    if (const auto rect = verticalScrollbarRect(); rect && rect.contains(pos))
+    {
+        m_dragState = DragState::VerticalScrollbar;
+        m_lastMousePos = pos;
+        return true;
+    }
+
+    if (const auto rect = horizontalScrollbarRect(); rect && rect.contains(pos))
+    {
+        m_dragState = DragState::HorizontalScrollbar;
+        m_lastMousePos = pos;
+        return true;
+    }
+
+    return false;
 }
 
 void ScrollArea::handleMouseRelease(const glm::vec2 &pos)
 {
-    m_dragging = false;
+    m_dragState = DragState::None;
 }
 
 void ScrollArea::handleMouseMove(const glm::vec2 &pos)
 {
-    if (m_dragging)
+    switch (m_dragState)
     {
-        const auto delta = pos - m_lastMousePos;
-        setOffset(m_offset + delta);
+    case DragState::VerticalScrollbar: {
+        const auto delta = pos.y - m_lastMousePos.y;
+        const auto scale = m_viewportSize.height() / m_contentsSize.height();
+        setOffset(m_offset - glm::vec2{0.0f, delta / scale});
         m_lastMousePos = pos;
+        break;
+    }
+    case DragState::HorizontalScrollbar: {
+        const auto delta = pos.x - m_lastMousePos.x;
+        const auto scale = m_viewportSize.width() / m_contentsSize.width();
+        setOffset(m_offset - glm::vec2{delta / scale, 0.0f});
+        m_lastMousePos = pos;
+        break;
+    }
+    default:
+        break;
     }
 }
 
@@ -553,32 +580,50 @@ void ScrollArea::updateLayout()
     setOffset(m_offset);
 }
 
+RectF ScrollArea::verticalScrollbarRect() const
+{
+    if (!m_verticalScrollbarVisible)
+        return {};
+
+    const auto scale = m_viewportSize.height() / m_contentsSize.height();
+    const auto handleHeight = scale * m_viewportSize.height();
+    const auto handleY = scale * -m_offset.y;
+
+    const auto topLeft = glm::vec2{m_viewportSize.width() + kScrollbarSpacing, handleY};
+    const auto topRight = topLeft + glm::vec2{m_verticalScrollbarWidth - 2.0f * kScrollbarSpacing, handleHeight};
+
+    return RectF{topLeft, topRight};
+}
+
+RectF ScrollArea::horizontalScrollbarRect() const
+{
+    if (!m_horizontalScrollbarVisible)
+        return {};
+
+    const auto scale = m_viewportSize.width() / m_contentsSize.width();
+    const auto handleWidth = scale * m_viewportSize.width();
+    const auto handleX = scale * -m_offset.x;
+
+    const auto topLeft = glm::vec2{handleX, m_viewportSize.height() + kScrollbarSpacing};
+    const auto topRight = topLeft + glm::vec2{handleWidth, m_horizontalScrollbarHeight - 2.0f * kScrollbarSpacing};
+
+    return RectF{topLeft, topRight};
+}
+
 void ScrollArea::paintContents(Painter *painter, const glm::vec2 &pos, int depth) const
 {
     Gizmo::paintContents(painter, pos, depth);
 
-    if (m_verticalScrollbarVisible)
+    if (const auto rect = verticalScrollbarRect())
     {
-        const auto scale = m_viewportSize.height() / m_contentsSize.height();
-        const auto handleHeight = scale * m_viewportSize.height();
-        const auto handleY = scale * -m_offset.y;
-
         painter->setColor(scrollbarColor);
-        const auto topLeft = pos + glm::vec2{m_viewportSize.width() + kScrollbarSpacing, handleY};
-        const auto topRight = topLeft + glm::vec2{m_verticalScrollbarWidth - 2.0f * kScrollbarSpacing, handleHeight};
-        painter->drawRect(RectF{topLeft, topRight}, depth);
+        painter->drawRect(RectF{rect.topLeft() + pos, rect.bottomRight() + pos}, depth);
     }
 
-    if (m_horizontalScrollbarVisible)
+    if (const auto rect = horizontalScrollbarRect())
     {
-        const auto scale = m_viewportSize.width() / m_contentsSize.width();
-        const auto handleWidth = scale * m_viewportSize.width();
-        const auto handleX = scale * -m_offset.x;
-
         painter->setColor(scrollbarColor);
-        const auto topLeft = pos + glm::vec2{handleX, m_viewportSize.height() + kScrollbarSpacing};
-        const auto topRight = topLeft + glm::vec2{handleWidth, m_horizontalScrollbarHeight - 2.0f * kScrollbarSpacing};
-        painter->drawRect(RectF{topLeft, topRight}, depth);
+        painter->drawRect(RectF{rect.topLeft() + pos, rect.bottomRight() + pos}, depth);
     }
 }
 
