@@ -11,58 +11,6 @@
 
 using namespace ui;
 
-class Button : public Gizmo
-{
-public:
-    explicit Button(std::string_view name, Gizmo *parent = nullptr);
-
-    bool handleMousePress(const glm::vec2 &pos) override;
-    void handleMouseRelease(const glm::vec2 &pos) override;
-    void handleMouseMove(const glm::vec2 &pos) override;
-    void handleMouseEnter() override;
-    void handleMouseLeave() override;
-
-private:
-    std::string m_name;
-};
-
-Button::Button(std::string_view name, Gizmo *parent)
-    : Gizmo(parent)
-    , m_name(name)
-{
-    backgroundColor = glm::vec4{1.0, 0.0, 0.0, 1.0};
-    setHoverable(true);
-    setSize(SizeF{120.0, 80.0});
-}
-
-bool Button::handleMousePress(const glm::vec2 &pos)
-{
-    assert(pos.x >= 0.0f && pos.x < m_size.width());
-    assert(pos.y >= 0.0f && pos.y < m_size.height());
-    std::println("**** {}: mousePress: pos={}", m_name, glm::to_string(pos));
-    return true;
-}
-
-void Button::handleMouseRelease(const glm::vec2 &pos)
-{
-    std::println("**** {}: mouseRelease: pos={}", m_name, glm::to_string(pos));
-}
-
-void Button::handleMouseMove(const glm::vec2 &pos)
-{
-    std::println("**** {}: mouseMove: pos={}", m_name, glm::to_string(pos));
-}
-
-void Button::handleMouseEnter()
-{
-    backgroundColor = glm::vec4{1.0, 0.5, 0.5, 1.0};
-}
-
-void Button::handleMouseLeave()
-{
-    backgroundColor = glm::vec4{1.0, 0.0, 0.0, 1.0};
-}
-
 class TestWindow : public WindowBase
 {
 public:
@@ -92,12 +40,15 @@ TestWindow::TestWindow()
     auto outerLayout = std::make_unique<Row>();
     outerLayout->setMargins(40.0f);
     outerLayout->backgroundColor = glm::vec4{1.0f};
+    outerLayout->setFillBackground(true);
 
     auto scrollArea = outerLayout->appendChild<ScrollArea>(400.0f, 400.0f);
     scrollArea->backgroundColor = glm::vec4{0.5f, 0.0f, 0.0f, 1.0f};
+    scrollArea->setFillBackground(true);
 
     auto column = scrollArea->appendChild<Column>();
     column->backgroundColor = glm::vec4{0.5f, 0.5f, 0.5f, 1.0f};
+    column->setFillBackground(true);
     column->setMargins(kSpacing);
     column->setSpacing(kSpacing);
 
@@ -114,6 +65,7 @@ TestWindow::TestWindow()
             auto *w = row->appendChild<Rectangle>(50.0f, 50.0f);
             w->backgroundColor =
                 glm::vec4{static_cast<float>(r) / (kSize - 1), static_cast<float>(c) / (kSize - 1), 0.0f, 1.0f};
+            w->setFillBackground(true);
         }
     }
 
