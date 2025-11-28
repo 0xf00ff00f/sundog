@@ -12,6 +12,7 @@ endmacro()
 
 AddTest(NAME test-glyph-generator SOURCES test_glyph_generator.cc)
 AddTest(NAME test-sprite-sheet SOURCES test_sprite_sheet.cc)
+AddTest(NAME test-gui-painter SOURCES test_gui_painter.cc)
 AddTest(NAME test-gui-layout SOURCES test_gui_layout.cc)
 AddTest(NAME test-gui-events SOURCES test_gui_events.cc)
 AddTest(NAME test-gui-scroll-area SOURCES test_gui_scroll_area.cc)

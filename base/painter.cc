@@ -143,6 +143,8 @@ public:
     VertexType vertexType() const override { return VertexType::PosColor; }
     const gl::AbstractTexture *texture() const override { return nullptr; }
 
+    void dumpVertices(VertexPosColorBuffer &buffer) const override;
+
 private:
     std::vector<glm::vec2> m_verts;
     glm::vec4 m_color;
@@ -198,6 +200,72 @@ private:
 DrawCommand::DrawCommand(int depth)
     : m_depth(depth)
 {
+}
+
+DrawPolyline::DrawPolyline(std::span<const glm::vec2> verts, const glm::vec4 &color, float thickness, bool closed,
+                           int depth)
+    : DrawCommandPosColor(depth)
+    , m_verts(verts.begin(), verts.end())
+    , m_color(color)
+    , m_thickness(thickness)
+    , m_closed(closed)
+{
+}
+
+void DrawPolyline::dumpVertices(VertexPosColorBuffer &buffer) const
+{
+    if (m_verts.size() < 2)
+        return;
+
+    auto &vertices = buffer.vertices;
+    auto &indices = buffer.indices;
+
+    auto vertexIndex = buffer.vertices.size();
+
+    const auto vertexCount = m_verts.size();
+    for (std::size_t i = 0; i < vertexCount; ++i)
+    {
+        const auto &curVertex = m_verts[i % vertexCount];
+        const auto normal = [this, i, vertexCount, &curVertex]() -> glm::vec2 {
+            auto normal = [this](const glm::vec2 &p0, const glm::vec2 &p1) {
+                const auto dir = p1 - p0;
+                return glm::normalize(glm::vec2{-dir.y, dir.x});
+            };
+            if (!m_closed)
+            {
+                if (i == 0)
+                {
+                    return normal(curVertex, m_verts[i + 1]);
+                }
+                else if (i == m_verts.size() - 1)
+                {
+                    return normal(m_verts[i - 1], curVertex);
+                }
+            }
+            const auto &prevVertex = m_verts[(i + vertexCount - 1) % vertexCount];
+            const auto &nextVertex = m_verts[(i + 1) % vertexCount];
+            const auto prevNormal = normal(prevVertex, curVertex);
+            const auto nextNormal = normal(curVertex, nextVertex);
+            const auto n = glm::normalize(prevNormal + nextNormal);
+            const auto t = 1.0f / glm::dot(n, prevNormal);
+            // = 1.0f / glm::dot(n, nextNormal)
+            return t * n;
+        }();
+        vertices.emplace_back(curVertex + m_thickness * normal, m_color);
+        vertices.emplace_back(curVertex - m_thickness * normal, m_color);
+    }
+
+    const auto indexCount = m_closed ? vertexCount : vertexCount - 1;
+    for (std::size_t i = 0; i < indexCount; ++i)
+    {
+        indices.push_back(vertexIndex + (i * 2 + 0) % (2 * vertexCount));
+        indices.push_back(vertexIndex + (i * 2 + 1) % (2 * vertexCount));
+        indices.push_back(vertexIndex + (i * 2 + 3) % (2 * vertexCount));
+
+        indices.push_back(vertexIndex + (i * 2 + 3) % (2 * vertexCount));
+        indices.push_back(vertexIndex + (i * 2 + 2) % (2 * vertexCount));
+        indices.push_back(vertexIndex + (i * 2 + 0) % (2 * vertexCount));
+    }
 }
 
 DrawFilledConvexPolygon::DrawFilledConvexPolygon(std::span<const glm::vec2> verts, const glm::vec4 &color, int depth)
@@ -419,6 +487,11 @@ void Painter::setClipRect(const RectF &clipRect)
                   m_clipRect.width(), m_clipRect.height());
         glEnable(GL_SCISSOR_TEST);
     }
+}
+
+void Painter::drawPolyline(std::span<const glm::vec2> verts, float thickness, bool closed, int depth)
+{
+    m_commands.push_back(std::make_unique<DrawPolyline>(verts, m_color, thickness, closed, depth));
 }
 
 void Painter::drawFilledConvexPolygon(std::span<const glm::vec2> verts, int depth)
