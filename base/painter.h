@@ -42,12 +42,12 @@ public:
     void setClipRect(const RectF &clipRect);
     RectF clipRect() const { return m_clipRect; }
 
-    void drawPolyline(std::span<const glm::vec2> verts, float thickness, bool closed, int depth = 0);
-    void drawFilledConvexPolygon(std::span<const glm::vec2> verts, int depth = 0);
-    void drawRect(const RectF &rect, int depth = 0);
+    void strokePolyline(std::span<const glm::vec2> verts, float thickness, bool closed, int depth = 0);
+    void fillConvexPolygon(std::span<const glm::vec2> verts, int depth = 0);
+    void fillRect(const RectF &rect, int depth = 0);
+    void fillRoundedRect(const RectF &rect, float radius, int depth = 0);
+    void fillRoundedRect(const RectF &rect, const CornerRadii &radii, int depth = 0);
     void drawText(const glm::vec2 &pos, const std::string_view text, int depth = 0);
-    void drawRoundedRect(const RectF &rect, float radius, int depth = 0);
-    void drawRoundedRect(const RectF &rect, const CornerRadii &radii, int depth = 0);
 
 private:
     void flushCommandQueue();

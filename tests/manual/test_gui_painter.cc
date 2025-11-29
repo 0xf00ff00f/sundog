@@ -79,7 +79,7 @@ void TestWindow::render() const
             const auto radius = (i & 1) ? kSmallRadius : kBigRadius;
             verts[i] = center + radius * glm::vec2{glm::cos(angle), glm::sin(angle)};
         }
-        m_painter->drawPolyline(verts, kThickness, true);
+        m_painter->strokePolyline(verts, kThickness, true);
     }
 
     {
@@ -87,7 +87,7 @@ void TestWindow::render() const
         const auto center = glm::vec2{0.25f, 0.75f} * glm::vec2{m_viewportSize.width(), m_viewportSize.height()};
         const RectF rect{center - glm::vec2{120.f, 100.f}, center + glm::vec2{120.f, 100.f}};
 
-        m_painter->drawRoundedRect(rect, radii);
+        m_painter->fillRoundedRect(rect, radii);
     }
 
     m_painter->end();

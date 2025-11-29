@@ -133,7 +133,7 @@ void Gizmo::paintContents(Painter *painter, const glm::vec2 &pos, int depth) con
     if (fillBackground())
     {
         painter->setColor(backgroundColor);
-        painter->drawRect(RectF{pos, m_size}, depth);
+        painter->fillRect(RectF{pos, m_size}, depth);
     }
 }
 
@@ -617,13 +617,13 @@ void ScrollArea::paintContents(Painter *painter, const glm::vec2 &pos, int depth
     if (const auto rect = verticalScrollbarRect())
     {
         painter->setColor(scrollbarColor);
-        painter->drawRect(RectF{rect.topLeft() + pos, rect.bottomRight() + pos}, depth);
+        painter->fillRect(RectF{rect.topLeft() + pos, rect.bottomRight() + pos}, depth);
     }
 
     if (const auto rect = horizontalScrollbarRect())
     {
         painter->setColor(scrollbarColor);
-        painter->drawRect(RectF{rect.topLeft() + pos, rect.bottomRight() + pos}, depth);
+        painter->fillRect(RectF{rect.topLeft() + pos, rect.bottomRight() + pos}, depth);
     }
 }
 

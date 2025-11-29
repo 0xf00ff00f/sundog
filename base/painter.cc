@@ -133,12 +133,12 @@ public:
     using DrawCommand::DrawCommand;
 };
 
-class DrawPolyline : public DrawCommandPosColor
+class StrokePolyline : public DrawCommandPosColor
 {
 public:
-    explicit DrawPolyline(std::span<const glm::vec2> verts, const glm::vec4 &color, float thickness, bool closed,
-                          int depth);
-    ~DrawPolyline() override = default;
+    explicit StrokePolyline(std::span<const glm::vec2> verts, const glm::vec4 &color, float thickness, bool closed,
+                            int depth);
+    ~StrokePolyline() override = default;
 
     VertexType vertexType() const override { return VertexType::PosColor; }
     const gl::AbstractTexture *texture() const override { return nullptr; }
@@ -152,11 +152,11 @@ private:
     bool m_closed;
 };
 
-class DrawFilledConvexPolygon : public DrawCommandPosColor
+class FillConvexPolygon : public DrawCommandPosColor
 {
 public:
-    explicit DrawFilledConvexPolygon(std::span<const glm::vec2> verts, const glm::vec4 &color, int depth);
-    ~DrawFilledConvexPolygon() override = default;
+    explicit FillConvexPolygon(std::span<const glm::vec2> verts, const glm::vec4 &color, int depth);
+    ~FillConvexPolygon() override = default;
 
     VertexType vertexType() const override { return VertexType::PosColor; }
     const gl::AbstractTexture *texture() const override { return nullptr; }
@@ -202,8 +202,8 @@ DrawCommand::DrawCommand(int depth)
 {
 }
 
-DrawPolyline::DrawPolyline(std::span<const glm::vec2> verts, const glm::vec4 &color, float thickness, bool closed,
-                           int depth)
+StrokePolyline::StrokePolyline(std::span<const glm::vec2> verts, const glm::vec4 &color, float thickness, bool closed,
+                               int depth)
     : DrawCommandPosColor(depth)
     , m_verts(verts.begin(), verts.end())
     , m_color(color)
@@ -212,7 +212,7 @@ DrawPolyline::DrawPolyline(std::span<const glm::vec2> verts, const glm::vec4 &co
 {
 }
 
-void DrawPolyline::dumpVertices(VertexPosColorBuffer &buffer) const
+void StrokePolyline::dumpVertices(VertexPosColorBuffer &buffer) const
 {
     if (m_verts.size() < 2)
         return;
@@ -268,14 +268,14 @@ void DrawPolyline::dumpVertices(VertexPosColorBuffer &buffer) const
     }
 }
 
-DrawFilledConvexPolygon::DrawFilledConvexPolygon(std::span<const glm::vec2> verts, const glm::vec4 &color, int depth)
+FillConvexPolygon::FillConvexPolygon(std::span<const glm::vec2> verts, const glm::vec4 &color, int depth)
     : DrawCommandPosColor(depth)
     , m_verts(verts.begin(), verts.end())
     , m_color(color)
 {
 }
 
-void DrawFilledConvexPolygon::dumpVertices(VertexPosColorBuffer &buffer) const
+void FillConvexPolygon::dumpVertices(VertexPosColorBuffer &buffer) const
 {
     if (m_verts.size() < 3)
         return;
@@ -489,28 +489,28 @@ void Painter::setClipRect(const RectF &clipRect)
     }
 }
 
-void Painter::drawPolyline(std::span<const glm::vec2> verts, float thickness, bool closed, int depth)
+void Painter::strokePolyline(std::span<const glm::vec2> verts, float thickness, bool closed, int depth)
 {
-    m_commands.push_back(std::make_unique<DrawPolyline>(verts, m_color, thickness, closed, depth));
+    m_commands.push_back(std::make_unique<StrokePolyline>(verts, m_color, thickness, closed, depth));
 }
 
-void Painter::drawFilledConvexPolygon(std::span<const glm::vec2> verts, int depth)
+void Painter::fillConvexPolygon(std::span<const glm::vec2> verts, int depth)
 {
-    m_commands.push_back(std::make_unique<DrawFilledConvexPolygon>(verts, m_color, depth));
+    m_commands.push_back(std::make_unique<FillConvexPolygon>(verts, m_color, depth));
 }
 
-void Painter::drawRect(const RectF &rect, int depth)
+void Painter::fillRect(const RectF &rect, int depth)
 {
     const std::array verts{rect.topLeft(), rect.topRight(), rect.bottomRight(), rect.bottomLeft()};
-    drawFilledConvexPolygon(verts, depth);
+    fillConvexPolygon(verts, depth);
 }
 
-void Painter::drawRoundedRect(const RectF &rect, float radius, int depth)
+void Painter::fillRoundedRect(const RectF &rect, float radius, int depth)
 {
-    drawRoundedRect(rect, {radius, radius, radius, radius}, depth);
+    fillRoundedRect(rect, {radius, radius, radius, radius}, depth);
 }
 
-void Painter::drawRoundedRect(const RectF &rect, const CornerRadii &radii, int depth)
+void Painter::fillRoundedRect(const RectF &rect, const CornerRadii &radii, int depth)
 {
     // can't be constexpr (sin/cos)
     static const auto cornerVerts = [] {
@@ -571,7 +571,7 @@ void Painter::drawRoundedRect(const RectF &rect, const CornerRadii &radii, int d
             verts.push_back(center + radii.bottomLeft * glm::vec2{-p.y, p.x});
     }
 
-    drawFilledConvexPolygon(verts, depth);
+    fillConvexPolygon(verts, depth);
 }
 
 void Painter::drawText(const glm::vec2 &pos, const std::string_view text, int depth)
