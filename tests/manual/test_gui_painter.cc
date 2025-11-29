@@ -86,8 +86,14 @@ void TestWindow::render() const
         const Painter::CornerRadii radii{30.0f, 50.0f, 70.0f, 90.0f};
         const auto center = glm::vec2{0.25f, 0.75f} * glm::vec2{m_viewportSize.width(), m_viewportSize.height()};
         const RectF rect{center - glm::vec2{120.f, 100.f}, center + glm::vec2{120.f, 100.f}};
-
         m_painter->fillRoundedRect(rect, radii);
+    }
+
+    {
+        const Painter::CornerRadii radii{30.0f, 50.0f, 70.0f, 90.0f};
+        const auto center = glm::vec2{0.75f, 0.75f} * glm::vec2{m_viewportSize.width(), m_viewportSize.height()};
+        const RectF rect{center - glm::vec2{120.f, 100.f}, center + glm::vec2{120.f, 100.f}};
+        m_painter->strokeRoundedRect(rect, radii, 10.0f);
     }
 
     m_painter->end();

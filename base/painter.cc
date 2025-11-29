@@ -13,6 +13,71 @@ namespace
 {
 constexpr auto kSpriteSheetHeight = 1024;
 constexpr auto kSpriteSheetWidth = 1024;
+
+std::vector<glm::vec2> roundedRectVerts(const RectF &rect, const Painter::CornerRadii &radii)
+{
+    // can't be constexpr (sin/cos)
+    static const auto cornerVerts = [] {
+        constexpr auto kCornerPoints = 6; // TODO make this a function of arc length
+        std::array<glm::vec2, kCornerPoints> verts;
+        for (std::size_t i = 0; i < kCornerPoints; ++i)
+        {
+            const auto angle = 0.5f * glm::pi<float>() * static_cast<float>(i) / (kCornerPoints - 1);
+            verts[i] = glm::vec2{glm::cos(angle), glm::sin(angle)};
+        }
+        return verts;
+    }();
+
+    std::vector<glm::vec2> verts;
+    verts.reserve(4 * cornerVerts.size());
+
+    if (radii.topLeft == 0.0f)
+    {
+        verts.push_back(rect.topLeft());
+    }
+    else
+    {
+        const auto center = rect.topLeft() + glm::vec2{radii.topLeft, radii.topLeft};
+        for (const auto &p : cornerVerts)
+            verts.push_back(center + radii.topLeft * glm::vec2{-p.x, -p.y});
+    }
+
+    if (radii.topRight == 0.0f)
+    {
+        verts.push_back(rect.topRight());
+    }
+    else
+    {
+        const auto center = rect.topRight() + glm::vec2{-radii.topRight, radii.topRight};
+        for (const auto &p : cornerVerts)
+            verts.push_back(center + radii.topRight * glm::vec2{p.y, -p.x});
+    }
+
+    if (radii.bottomRight == 0.0f)
+    {
+        verts.push_back(rect.bottomRight());
+    }
+    else
+    {
+        const auto center = rect.bottomRight() + glm::vec2{-radii.bottomRight, -radii.bottomRight};
+        for (const auto &p : cornerVerts)
+            verts.push_back(center + radii.bottomRight * glm::vec2{p.x, p.y});
+    }
+
+    if (radii.bottomLeft == 0.0f)
+    {
+        verts.push_back(rect.bottomLeft());
+    }
+    else
+    {
+        const auto center = rect.bottomLeft() + glm::vec2{radii.bottomLeft, -radii.bottomLeft};
+        for (const auto &p : cornerVerts)
+            verts.push_back(center + radii.bottomLeft * glm::vec2{-p.y, p.x});
+    }
+
+    return verts;
+}
+
 } // namespace
 
 enum class VertexType
@@ -136,6 +201,8 @@ public:
 class StrokePolyline : public DrawCommandPosColor
 {
 public:
+    explicit StrokePolyline(std::vector<glm::vec2> verts, const glm::vec4 &color, float thickness, bool closed,
+                            int depth);
     explicit StrokePolyline(std::span<const glm::vec2> verts, const glm::vec4 &color, float thickness, bool closed,
                             int depth);
     ~StrokePolyline() override = default;
@@ -155,6 +222,7 @@ private:
 class FillConvexPolygon : public DrawCommandPosColor
 {
 public:
+    explicit FillConvexPolygon(std::vector<glm::vec2> verts, const glm::vec4 &color, int depth);
     explicit FillConvexPolygon(std::span<const glm::vec2> verts, const glm::vec4 &color, int depth);
     ~FillConvexPolygon() override = default;
 
@@ -202,13 +270,19 @@ DrawCommand::DrawCommand(int depth)
 {
 }
 
-StrokePolyline::StrokePolyline(std::span<const glm::vec2> verts, const glm::vec4 &color, float thickness, bool closed,
+StrokePolyline::StrokePolyline(std::vector<glm::vec2> verts, const glm::vec4 &color, float thickness, bool closed,
                                int depth)
     : DrawCommandPosColor(depth)
-    , m_verts(verts.begin(), verts.end())
+    , m_verts(std::move(verts))
     , m_color(color)
     , m_thickness(thickness)
     , m_closed(closed)
+{
+}
+
+StrokePolyline::StrokePolyline(std::span<const glm::vec2> verts, const glm::vec4 &color, float thickness, bool closed,
+                               int depth)
+    : StrokePolyline(std::vector<glm::vec2>(verts.begin(), verts.end()), color, thickness, closed, depth)
 {
 }
 
@@ -268,10 +342,15 @@ void StrokePolyline::dumpVertices(VertexPosColorBuffer &buffer) const
     }
 }
 
-FillConvexPolygon::FillConvexPolygon(std::span<const glm::vec2> verts, const glm::vec4 &color, int depth)
+FillConvexPolygon::FillConvexPolygon(std::vector<glm::vec2> verts, const glm::vec4 &color, int depth)
     : DrawCommandPosColor(depth)
-    , m_verts(verts.begin(), verts.end())
+    , m_verts(std::move(verts))
     , m_color(color)
+{
+}
+
+FillConvexPolygon::FillConvexPolygon(std::span<const glm::vec2> verts, const glm::vec4 &color, int depth)
+    : FillConvexPolygon(std::vector<glm::vec2>(verts.begin(), verts.end()), color, depth)
 {
 }
 
@@ -505,73 +584,30 @@ void Painter::fillRect(const RectF &rect, int depth)
     fillConvexPolygon(verts, depth);
 }
 
+void Painter::strokeRect(const RectF &rect, float thickness, int depth)
+{
+    const std::array verts{rect.topLeft(), rect.topRight(), rect.bottomRight(), rect.bottomLeft()};
+    strokePolyline(verts, thickness, true, depth);
+}
+
 void Painter::fillRoundedRect(const RectF &rect, float radius, int depth)
 {
     fillRoundedRect(rect, {radius, radius, radius, radius}, depth);
 }
 
+void Painter::strokeRoundedRect(const RectF &rect, float radius, float thickness, int depth)
+{
+    strokeRoundedRect(rect, {radius, radius, radius, radius}, thickness, depth);
+}
+
 void Painter::fillRoundedRect(const RectF &rect, const CornerRadii &radii, int depth)
 {
-    // can't be constexpr (sin/cos)
-    static const auto cornerVerts = [] {
-        constexpr auto kCornerPoints = 6; // TODO make this a function of arc length
-        std::array<glm::vec2, kCornerPoints> verts;
-        for (std::size_t i = 0; i < kCornerPoints; ++i)
-        {
-            const auto angle = 0.5f * glm::pi<float>() * static_cast<float>(i) / (kCornerPoints - 1);
-            verts[i] = glm::vec2{glm::cos(angle), glm::sin(angle)};
-        }
-        return verts;
-    }();
+    fillConvexPolygon(roundedRectVerts(rect, radii), depth);
+}
 
-    std::vector<glm::vec2> verts;
-    verts.reserve(4 * cornerVerts.size());
-
-    if (radii.topLeft == 0.0f)
-    {
-        verts.push_back(rect.topLeft());
-    }
-    else
-    {
-        const auto center = rect.topLeft() + glm::vec2{radii.topLeft, radii.topLeft};
-        for (const auto &p : cornerVerts)
-            verts.push_back(center + radii.topLeft * glm::vec2{-p.x, -p.y});
-    }
-
-    if (radii.topRight == 0.0f)
-    {
-        verts.push_back(rect.topRight());
-    }
-    else
-    {
-        const auto center = rect.topRight() + glm::vec2{-radii.topRight, radii.topRight};
-        for (const auto &p : cornerVerts)
-            verts.push_back(center + radii.topRight * glm::vec2{p.y, -p.x});
-    }
-
-    if (radii.bottomRight == 0.0f)
-    {
-        verts.push_back(rect.bottomRight());
-    }
-    else
-    {
-        const auto center = rect.bottomRight() + glm::vec2{-radii.bottomRight, -radii.bottomRight};
-        for (const auto &p : cornerVerts)
-            verts.push_back(center + radii.bottomRight * glm::vec2{p.x, p.y});
-    }
-
-    if (radii.bottomLeft == 0.0f)
-    {
-        verts.push_back(rect.bottomLeft());
-    }
-    else
-    {
-        const auto center = rect.bottomLeft() + glm::vec2{radii.bottomLeft, -radii.bottomLeft};
-        for (const auto &p : cornerVerts)
-            verts.push_back(center + radii.bottomLeft * glm::vec2{-p.y, p.x});
-    }
-
-    fillConvexPolygon(verts, depth);
+void Painter::strokeRoundedRect(const RectF &rect, const CornerRadii &radii, float thickness, int depth)
+{
+    strokePolyline(roundedRectVerts(rect, radii), thickness, true, depth);
 }
 
 void Painter::drawText(const glm::vec2 &pos, const std::string_view text, int depth)

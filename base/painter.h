@@ -45,8 +45,11 @@ public:
     void strokePolyline(std::span<const glm::vec2> verts, float thickness, bool closed, int depth = 0);
     void fillConvexPolygon(std::span<const glm::vec2> verts, int depth = 0);
     void fillRect(const RectF &rect, int depth = 0);
+    void strokeRect(const RectF &rect, float thickness, int depth = 0);
     void fillRoundedRect(const RectF &rect, float radius, int depth = 0);
     void fillRoundedRect(const RectF &rect, const CornerRadii &radii, int depth = 0);
+    void strokeRoundedRect(const RectF &rect, float radius, float thickness, int depth = 0);
+    void strokeRoundedRect(const RectF &rect, const CornerRadii &radii, float thickness, int depth = 0);
     void drawText(const glm::vec2 &pos, const std::string_view text, int depth = 0);
 
 private:
