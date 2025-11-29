@@ -501,9 +501,76 @@ void Painter::drawFilledConvexPolygon(std::span<const glm::vec2> verts, int dept
 
 void Painter::drawRect(const RectF &rect, int depth)
 {
-    const std::array<glm::vec2, 4> verts = {glm::vec2{rect.left(), rect.top()}, glm::vec2{rect.right(), rect.top()},
-                                            glm::vec2{rect.right(), rect.bottom()},
-                                            glm::vec2{rect.left(), rect.bottom()}};
+    const std::array verts{rect.topLeft(), rect.topRight(), rect.bottomRight(), rect.bottomLeft()};
+    drawFilledConvexPolygon(verts, depth);
+}
+
+void Painter::drawRoundedRect(const RectF &rect, float radius, int depth)
+{
+    drawRoundedRect(rect, {radius, radius, radius, radius}, depth);
+}
+
+void Painter::drawRoundedRect(const RectF &rect, const CornerRadii &radii, int depth)
+{
+    // can't be constexpr (sin/cos)
+    static const auto cornerVerts = [] {
+        constexpr auto kCornerPoints = 6; // TODO make this a function of arc length
+        std::array<glm::vec2, kCornerPoints> verts;
+        for (std::size_t i = 0; i < kCornerPoints; ++i)
+        {
+            const auto angle = 0.5f * glm::pi<float>() * static_cast<float>(i) / (kCornerPoints - 1);
+            verts[i] = glm::vec2{glm::cos(angle), glm::sin(angle)};
+        }
+        return verts;
+    }();
+
+    std::vector<glm::vec2> verts;
+    verts.reserve(4 * cornerVerts.size());
+
+    if (radii.topLeft == 0.0f)
+    {
+        verts.push_back(rect.topLeft());
+    }
+    else
+    {
+        const auto center = rect.topLeft() + glm::vec2{radii.topLeft, radii.topLeft};
+        for (const auto &p : cornerVerts)
+            verts.push_back(center + radii.topLeft * glm::vec2{-p.x, -p.y});
+    }
+
+    if (radii.topRight == 0.0f)
+    {
+        verts.push_back(rect.topRight());
+    }
+    else
+    {
+        const auto center = rect.topRight() + glm::vec2{-radii.topRight, radii.topRight};
+        for (const auto &p : cornerVerts)
+            verts.push_back(center + radii.topRight * glm::vec2{p.y, -p.x});
+    }
+
+    if (radii.bottomRight == 0.0f)
+    {
+        verts.push_back(rect.bottomRight());
+    }
+    else
+    {
+        const auto center = rect.bottomRight() + glm::vec2{-radii.bottomRight, -radii.bottomRight};
+        for (const auto &p : cornerVerts)
+            verts.push_back(center + radii.bottomRight * glm::vec2{p.x, p.y});
+    }
+
+    if (radii.bottomLeft == 0.0f)
+    {
+        verts.push_back(rect.bottomLeft());
+    }
+    else
+    {
+        const auto center = rect.bottomLeft() + glm::vec2{radii.bottomLeft, -radii.bottomLeft};
+        for (const auto &p : cornerVerts)
+            verts.push_back(center + radii.bottomLeft * glm::vec2{-p.y, p.x});
+    }
+
     drawFilledConvexPolygon(verts, depth);
 }
 

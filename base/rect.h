@@ -92,8 +92,10 @@ public:
     constexpr T height() const { return m_size.height(); }
     constexpr Size size() const { return m_size; }
 
-    constexpr Point topLeft() const { return m_topLeft; }
-    constexpr Point bottomRight() const { return m_topLeft + Point{m_size.width(), m_size.height()}; }
+    constexpr Point topLeft() const { return glm::vec2{left(), top()}; }
+    constexpr Point topRight() const { return glm::vec2{right(), top()}; }
+    constexpr Point bottomLeft() const { return glm::vec2{left(), bottom()}; }
+    constexpr Point bottomRight() const { return glm::vec2{right(), bottom()}; }
 
     constexpr T left() const { return m_topLeft.x; }
     constexpr T right() const { return m_topLeft.x + m_size.width(); }

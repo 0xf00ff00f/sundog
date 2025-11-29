@@ -17,6 +17,14 @@ class DrawCommand;
 class Painter
 {
 public:
+    struct CornerRadii
+    {
+        float topLeft;
+        float topRight;
+        float bottomRight;
+        float bottomLeft;
+    };
+
     explicit Painter(ShaderManager *shaderManager);
     ~Painter();
 
@@ -38,6 +46,8 @@ public:
     void drawFilledConvexPolygon(std::span<const glm::vec2> verts, int depth = 0);
     void drawRect(const RectF &rect, int depth = 0);
     void drawText(const glm::vec2 &pos, const std::string_view text, int depth = 0);
+    void drawRoundedRect(const RectF &rect, float radius, int depth = 0);
+    void drawRoundedRect(const RectF &rect, const CornerRadii &radii, int depth = 0);
 
 private:
     void flushCommandQueue();

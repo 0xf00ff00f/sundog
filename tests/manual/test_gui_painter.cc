@@ -70,7 +70,7 @@ void TestWindow::render() const
         constexpr auto kBigRadius = 200.0f;
         constexpr auto kThickness = 20.0f;
 
-        const auto center = 0.5f * glm::vec2{m_viewportSize.width(), m_viewportSize.height()};
+        const auto center = 0.25f * glm::vec2{m_viewportSize.width(), m_viewportSize.height()};
 
         std::array<glm::vec2, kVertexCount> verts;
         for (std::size_t i = 0; i < kVertexCount; ++i)
@@ -80,6 +80,14 @@ void TestWindow::render() const
             verts[i] = center + radius * glm::vec2{glm::cos(angle), glm::sin(angle)};
         }
         m_painter->drawPolyline(verts, kThickness, true);
+    }
+
+    {
+        const Painter::CornerRadii radii{30.0f, 50.0f, 70.0f, 90.0f};
+        const auto center = glm::vec2{0.25f, 0.75f} * glm::vec2{m_viewportSize.width(), m_viewportSize.height()};
+        const RectF rect{center - glm::vec2{120.f, 100.f}, center + glm::vec2{120.f, 100.f}};
+
+        m_painter->drawRoundedRect(rect, radii);
     }
 
     m_painter->end();
