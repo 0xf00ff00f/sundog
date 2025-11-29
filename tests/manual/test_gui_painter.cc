@@ -66,8 +66,8 @@ void TestWindow::render() const
 
     {
         constexpr auto kVertexCount = 10;
-        constexpr auto kSmallRadius = 100.0f;
-        constexpr auto kBigRadius = 200.0f;
+        constexpr auto kSmallRadius = 60.0f;
+        constexpr auto kBigRadius = 130.0f;
         constexpr auto kThickness = 20.0f;
 
         const auto center = 0.25f * glm::vec2{m_viewportSize.width(), m_viewportSize.height()};

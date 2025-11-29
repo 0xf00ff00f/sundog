@@ -18,7 +18,7 @@ std::vector<glm::vec2> roundedRectVerts(const RectF &rect, const Painter::Corner
 {
     // can't be constexpr (sin/cos)
     static const auto cornerVerts = [] {
-        constexpr auto kCornerPoints = 6; // TODO make this a function of arc length
+        constexpr auto kCornerPoints = 12; // TODO make this a function of arc length
         std::array<glm::vec2, kCornerPoints> verts;
         for (std::size_t i = 0; i < kCornerPoints; ++i)
         {
@@ -463,7 +463,7 @@ void Painter::end()
 
 void Painter::flushCommandQueue()
 {
-    std::ranges::sort(m_commands, [](const auto &lhs, const auto &rhs) {
+    std::ranges::stable_sort(m_commands, [](const auto &lhs, const auto &rhs) {
         return std::tuple(lhs->depth(), lhs->vertexType(), lhs->texture()) <
                std::tuple(rhs->depth(), rhs->vertexType(), rhs->texture());
     });
