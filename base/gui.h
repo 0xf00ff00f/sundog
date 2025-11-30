@@ -199,8 +199,8 @@ public:
     virtual void handleMouseRelease(const glm::vec2 &pos);
     virtual void handleMouseMove(const glm::vec2 &pos);
 
-    virtual void handleMouseEnter();
-    virtual void handleMouseLeave();
+    virtual void handleHoverEnter();
+    virtual void handleHoverLeave();
 
     template<typename Pred>
         requires requires(const Pred &pred, Gizmo *gizmo, const glm::vec2 &pos) {

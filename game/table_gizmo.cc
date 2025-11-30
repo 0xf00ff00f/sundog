@@ -145,12 +145,12 @@ void TableGizmoRow::setTextColor(std::size_t column, const glm::vec4 &color)
         cell->color = color;
 }
 
-void TableGizmoRow::handleMouseEnter()
+void TableGizmoRow::handleHoverEnter()
 {
     updateColors(true);
 }
 
-void TableGizmoRow::handleMouseLeave()
+void TableGizmoRow::handleHoverLeave()
 {
     updateColors(false);
 }

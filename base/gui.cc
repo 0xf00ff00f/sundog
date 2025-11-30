@@ -266,9 +266,9 @@ void Gizmo::handleMouseRelease(const glm::vec2 &) {}
 
 void Gizmo::handleMouseMove(const glm::vec2 &) {}
 
-void Gizmo::handleMouseEnter() {}
+void Gizmo::handleHoverEnter() {}
 
-void Gizmo::handleMouseLeave() {}
+void Gizmo::handleHoverLeave() {}
 
 void Gizmo::setHoverable(bool hoverable)
 {
@@ -840,10 +840,10 @@ bool EventManager::handleMouseMove(const glm::vec2 &pos)
     if (m_underCursor != underCursor)
     {
         if (m_underCursor)
-            m_underCursor->handleMouseLeave();
+            m_underCursor->handleHoverLeave();
         m_underCursor = underCursor;
         if (m_underCursor)
-            m_underCursor->handleMouseEnter();
+            m_underCursor->handleHoverEnter();
     }
 
     if (m_mouseEventTarget)

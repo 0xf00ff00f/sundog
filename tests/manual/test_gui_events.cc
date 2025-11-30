@@ -19,8 +19,8 @@ public:
     bool handleMousePress(const glm::vec2 &pos) override;
     void handleMouseRelease(const glm::vec2 &pos) override;
     void handleMouseMove(const glm::vec2 &pos) override;
-    void handleMouseEnter() override;
-    void handleMouseLeave() override;
+    void handleHoverEnter() override;
+    void handleHoverLeave() override;
 
 private:
     std::string m_name;
@@ -54,12 +54,12 @@ void Button::handleMouseMove(const glm::vec2 &pos)
     std::println("**** {}: mouseMove: pos={}", m_name, glm::to_string(pos));
 }
 
-void Button::handleMouseEnter()
+void Button::handleHoverEnter()
 {
     backgroundColor = glm::vec4{1.0, 0.5, 0.5, 1.0};
 }
 
-void Button::handleMouseLeave()
+void Button::handleHoverLeave()
 {
     backgroundColor = glm::vec4{1.0, 0.0, 0.0, 1.0};
 }

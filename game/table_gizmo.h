@@ -33,8 +33,8 @@ public:
     void setData(std::any data);
     std::any data() const { return m_data; }
 
-    void handleMouseEnter() override;
-    void handleMouseLeave() override;
+    void handleHoverEnter() override;
+    void handleHoverLeave() override;
 
     bool handleMousePress(const glm::vec2 &pos) override;
     void handleMouseRelease(const glm::vec2 &pos) override;
