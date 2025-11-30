@@ -19,7 +19,7 @@ TradingWindow::TradingWindow(const Universe *universe, Gizmo *parent)
     m_marketItemDetails = appendChild<MarketItemDetailsGizmo>(universe);
 
     m_marketSnapshot->itemSelectedSignal.connect(
-        [this](const MarketItemDescription *item) { m_marketItemDetails->initializeFrom(item); });
+        [this](const MarketItemInfo *item) { m_marketItemDetails->initializeFrom(item); });
 }
 
 void TradingWindow::initializeFrom(const World *world)

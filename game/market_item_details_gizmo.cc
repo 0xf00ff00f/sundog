@@ -20,7 +20,7 @@ MarketItemDetailsGizmo::MarketItemDetailsGizmo(const Universe *universe, Gizmo *
     m_descriptionText->setLineWidth(200.0f);
 }
 
-void MarketItemDetailsGizmo::initializeFrom(const MarketItemDescription *marketItem)
+void MarketItemDetailsGizmo::initializeFrom(const MarketItemInfo *marketItem)
 {
     m_nameText->setText(marketItem->name);
     m_sectorText->setText(marketItem->sector->name);

@@ -153,7 +153,7 @@ bool Universe::load(const std::string &path)
         sector->name = sectorJson.at("name").get<std::string>();
         for (const nlohmann::json &itemJson : sectorJson.at("items"))
         {
-            auto &item = sector->items.emplace_back(std::make_unique<MarketItemDescription>());
+            auto &item = sector->items.emplace_back(std::make_unique<MarketItemInfo>());
             item->sector = sector.get();
             item->name = itemJson.at("name").get<std::string>();
             item->description = itemJson.at("description").get<std::string>();

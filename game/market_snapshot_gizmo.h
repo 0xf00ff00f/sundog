@@ -5,7 +5,7 @@
 class Universe;
 class World;
 class TableGizmo;
-class MarketItemDescription;
+class MarketItemInfo;
 
 class MarketSnapshotGizmo : public ui::Column
 {
@@ -14,7 +14,7 @@ public:
 
     void initializeFrom(const World *world);
 
-    muslots::Signal<const MarketItemDescription *> itemSelectedSignal;
+    muslots::Signal<const MarketItemInfo *> itemSelectedSignal;
 
 private:
     const Universe *m_universe{nullptr};

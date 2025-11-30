@@ -6,7 +6,7 @@
 
 struct MarketSector;
 
-struct MarketItemDescription
+struct MarketItemInfo
 {
     const MarketSector *sector{nullptr};
     std::string name;
@@ -16,7 +16,7 @@ struct MarketItemDescription
 struct MarketSector
 {
     std::string name;
-    std::vector<std::unique_ptr<MarketItemDescription>> items;
+    std::vector<std::unique_ptr<MarketItemInfo>> items;
 };
 
 class Orbit
@@ -45,7 +45,7 @@ private:
 
 struct MarketItem
 {
-    const MarketItemDescription *description{nullptr};
+    const MarketItemInfo *info{nullptr};
     uint64_t sellPrice{0};
     uint64_t buyPrice{0};
 };

@@ -25,7 +25,7 @@ MarketSnapshotGizmo::MarketSnapshotGizmo(const Universe *universe, Gizmo *parent
     m_tableGizmo->rowSelectedSignal.connect([this](const TableGizmoRow *row) {
         if (row)
         {
-            const auto *item = std::any_cast<const MarketItemDescription *>(row->data());
+            const auto *item = std::any_cast<const MarketItemInfo *>(row->data());
             itemSelectedSignal(item);
         }
     });
@@ -40,19 +40,19 @@ void MarketSnapshotGizmo::initializeFrom(const World *world)
     for (const auto *sector : m_universe->marketSectors())
     {
         auto filteredItems =
-            items | std::views::filter([sector](const auto &item) { return item.description->sector == sector; });
+            items | std::views::filter([sector](const auto &item) { return item.info->sector == sector; });
         if (!filteredItems.empty())
         {
             m_tableGizmo->appendRow(sector->name);
             for (const auto &item : filteredItems)
             {
-                auto *row = m_tableGizmo->appendRow(item.description->name, item.buyPrice, item.sellPrice);
+                auto *row = m_tableGizmo->appendRow(item.info->name, item.buyPrice, item.sellPrice);
                 row->setHoverable(true);
                 row->setHoveredColor(glm::vec4{1.0f, 1.0f, 1.0f, 0.5f});
                 row->setSelectedColor(glm::vec4{1.0f, 0.0f, 0.0f, 1.0f});
                 row->setIndent(0, 20.0f);
                 row->setSelectable(true);
-                row->setData(item.description);
+                row->setData(item.info);
             }
         }
     }
