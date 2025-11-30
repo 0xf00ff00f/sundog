@@ -29,8 +29,6 @@ TableGizmoRow::TableGizmoRow(TableGizmo *table, Gizmo *parent)
     for (std::size_t i = 0; i < m_table->m_columnCount; ++i)
     {
         auto *container = appendChild<Column>();
-        container->setMargins(table->m_cellMargins);
-
         auto *text = container->appendChild<Text>();
         text->setFont(g_styleSettings.normalFont);
         text->color = glm::vec4{1.0f};
@@ -39,17 +37,23 @@ TableGizmoRow::TableGizmoRow(TableGizmo *table, Gizmo *parent)
     updateColors();
 
     m_table->columnStyleChangedSignal.connect([this] { updateColumnStyles(); });
+    m_table->cellMarginsChangedSignal.connect([this] { updateColumnStyles(); });
 }
 
 void TableGizmoRow::updateColumnStyles()
 {
     for (std::size_t column = 0; auto *child : children())
     {
+        auto *container = static_cast<Column *>(child);
+
         assert(column < m_table->m_columnStyles.size());
         const auto &style = m_table->m_columnStyles[column];
 
+        // margins
+        container->setMargins(m_table->m_cellMargins);
+
         // column width
-        static_cast<Column *>(child)->setMinimumWidth(style.width);
+        container->setMinimumWidth(style.width);
 
         // text alignment
         child->childAt(0)->setAlign(style.align);
@@ -235,6 +239,14 @@ void TableGizmo::setColumnAlign(std::size_t column, Align align)
         return;
     m_columnStyles[column].align = align;
     columnStyleChangedSignal();
+}
+
+void TableGizmo::setCellMargins(const ui::Margins &margins)
+{
+    if (margins == m_cellMargins)
+        return;
+    m_cellMargins = margins;
+    cellMarginsChangedSignal();
 }
 
 void TableGizmo::clearRows()

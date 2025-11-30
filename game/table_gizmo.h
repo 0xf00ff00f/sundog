@@ -88,6 +88,7 @@ public:
     }
 
     muslots::Signal<> columnStyleChangedSignal;
+    muslots::Signal<> cellMarginsChangedSignal;
     muslots::Signal<const TableGizmoRow *> rowSelectedSignal;
 
 private:
