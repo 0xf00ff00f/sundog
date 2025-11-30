@@ -7,7 +7,7 @@ class World;
 class MarketSnapshotGizmo;
 class MarketItemDetailsGizmo;
 
-class TradingWindow : public ui::Row
+class TradingWindow : public ui::Column
 {
 public:
     explicit TradingWindow(const Universe *universe, ui::Gizmo *parent = nullptr);
@@ -16,6 +16,7 @@ public:
 
 private:
     const Universe *m_universe{nullptr};
+    ui::Text *m_title{nullptr};
     MarketSnapshotGizmo *m_marketSnapshot{nullptr};
     MarketItemDetailsGizmo *m_marketItemDetails{nullptr};
 };
