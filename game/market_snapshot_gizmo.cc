@@ -5,8 +5,8 @@
 
 using namespace ui;
 
-MarketSnapshotGizmo::MarketSnapshotGizmo(ui::Gizmo *parent)
-    : ui::Column(parent)
+MarketSnapshotGizmo::MarketSnapshotGizmo(Gizmo *parent)
+    : Column(parent)
 {
     setFillBackground(true);
     backgroundColor = glm::vec4{0.0f, 0.0f, 0.0f, 0.75f};
@@ -40,7 +40,12 @@ void MarketSnapshotGizmo::initializeFrom(const World *world)
         {
             m_tableGizmo->appendRow(sector->name);
             for (const auto &item : filteredItems)
-                m_tableGizmo->appendRow(item.description->name, item.buyPrice, item.sellPrice);
+            {
+                auto *row = m_tableGizmo->appendRow(item.description->name, item.buyPrice, item.sellPrice);
+                row->setHoverable(true);
+                row->setHoveredColor(glm::vec4{1.0f, 1.0f, 1.0f, 0.5f});
+                row->setIndent(0, 20.0f);
+            }
         }
     }
 }

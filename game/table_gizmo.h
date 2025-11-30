@@ -4,19 +4,42 @@
 
 #include <utility>
 
-class HoverableRow : public ui::Row
+class TableGizmo;
+
+class TableGizmoRow : public ui::Row
 {
 public:
-    explicit HoverableRow(ui::Gizmo *parent);
+    explicit TableGizmoRow(TableGizmo *table, ui::Gizmo *parent = nullptr);
+
+    void setValue(std::size_t column, std::string_view value);
+    void setValue(std::size_t column, uint64_t value);
+    void setIndent(std::size_t column, float indent);
+    void setTextColor(std::size_t column, const glm::vec4 &color);
+
+    void setHoveredColor(const glm::vec4 &color);
+    void setBackgroundColor(const glm::vec4 &color);
+    void setTextColor(const glm::vec4 &color);
 
     void handleMouseEnter() override;
     void handleMouseLeave() override;
+
+private:
+    void updateColumnStyles();
+
+    std::size_t columnCount() const;
+    void updateBackgroundColor(const glm::vec4 &color);
+    ui::Text *cellAt(std::size_t column);
+
+    TableGizmo *m_table{nullptr};
+    bool m_hoverable{false};
+    glm::vec4 m_hoveredColor{1.0f, 1.0f, 1.0f, 0.25f};
+    glm::vec4 m_backgroundColor{0.0f};
 };
 
 class TableGizmo : public ui::Column
 {
 public:
-    explicit TableGizmo(std::size_t columns, ui::Gizmo *parent);
+    explicit TableGizmo(std::size_t columns, ui::Gizmo *parent = nullptr);
 
     void setColumnWidth(std::size_t column, float width);
     void setColumnAlign(std::size_t column, ui::Align align);
@@ -28,30 +51,31 @@ public:
         initializeRow(m_headerRow, std::forward<Args>(values)...);
     }
 
+    TableGizmoRow *headerRow() const { return m_headerRow; }
+
     void clearRows();
 
     template<typename... Args>
-    void appendRow(Args &&...values)
+    TableGizmoRow *appendRow(Args &&...values)
     {
-        auto *row = m_dataRows->appendChild<HoverableRow>();
+        auto *row = m_dataRows->appendChild<TableGizmoRow>(this);
         initializeRow(row, std::forward<Args>(values)...);
+        return row;
     }
+
+    muslots::Signal<> columnStyleChanged;
 
 private:
     template<typename... Args>
-    void initializeRow(ui::Row *row, Args &&...values)
+    void initializeRow(TableGizmoRow *row, Args &&...values)
     {
-        row->clear();
         [&]<std::size_t... Is>(std::index_sequence<Is...>) {
-            (appendCell(row, Is, std::forward<Args>(values)), ...);
+            (row->setValue(Is, std::forward<Args>(values)), ...);
         }(std::index_sequence_for<Args...>{});
     }
 
-    void appendCell(ui::Row *row, std::size_t column, std::string_view value);
-    void appendCell(ui::Row *row, std::size_t column, uint64_t value);
-
     std::size_t m_columnCount;
-    ui::Row *m_headerRow{nullptr};
+    TableGizmoRow *m_headerRow{nullptr};
     ui::Rectangle *m_headerSeparator{nullptr};
     ui::ScrollArea *m_scrollArea{nullptr};
     ui::Column *m_dataRows{nullptr};
@@ -62,4 +86,6 @@ private:
     };
     std::vector<ColumnStyle> m_columnStyles;
     ui::Margins m_cellMargins;
+
+    friend class TableGizmoRow;
 };
