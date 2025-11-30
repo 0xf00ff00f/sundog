@@ -29,7 +29,9 @@ target_sources(
          table_gizmo.h
          table_gizmo.cc
          market_snapshot_gizmo.h
-         market_snapshot_gizmo.cc)
+         market_snapshot_gizmo.cc
+         style_settings.h
+         style_settings.cc)
 target_compile_features(game PUBLIC cxx_std_23)
 target_compile_definitions(game PUBLIC GLM_ENABLE_EXPERIMENTAL)
 target_link_libraries(game PRIVATE nlohmann_json::nlohmann_json base)

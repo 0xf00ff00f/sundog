@@ -1,5 +1,7 @@
 #include "universe_map.h"
 
+#include "style_settings.h"
+
 #include <base/shader_manager.h>
 #include <base/painter.h>
 #include <base/mesh.h>
@@ -87,7 +89,6 @@ void UniverseMap::render(JulianDate when) const
 {
     const auto viewMatrix = m_cameraController.viewMatrix();
 
-
     // render orbits
 
     m_shaderManager->setCurrent(ShaderManager::Shader::Orbit);
@@ -128,7 +129,7 @@ void UniverseMap::render(JulianDate when) const
     const auto modelMatrix = glm::mat4{1.0f};
     const auto mvp = m_projectionMatrix * viewMatrix * modelMatrix;
 
-    const Font font{"DejaVuSans.ttf", 20.0f, 0};
+    const auto &font = g_styleSettings.normalFont;
     m_overlayPainter->setFont(font);
 
     m_shaderManager->setCurrent(ShaderManager::Shader::Billboard);

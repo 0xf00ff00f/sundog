@@ -1,5 +1,7 @@
 #include "table_gizmo.h"
 
+#include "style_settings.h"
+
 #include <print>
 
 namespace
@@ -94,15 +96,13 @@ void TableGizmo::appendCell(ui::Row *row, std::size_t column, std::string_view v
 
     const auto &style = m_columnStyles[column];
 
-    constexpr auto kFont = "DejaVuSans.ttf";
-
     auto *container = row->appendChild<Column>();
     container->setMargins(m_cellMargins);
     container->setMinimumWidth(style.width);
 
     auto *text = container->appendChild<ui::Text>();
     text->setAlign(style.align);
-    text->setFont(Font{kFont, 20.0f, 0});
+    text->setFont(g_styleSettings.normalFont);
     text->setText(value);
     text->color = glm::vec4{1.0f};
 }
