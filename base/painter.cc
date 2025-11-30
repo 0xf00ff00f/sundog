@@ -291,6 +291,8 @@ void StrokePolyline::dumpVertices(VertexPosColorBuffer &buffer) const
     if (m_verts.size() < 2)
         return;
 
+    const auto halfThickness = 0.5f * m_thickness;
+
     auto &vertices = buffer.vertices;
     auto &indices = buffer.indices;
 
@@ -325,8 +327,8 @@ void StrokePolyline::dumpVertices(VertexPosColorBuffer &buffer) const
             // = 1.0f / glm::dot(n, nextNormal)
             return t * n;
         }();
-        vertices.emplace_back(curVertex + m_thickness * normal, m_color);
-        vertices.emplace_back(curVertex - m_thickness * normal, m_color);
+        vertices.emplace_back(curVertex + halfThickness * normal, m_color);
+        vertices.emplace_back(curVertex - halfThickness * normal, m_color);
     }
 
     const auto indexCount = m_closed ? vertexCount : vertexCount - 1;
