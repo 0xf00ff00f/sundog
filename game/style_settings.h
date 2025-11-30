@@ -4,6 +4,7 @@
 
 struct StyleSettings
 {
+    Font smallFont;
     Font normalFont;
     Font titleFont;
 };

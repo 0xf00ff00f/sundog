@@ -11,7 +11,7 @@ class ShaderManager;
 class Universe;
 class UniverseMap;
 class DateGizmo;
-class MarketSnapshotGizmo;
+class TradingWindow;
 
 namespace ui
 {
@@ -53,5 +53,5 @@ private:
     std::unique_ptr<ui::Rectangle> m_uiRoot;
     std::unique_ptr<ui::EventManager> m_uiEventManager;
     DateGizmo *m_dateGizmo{nullptr};
-    MarketSnapshotGizmo *m_marketSnapshotGizmo{nullptr};
+    TradingWindow *m_tradingWindow{nullptr};
 };

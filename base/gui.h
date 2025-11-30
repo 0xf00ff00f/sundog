@@ -385,7 +385,7 @@ public:
     void setFont(const Font &font);
     Font font() const { return m_font; }
 
-    glm::vec4 color = glm::vec4{1.0f};
+    glm::vec4 color{1.0f};
 
 protected:
     void paintContents(Painter *painter, const glm::vec2 &pos, int depth) const override;
@@ -413,7 +413,7 @@ public:
     void setLineWidth(float width);
     float lineWidth() const { return m_lineWidth; }
 
-    glm::vec4 color;
+    glm::vec4 color{1.0f};
 
 protected:
     void paintContents(Painter *painter, const glm::vec2 &pos, int depth) const override;

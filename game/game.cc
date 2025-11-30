@@ -5,7 +5,7 @@
 #include "lambert.h"
 
 #include "date_gizmo.h"
-#include "market_snapshot_gizmo.h"
+#include "trading_window.h"
 
 #include <base/asset_path.h>
 #include <base/shader_manager.h>
@@ -74,12 +74,9 @@ bool Game::initialize()
     m_dateGizmo->setDate(m_currentTime);
     m_dateGizmo->setAlign(ui::Align::Left | ui::Align::Top);
 
-    m_marketSnapshotGizmo = m_uiRoot->appendChild<MarketSnapshotGizmo>();
-    m_marketSnapshotGizmo->setAlign(ui::Align::HorizontalCenter | ui::Align::VerticalCenter);
-    m_marketSnapshotGizmo->initializeFrom(m_universe->worlds().front());
-
-    m_marketSnapshotGizmo->itemSelectedSignal.connect(
-        [](const MarketItemDescription *item) { std::println("*** item selected: {}", item->name); });
+    m_tradingWindow = m_uiRoot->appendChild<TradingWindow>(m_universe.get());
+    m_tradingWindow->setAlign(ui::Align::HorizontalCenter | ui::Align::VerticalCenter);
+    m_tradingWindow->initializeFrom(m_universe->worlds().front());
 
     m_uiEventManager = std::make_unique<ui::EventManager>();
     m_uiEventManager->setRoot(m_uiRoot.get());

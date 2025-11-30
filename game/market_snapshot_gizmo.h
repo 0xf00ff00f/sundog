@@ -2,6 +2,7 @@
 
 #include <base/gui.h>
 
+class Universe;
 class World;
 class TableGizmo;
 class MarketItemDescription;
@@ -9,12 +10,13 @@ class MarketItemDescription;
 class MarketSnapshotGizmo : public ui::Column
 {
 public:
-    explicit MarketSnapshotGizmo(ui::Gizmo *parent);
+    explicit MarketSnapshotGizmo(const Universe *universe, ui::Gizmo *parent = nullptr);
 
     void initializeFrom(const World *world);
 
     muslots::Signal<const MarketItemDescription *> itemSelectedSignal;
 
 private:
+    const Universe *m_universe{nullptr};
     TableGizmo *m_tableGizmo{nullptr};
 };

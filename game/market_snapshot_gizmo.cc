@@ -5,13 +5,10 @@
 
 using namespace ui;
 
-MarketSnapshotGizmo::MarketSnapshotGizmo(Gizmo *parent)
+MarketSnapshotGizmo::MarketSnapshotGizmo(const Universe *universe, Gizmo *parent)
     : Column(parent)
+    , m_universe(universe)
 {
-    setFillBackground(true);
-    backgroundColor = glm::vec4{0.0f, 0.0f, 0.0f, 0.75f};
-    setMargins(4.0f);
-
     m_tableGizmo = appendChild<TableGizmo>(3);
 
     m_tableGizmo->setColumnWidth(0, 200.0f);
@@ -40,7 +37,7 @@ void MarketSnapshotGizmo::initializeFrom(const World *world)
 
     const auto &items = world->marketItems();
 
-    for (const auto *sector : world->universe()->marketSectors())
+    for (const auto *sector : m_universe->marketSectors())
     {
         auto filteredItems =
             items | std::views::filter([sector](const auto &item) { return item.description->sector == sector; });
