@@ -96,6 +96,9 @@ struct VerticalAnchor
     bool operator==(const VerticalAnchor &) const = default;
 };
 
+inline namespace literals
+{
+
 constexpr Length operator""_px(long double value)
 {
     return Length::pixels(value);
@@ -105,6 +108,8 @@ constexpr Length operator""_pct(long double value)
 {
     return Length::percent(value);
 }
+
+} // namespace literals
 
 class Gizmo
 {
