@@ -119,6 +119,7 @@ public:
         None = 0,
         FillBackground = 1 << 0,
         Hoverable = 1 << 1,
+        MouseTracking = 1 << 2,
     };
 
     friend constexpr Option operator&(Option x, Option y)
@@ -228,6 +229,9 @@ public:
     bool hoverable() const { return (m_options & Option::Hoverable) != Option::None; }
     void setHoverable(bool hoverable);
 
+    bool hasMouseTracking() const { return (m_options & Option::MouseTracking) != Option::None; }
+    void setMouseTracking(bool mouseTracking);
+
     muslots::Signal<SizeF> resizedSignal;
     muslots::Signal<> anchorChangedSignal;
 
@@ -322,7 +326,7 @@ private:
 class ScrollArea : public Gizmo
 {
 public:
-    using Gizmo::Gizmo;
+    explicit ScrollArea(Gizmo *parent = nullptr);
     explicit ScrollArea(float width, float height, Gizmo *parent = nullptr);
     explicit ScrollArea(const SizeF &size, Gizmo *parent = nullptr);
 
@@ -340,13 +344,16 @@ public:
     bool handleMousePress(const glm::vec2 &pos) override;
     void handleMouseRelease(const glm::vec2 &pos) override;
     void handleMouseMove(const glm::vec2 &pos) override;
+    void handleHoverLeave() override;
 
     void updateLayout() override;
 
     void paintContents(Painter *painter, const glm::vec2 &pos, int depth) const override;
     void paintChildren(Painter *painter, const glm::vec2 &pos, int depth) const override;
 
-    glm::vec4 scrollbarColor = glm::vec4{0.75, 0.75, 0.75, 1.0f};
+    glm::vec4 scrollbarColor = glm::vec4{0.5, 0.5, 0.5, 1.0f};
+    glm::vec4 scrollbarHoveredColor = glm::vec4{0.75f, 0.75f, 0.75f, 1.0f};
+    glm::vec4 scrollbarPressedColor = glm::vec4{1.0f};
 
 private:
     static constexpr auto kScrollbarSpacing = 1.0f;
@@ -369,7 +376,9 @@ private:
     float m_verticalScrollbarWidth{12.0f};
     float m_horizontalScrollbarHeight{12.0f};
     bool m_verticalScrollbarVisible{false};
+    bool m_verticalScrollbarHovered{false};
     bool m_horizontalScrollbarVisible{false};
+    bool m_horizontalScrollbarHovered{false};
 };
 
 class Text : public Gizmo

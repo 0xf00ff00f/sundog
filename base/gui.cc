@@ -284,6 +284,13 @@ void Gizmo::setFillBackground(bool fillBackground)
         m_options |= Option::FillBackground;
 }
 
+void Gizmo::setMouseTracking(bool mouseTracking)
+{
+    m_options &= ~Option::MouseTracking;
+    if (mouseTracking)
+        m_options |= Option::MouseTracking;
+}
+
 Rectangle::Rectangle(const SizeF &size, Gizmo *parent)
     : Gizmo(parent)
 {
@@ -451,6 +458,11 @@ void Column::updateLayout()
     }
 }
 
+ScrollArea::ScrollArea(Gizmo *parent)
+    : ScrollArea(SizeF{}, parent)
+{
+}
+
 ScrollArea::ScrollArea(float width, float height, Gizmo *parent)
     : ScrollArea(SizeF{width, height}, parent)
 {
@@ -460,6 +472,8 @@ ScrollArea::ScrollArea(const SizeF &size, Gizmo *parent)
     : Gizmo(parent)
 {
     m_size = size;
+    setHoverable(true);
+    setMouseTracking(true);
 }
 
 void ScrollArea::setSize(float width, float height)
@@ -528,6 +542,15 @@ void ScrollArea::handleMouseMove(const glm::vec2 &pos)
     default:
         break;
     }
+
+    m_verticalScrollbarHovered = verticalScrollbarRect().contains(pos);
+    m_horizontalScrollbarHovered = horizontalScrollbarRect().contains(pos);
+}
+
+void ScrollArea::handleHoverLeave()
+{
+    m_verticalScrollbarHovered = false;
+    m_horizontalScrollbarHovered = false;
 }
 
 void ScrollArea::setOffset(const glm::vec2 &offset)
@@ -616,12 +639,26 @@ void ScrollArea::paintContents(Painter *painter, const glm::vec2 &pos, int depth
 
     if (const auto rect = verticalScrollbarRect())
     {
-        painter->setColor(scrollbarColor);
+        const auto color = [this] {
+            if (m_dragState == DragState::VerticalScrollbar)
+                return scrollbarPressedColor;
+            if (m_verticalScrollbarHovered)
+                return scrollbarHoveredColor;
+            return scrollbarColor;
+        }();
+        painter->setColor(color);
         painter->fillRect(RectF{rect.topLeft() + pos, rect.bottomRight() + pos}, depth);
     }
 
     if (const auto rect = horizontalScrollbarRect())
     {
+        const auto color = [this] {
+            if (m_dragState == DragState::HorizontalScrollbar)
+                return scrollbarPressedColor;
+            if (m_horizontalScrollbarHovered)
+                return scrollbarHoveredColor;
+            return scrollbarColor;
+        }();
         painter->setColor(scrollbarColor);
         painter->fillRect(RectF{rect.topLeft() + pos, rect.bottomRight() + pos}, depth);
     }
@@ -846,6 +883,11 @@ bool EventManager::handleMouseMove(const glm::vec2 &pos)
             m_underCursor->handleHoverEnter();
     }
 
+    m_root->findChildAt(pos, [this](Gizmo *gizmo, const glm::vec2 &pos) {
+        if (gizmo->hasMouseTracking() && gizmo != m_mouseEventTarget)
+            gizmo->handleMouseMove(pos);
+        return false;
+    });
     if (m_mouseEventTarget)
     {
         m_mouseEventTarget->handleMouseMove(pos - m_mouseEventTarget->globalPosition());
