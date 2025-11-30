@@ -64,9 +64,13 @@ class TableGizmo : public ui::Column
 public:
     explicit TableGizmo(std::size_t columns, ui::Gizmo *parent = nullptr);
 
+    void setVisibleRowCount(std::size_t rowCount);
+
     void setColumnWidth(std::size_t column, float width);
     void setColumnAlign(std::size_t column, ui::Align align);
     void setCellMargins(const ui::Margins &margins);
+
+    void setHeaderSeparatorColor(const glm::vec4 &color);
 
     template<typename... Args>
     void setHeader(Args &&...values)
@@ -77,6 +81,8 @@ public:
     TableGizmoRow *headerRow() const { return m_headerRow; }
 
     void clearRows();
+
+    std::size_t rowCount() const;
 
     template<typename... Args>
     TableGizmoRow *appendRow(Args &&...values)
@@ -100,9 +106,12 @@ private:
         }(std::index_sequence_for<Args...>{});
     }
 
+    void updateSizes();
     void selectRow(TableGizmoRow *row);
 
     std::size_t m_columnCount;
+    std::size_t m_visibleRowCount{6};
+    Font m_font;
     TableGizmoRow *m_headerRow{nullptr};
     ui::Rectangle *m_headerSeparator{nullptr};
     ui::ScrollArea *m_scrollArea{nullptr};

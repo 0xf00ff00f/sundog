@@ -1,36 +1,23 @@
 #include "table_gizmo.h"
 
 #include "style_settings.h"
+#include "util.h"
 
 #include <print>
 
 using namespace ui;
 
-namespace
-{
-
-std::locale thousandsSepLocale()
-{
-    struct ThousandsSepPunct : std::numpunct<char>
-    {
-        char do_thousands_sep() const override { return ','; }
-        std::string do_grouping() const override { return "\3"; }
-    };
-    static std::locale locale{std::locale{}, new ThousandsSepPunct};
-    return locale;
-}
-
-} // namespace
-
 TableGizmoRow::TableGizmoRow(TableGizmo *table, Gizmo *parent)
     : Row(parent)
     , m_table(table)
 {
+    setSpacing(0);
+
     for (std::size_t i = 0; i < m_table->m_columnCount; ++i)
     {
         auto *container = appendChild<Column>();
         auto *text = container->appendChild<Text>();
-        text->setFont(g_styleSettings.normalFont);
+        text->setFont(table->m_font);
         text->color = glm::vec4{1.0f};
     }
     updateColumnStyles();
@@ -130,7 +117,7 @@ void TableGizmoRow::setValue(std::size_t column, std::string_view value)
 
 void TableGizmoRow::setValue(std::size_t column, uint64_t value)
 {
-    setValue(column, std::format(thousandsSepLocale(), "{:L}", value));
+    setValue(column, formatCredits(value));
 }
 
 void TableGizmoRow::setIndent(std::size_t column, float indent)
@@ -203,6 +190,7 @@ TableGizmo::TableGizmo(std::size_t columns, Gizmo *parent)
     : Column(parent)
     , m_columnCount(columns)
     , m_columnStyles(columns)
+    , m_font(g_styleSettings.normalFont)
 {
     m_headerRow = appendChild<TableGizmoRow>(this);
 
@@ -214,11 +202,20 @@ TableGizmo::TableGizmo(std::size_t columns, Gizmo *parent)
 
     m_dataRows = m_scrollArea->appendChild<Column>();
     m_dataRows->setSpacing(0.0f);
-    m_dataRows->resizedSignal.connect([this](const SizeF &size) {
-        const auto totalWidth = size.width() + m_scrollArea->verticalScrollbarWidth();
-        m_headerSeparator->setSize(totalWidth, 1.0f);
-        m_scrollArea->setSize(totalWidth, 200.0f); // TODO: height
-    });
+    m_dataRows->resizedSignal.connect([this](const SizeF &) { updateSizes(); });
+}
+
+void TableGizmo::setHeaderSeparatorColor(const glm::vec4 &color)
+{
+    m_headerSeparator->backgroundColor = color;
+}
+
+void TableGizmo::setVisibleRowCount(std::size_t count)
+{
+    if (count == m_visibleRowCount)
+        return;
+    m_visibleRowCount = count;
+    updateSizes();
 }
 
 void TableGizmo::setColumnWidth(std::size_t column, float width)
@@ -267,4 +264,25 @@ void TableGizmo::selectRow(TableGizmoRow *row)
         m_selectedRow = row;
     }
     rowSelectedSignal(row);
+}
+
+void TableGizmo::updateSizes()
+{
+    const auto dataRowsSize = m_dataRows->size();
+    auto totalWidth = dataRowsSize.width();
+    if (m_scrollArea->verticalScrollbarVisible())
+        totalWidth += m_scrollArea->verticalScrollbarWidth();
+
+    m_headerSeparator->setSize(totalWidth, 1.0f);
+
+    const auto rowHeight = m_cellMargins.top + m_cellMargins.bottom + m_font.pixelHeight;
+    auto scrollAreaHeight = rowHeight * m_visibleRowCount;
+    if (m_visibleRowCount > 0)
+        scrollAreaHeight += (m_visibleRowCount - 1) * m_dataRows->spacing();
+    m_scrollArea->setSize(totalWidth, scrollAreaHeight);
+}
+
+std::size_t TableGizmo::rowCount() const
+{
+    return m_dataRows->childCount();
 }

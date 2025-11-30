@@ -65,14 +65,14 @@ bool Game::initialize()
         m_currentTime = timeDeparture;
     }
 #else
-    m_currentTime = JulianClock::now();
+    m_currentTime = JulianClock::now() + JulianClock::duration{200.0 * 365.0};
 #endif
 
     m_uiRoot = std::make_unique<ui::Rectangle>(100, 100);
 
     m_dateGizmo = m_uiRoot->appendChild<DateGizmo>();
     m_dateGizmo->setDate(m_currentTime);
-    m_dateGizmo->setAlign(ui::Align::Left | ui::Align::Top);
+    m_dateGizmo->setAlign(ui::Align::Right | ui::Align::Top);
 
     m_tradingWindow = m_uiRoot->appendChild<TradingWindow>(m_universe.get());
     m_tradingWindow->setAlign(ui::Align::HorizontalCenter | ui::Align::VerticalCenter);

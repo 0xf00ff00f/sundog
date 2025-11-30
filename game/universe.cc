@@ -98,8 +98,12 @@ World::World(const Universe *universe, std::string name, const OrbitalElements &
     {
         for (const auto &item : sector->items)
         {
-            const auto buyPrice = rnd() % 50000 + 5000;
-            const auto sellPrice = rnd() % 50000 + 5000;
+            const bool bought = static_cast<bool>(rnd() % 2);
+            const bool sold = static_cast<bool>(rnd() % 2);
+            if (!bought && !sold)
+                continue;
+            const auto buyPrice = bought ? rnd() % 50000 + 5000 : 0;
+            const auto sellPrice = sold ? rnd() % 50000 + 5000 : 0;
             m_marketItems.emplace_back(item.get(), buyPrice, sellPrice);
         }
     }
@@ -108,6 +112,12 @@ World::World(const Universe *universe, std::string name, const OrbitalElements &
 glm::vec3 World::position(JulianDate when) const
 {
     return m_orbit.position(when);
+}
+
+const MarketItem *World::findMarketItem(const MarketItemInfo *info) const
+{
+    auto it = std::ranges::find_if(m_marketItems, [info](const auto &item) { return item.info == info; });
+    return it != m_marketItems.end() ? &*it : nullptr;
 }
 
 Ship::Ship(std::string_view name)

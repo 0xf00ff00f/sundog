@@ -341,6 +341,9 @@ public:
     void setHorizontalScrollbarHeight(float height);
     float horizontalScrollbarHeight() const { return m_horizontalScrollbarHeight; }
 
+    bool verticalScrollbarVisible() const { return m_verticalScrollbarVisible; }
+    bool horizontalScrollbarVisible() const { return m_horizontalScrollbarVisible; }
+
     bool handleMousePress(const glm::vec2 &pos) override;
     void handleMouseRelease(const glm::vec2 &pos) override;
     void handleMouseMove(const glm::vec2 &pos) override;

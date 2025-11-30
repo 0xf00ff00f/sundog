@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
 
     {
         GameWindow window;
-        if (window.initialize(600, 600, "hello"))
+        if (window.initialize(1200, 800, "hello"))
         {
             window.run();
         }

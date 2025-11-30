@@ -172,22 +172,64 @@
     "market": {
         "sectors": [
             {
-                "name": "Metals",
+                "name": "Precious Metals",
                 "items": [
-                    {
-                        "name": "Platinum",
-                        "description": "Lorem ipsum dolor sit amet"
-                    },
                     {
                         "name": "Gold",
                         "description": "Lorem ipsum dolor sit amet"
                     },
                     {
-                        "name": "Silver",
+                        "name": "Platinum",
                         "description": "Lorem ipsum dolor sit amet"
                     },
                     {
                         "name": "Palladium",
+                        "description": "Lorem ipsum dolor sit amet"
+                    },
+                    {
+                        "name": "Iridium",
+                        "description": "Lorem ipsum dolor sit amet"
+                    }
+                ]
+            },
+            {
+                "name": "Industrial Metals",
+                "items": [
+                    {
+                        "name": "Titanium",
+                        "description": "Lorem ipsum dolor sit amet"
+                    },
+                    {
+                        "name": "Tungsten",
+                        "description": "Lorem ipsum dolor sit amet"
+                    },
+                    {
+                        "name": "Vanadium",
+                        "description": "Lorem ipsum dolor sit amet"
+                    },
+                    {
+                        "name": "Cobalt",
+                        "description": "Lorem ipsum dolor sit amet"
+                    }
+                ]
+            },
+            {
+                "name": "Exotic Materials",
+                "items": [
+                    {
+                        "name": "Helium-3",
+                        "description": "Lorem ipsum dolor sit amet"
+                    },
+                    {
+                        "name": "Tritium",
+                        "description": "Lorem ipsum dolor sit amet"
+                    },
+                    {
+                        "name": "Monocrystalline Graphene",
+                        "description": "Lorem ipsum dolor sit amet"
+                    },
+                    {
+                        "name": "Diamond Nanofiber",
                         "description": "Lorem ipsum dolor sit amet"
                     }
                 ]
@@ -200,15 +242,71 @@
                         "description": "Lorem ipsum dolor sit amet"
                     },
                     {
-                        "name": "Coffee",
+                        "name": "Mycoprotein",
+                        "description": "Lorem ipsum dolor sit amet"
+                    }
+                ]
+            },
+            {
+                "name": "Luxury Foods",
+                "items": [
+                    {
+                        "name": "Coffee Beans",
+                        "description": "Penatibus euismod class arcu venenatis, hac leo aliquam metus. Metus vestibulum interdum commodo pretium euismod vel eros nascetur et. Quisque semper et tincidunt ultrices fames? Blandit aenean fringilla blandit dui netus."
+                    },
+                    {
+                        "name": "Spiced Kelp",
+                        "description": "Vestibulum himenaeos phasellus mattis! Eros porttitor cum dapibus mi et lacinia natoque urna, condimentum aliquet nisl ultrices. Mus lobortis primis tortor! Dolor sapien mauris porttitor mattis malesuada fringilla."
+                    },
+                    {
+                        "name": "Synthetic Wagyu",
+                        "description": "Nisi eget penatibus ac dignissim nam ullamcorper odio convallis dapibus. Diam integer mi taciti. Diam vehicula, natoque varius cras tristique hendrerit suspendisse vestibulum viverra hendrerit facilisis. Vulputate torquent iaculis ante ullamcorper."
+                    }
+                ]
+            },
+            {
+                "name": "Biotech",
+                "items": [
+                    {
+                        "name": "Nanobot Injectors",
                         "description": "Lorem ipsum dolor sit amet"
                     },
                     {
-                        "name": "Grain",
+                        "name": "Cryo-Stims",
                         "description": "Lorem ipsum dolor sit amet"
                     },
                     {
-                        "name": "Tea",
+                        "name": "DNA Repair Enzymes",
+                        "description": "Lorem ipsum dolor sit amet"
+                    },
+                    {
+                        "name": "Epigenetic Modulators",
+                        "description": "Lorem ipsum dolor sit amet"
+                    }
+                ]
+            },
+            {
+                "name": "Technology",
+                "items": [
+                    {
+                        "name": "Quantum Processors",
+                        "description": "Lorem ipsum dolor sit amet"
+                    },
+                    {
+                        "name": "Self-Healing Polymers",
+                        "description": "Lorem ipsum dolor sit amet"
+                    }
+                ]
+            },
+            {
+                "name": "Rare",
+                "items": [
+                    {
+                        "name": "Europan Jellyfish",
+                        "description": "Lorem ipsum dolor sit amet"
+                    },
+                    {
+                        "name": "Enceladan Skyplankton",
                         "description": "Lorem ipsum dolor sit amet"
                     }
                 ]

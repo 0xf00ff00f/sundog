@@ -16,6 +16,7 @@ public:
 
 private:
     const Universe *m_universe{nullptr};
+    const World *m_world{nullptr};
     ui::Text *m_title{nullptr};
     MarketSnapshotGizmo *m_marketSnapshot{nullptr};
     MarketItemDetailsGizmo *m_marketItemDetails{nullptr};

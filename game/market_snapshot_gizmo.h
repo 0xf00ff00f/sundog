@@ -18,5 +18,6 @@ public:
 
 private:
     const Universe *m_universe{nullptr};
+    const World *m_world{nullptr};
     TableGizmo *m_tableGizmo{nullptr};
 };

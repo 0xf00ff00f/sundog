@@ -46,8 +46,8 @@ private:
 struct MarketItem
 {
     const MarketItemInfo *info{nullptr};
-    uint64_t sellPrice{0};
-    uint64_t buyPrice{0};
+    uint64_t sellPrice{0}; // 0: not sold
+    uint64_t buyPrice{0};  // 0: not bought
 };
 
 class Universe;
@@ -61,6 +61,7 @@ public:
     std::string_view name() const { return m_name; }
     const Orbit &orbit() const { return m_orbit; }
     std::span<const MarketItem> marketItems() const { return m_marketItems; }
+    const MarketItem *findMarketItem(const MarketItemInfo *info) const;
 
     glm::vec3 position(JulianDate when) const;
 

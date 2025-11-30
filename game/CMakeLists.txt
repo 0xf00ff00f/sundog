@@ -35,7 +35,9 @@ target_sources(
          market_item_details_gizmo.h
          market_item_details_gizmo.cc
          trading_window.h
-         trading_window.cc)
+         trading_window.cc
+         util.h
+         util.cc)
 target_compile_features(game PUBLIC cxx_std_23)
 target_compile_definitions(game PUBLIC GLM_ENABLE_EXPERIMENTAL)
 target_link_libraries(game PRIVATE nlohmann_json::nlohmann_json base)
