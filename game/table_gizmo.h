@@ -2,6 +2,7 @@
 
 #include <base/gui.h>
 
+#include <any>
 #include <utility>
 
 class TableGizmo;
@@ -17,23 +18,45 @@ public:
     void setTextColor(std::size_t column, const glm::vec4 &color);
 
     void setHoveredColor(const glm::vec4 &color);
-    void setBackgroundColor(const glm::vec4 &color);
+    void setColor(const glm::vec4 &color);
+    void setSelectedColor(const glm::vec4 &color);
+
     void setTextColor(const glm::vec4 &color);
+    void setSelectedTextColor(const glm::vec4 &color);
+
+    void setSelectable(bool selectable);
+    bool isSelectable() const { return m_selectable; }
+
+    void setSelected(bool selected);
+    bool isSelected() const { return m_selected; }
+
+    void setData(std::any data);
+    std::any data() const { return m_data; }
 
     void handleMouseEnter() override;
     void handleMouseLeave() override;
+
+    bool handleMousePress(const glm::vec2 &pos) override;
+    void handleMouseRelease(const glm::vec2 &pos) override;
+
+    muslots::Signal<> clickedSignal;
 
 private:
     void updateColumnStyles();
 
     std::size_t columnCount() const;
-    void updateBackgroundColor(const glm::vec4 &color);
+    void updateColors(bool hovered = false);
     ui::Text *cellAt(std::size_t column);
 
     TableGizmo *m_table{nullptr};
-    bool m_hoverable{false};
+    glm::vec4 m_color{0.0f};
     glm::vec4 m_hoveredColor{1.0f, 1.0f, 1.0f, 0.25f};
-    glm::vec4 m_backgroundColor{0.0f};
+    glm::vec4 m_selectedColor{1.0f, 1.0f, 1.0f, 0.5f};
+    glm::vec4 m_textColor{1.0f};
+    glm::vec4 m_selectedTextColor{1.0f};
+    bool m_selectable{false};
+    bool m_selected{false};
+    std::any m_data;
 };
 
 class TableGizmo : public ui::Column
@@ -60,10 +83,12 @@ public:
     {
         auto *row = m_dataRows->appendChild<TableGizmoRow>(this);
         initializeRow(row, std::forward<Args>(values)...);
+        row->clickedSignal.connect([this, row] { selectRow(row); });
         return row;
     }
 
-    muslots::Signal<> columnStyleChanged;
+    muslots::Signal<> columnStyleChangedSignal;
+    muslots::Signal<const TableGizmoRow *> rowSelectedSignal;
 
 private:
     template<typename... Args>
@@ -73,6 +98,8 @@ private:
             (row->setValue(Is, std::forward<Args>(values)), ...);
         }(std::index_sequence_for<Args...>{});
     }
+
+    void selectRow(TableGizmoRow *row);
 
     std::size_t m_columnCount;
     TableGizmoRow *m_headerRow{nullptr};
@@ -85,7 +112,8 @@ private:
         ui::Align align{ui::Align::Left | ui::Align::VerticalCenter};
     };
     std::vector<ColumnStyle> m_columnStyles;
-    ui::Margins m_cellMargins;
+    ui::Margins m_cellMargins{2.0f, 2.0f, 2.0f, 2.0f};
+    TableGizmoRow *m_selectedRow{nullptr};
 
     friend class TableGizmoRow;
 };

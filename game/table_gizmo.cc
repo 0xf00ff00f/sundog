@@ -36,9 +36,9 @@ TableGizmoRow::TableGizmoRow(TableGizmo *table, Gizmo *parent)
         text->color = glm::vec4{1.0f};
     }
     updateColumnStyles();
-    updateBackgroundColor(m_backgroundColor);
+    updateColors();
 
-    m_table->columnStyleChanged.connect([this] { updateColumnStyles(); });
+    m_table->columnStyleChangedSignal.connect([this] { updateColumnStyles(); });
 }
 
 void TableGizmoRow::updateColumnStyles()
@@ -58,14 +58,38 @@ void TableGizmoRow::updateColumnStyles()
     }
 }
 
+void TableGizmoRow::setColor(const glm::vec4 &color)
+{
+    m_color = color;
+    updateColors();
+}
+
 void TableGizmoRow::setHoveredColor(const glm::vec4 &color)
 {
     m_hoveredColor = color;
+    updateColors();
 }
 
-void TableGizmoRow::setBackgroundColor(const glm::vec4 &color)
+void TableGizmoRow::setSelectedColor(const glm::vec4 &color)
 {
-    m_hoveredColor = color;
+    m_selectedColor = color;
+    updateColors();
+}
+
+void TableGizmoRow::setSelectable(bool selectable)
+{
+    if (selectable == m_selectable)
+        return;
+    m_selectable = selectable;
+    updateColors();
+}
+
+void TableGizmoRow::setSelected(bool selected)
+{
+    if (selected == m_selected)
+        return;
+    m_selected = selected;
+    updateColors();
 }
 
 std::size_t TableGizmoRow::columnCount() const
@@ -80,8 +104,18 @@ Text *TableGizmoRow::cellAt(std::size_t column)
 
 void TableGizmoRow::setTextColor(const glm::vec4 &color)
 {
-    for (std::size_t i = 0; i < columnCount(); ++i)
-        cellAt(i)->color = color;
+    if (color == m_textColor)
+        return;
+    m_textColor = color;
+    updateColors();
+}
+
+void TableGizmoRow::setSelectedTextColor(const glm::vec4 &color)
+{
+    if (color == m_selectedTextColor)
+        return;
+    m_selectedTextColor = color;
+    updateColors();
 }
 
 void TableGizmoRow::setValue(std::size_t column, std::string_view value)
@@ -109,16 +143,34 @@ void TableGizmoRow::setTextColor(std::size_t column, const glm::vec4 &color)
 
 void TableGizmoRow::handleMouseEnter()
 {
-    updateBackgroundColor(m_hoveredColor);
+    updateColors(true);
 }
 
 void TableGizmoRow::handleMouseLeave()
 {
-    updateBackgroundColor(m_backgroundColor);
+    updateColors(false);
 }
 
-void TableGizmoRow::updateBackgroundColor(const glm::vec4 &color)
+bool TableGizmoRow::handleMousePress(const glm::vec2 &pos)
 {
+    return m_selectable && rect().contains(pos);
+}
+
+void TableGizmoRow::handleMouseRelease(const glm::vec2 &pos)
+{
+    if (rect().contains(pos))
+        clickedSignal();
+}
+
+void TableGizmoRow::updateColors(bool hovered)
+{
+    const auto color = [this, hovered]() -> glm::vec4 {
+        if (m_selectable && m_selected)
+            return m_selectedColor;
+        if (hovered)
+            return m_hoveredColor;
+        return m_color;
+    }();
     if (color.w == 0.0f)
     {
         setFillBackground(false);
@@ -128,6 +180,19 @@ void TableGizmoRow::updateBackgroundColor(const glm::vec4 &color)
         setFillBackground(true);
         backgroundColor = color;
     }
+
+    const auto textColor = [this] {
+        if (m_selectable && m_selected)
+            return m_selectedTextColor;
+        return m_textColor;
+    }();
+    for (std::size_t i = 0; i < columnCount(); ++i)
+        cellAt(i)->color = textColor;
+}
+
+void TableGizmoRow::setData(std::any data)
+{
+    m_data = data;
 }
 
 TableGizmo::TableGizmo(std::size_t columns, Gizmo *parent)
@@ -144,6 +209,7 @@ TableGizmo::TableGizmo(std::size_t columns, Gizmo *parent)
     m_scrollArea = appendChild<ScrollArea>();
 
     m_dataRows = m_scrollArea->appendChild<Column>();
+    m_dataRows->setSpacing(0.0f);
     m_dataRows->resizedSignal.connect([this](const SizeF &size) {
         const auto totalWidth = size.width() + m_scrollArea->verticalScrollbarWidth();
         m_headerSeparator->setSize(totalWidth, 1.0f);
@@ -158,7 +224,7 @@ void TableGizmo::setColumnWidth(std::size_t column, float width)
     if (m_columnStyles[column].width == width)
         return;
     m_columnStyles[column].width = width;
-    columnStyleChanged();
+    columnStyleChangedSignal();
 }
 
 void TableGizmo::setColumnAlign(std::size_t column, Align align)
@@ -168,10 +234,25 @@ void TableGizmo::setColumnAlign(std::size_t column, Align align)
     if (m_columnStyles[column].align == align)
         return;
     m_columnStyles[column].align = align;
-    columnStyleChanged();
+    columnStyleChangedSignal();
 }
 
 void TableGizmo::clearRows()
 {
     m_dataRows->clear();
+    m_selectedRow = nullptr;
+}
+
+void TableGizmo::selectRow(TableGizmoRow *row)
+{
+    if (row == m_selectedRow)
+        return;
+    if (m_selectedRow)
+        m_selectedRow->setSelected(false);
+    if (row->isSelectable())
+    {
+        row->setSelected(true);
+        m_selectedRow = row;
+    }
+    rowSelectedSignal(row);
 }

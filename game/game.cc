@@ -78,6 +78,9 @@ bool Game::initialize()
     m_marketSnapshotGizmo->setAlign(ui::Align::HorizontalCenter | ui::Align::VerticalCenter);
     m_marketSnapshotGizmo->initializeFrom(m_universe->worlds().front());
 
+    m_marketSnapshotGizmo->itemSelectedSignal.connect(
+        [](const MarketItemDescription *item) { std::println("*** item selected: {}", item->name); });
+
     m_uiEventManager = std::make_unique<ui::EventManager>();
     m_uiEventManager->setRoot(m_uiRoot.get());
 

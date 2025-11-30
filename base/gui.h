@@ -142,6 +142,8 @@ public:
     void setOptions(Option options);
 
     SizeF size() const { return m_size; }
+    RectF rect() const { return RectF{glm::vec2{0.0f}, m_size}; }
+
     void paint(Painter *painter, const glm::vec2 &pos, int depth) const;
 
     template<std::derived_from<Gizmo> ChildT, typename... Args>
