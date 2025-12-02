@@ -16,6 +16,7 @@ public:
     void handleKey(int key, int scancode, KeyAction action, Modifier mods) override;
     void handleMouseButton(MouseButton button, MouseAction action, Modifier mods) override;
     void handleMouseMove(const glm::vec2 &pos) override;
+    void handleMouseWheel(const glm::vec2 &offset) override;
 
 private:
     bool initializeResources() override;

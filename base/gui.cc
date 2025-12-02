@@ -270,6 +270,11 @@ void Gizmo::handleHoverEnter() {}
 
 void Gizmo::handleHoverLeave() {}
 
+bool Gizmo::handleMouseWheel(const glm::vec2 &)
+{
+    return false;
+}
+
 void Gizmo::setHoverable(bool hoverable)
 {
     m_options &= ~Option::Hoverable;
@@ -551,6 +556,17 @@ void ScrollArea::handleHoverLeave()
 {
     m_verticalScrollbarHovered = false;
     m_horizontalScrollbarHovered = false;
+}
+
+bool ScrollArea::handleMouseWheel(const glm::vec2 &offset)
+{
+    const bool canScroll =
+        (offset.y != 0.0f && m_verticalScrollbarVisible) || (offset.x != 0.0f && m_horizontalScrollbarVisible);
+    if (!canScroll)
+        return false;
+    constexpr auto kScrollSpeed = 10.0f;
+    setOffset(m_offset + kScrollSpeed * offset);
+    return true;
 }
 
 void ScrollArea::setOffset(const glm::vec2 &offset)
@@ -894,6 +910,13 @@ bool EventManager::handleMouseMove(const glm::vec2 &pos)
         accepted = true;
     }
     return accepted;
+}
+
+bool EventManager::handleMouseWheel(const glm::vec2 &mousePos, const glm::vec2 &wheelOffset)
+{
+    const auto *target = m_root->findChildAt(
+        mousePos, [&wheelOffset](Gizmo *gizmo, const glm::vec2 &) { return gizmo->handleMouseWheel(wheelOffset); });
+    return target != nullptr;
 }
 
 } // namespace ui

@@ -61,11 +61,13 @@ public:
     static void handleKey(GLFWwindow *window, int key, int scancode, int action, int mods);
     static void handleMouseButton(GLFWwindow *window, int button, int action, int mods);
     static void handleMouseMove(GLFWwindow *window, double x, double y);
+    static void handleMouseWheel(GLFWwindow *window, double xOffset, double yOffset);
 
     virtual void handleWindowSize(const SizeI &size);
     virtual void handleKey(int key, int scancode, KeyAction action, Modifier mods);
     virtual void handleMouseButton(MouseButton button, MouseAction action, Modifier mods);
     virtual void handleMouseMove(const glm::vec2 &pos);
+    virtual void handleMouseWheel(const glm::vec2 &offset);
 
 protected:
     virtual bool initializeResources() = 0;

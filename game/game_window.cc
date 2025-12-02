@@ -36,6 +36,11 @@ void GameWindow::handleMouseMove(const glm::vec2 &pos)
     m_game->handleMouseMove(pos);
 }
 
+void GameWindow::handleMouseWheel(const glm::vec2 &offset)
+{
+    m_game->handleMouseWheel(cursorPos(), offset);
+}
+
 void GameWindow::update(Seconds elapsed)
 {
     m_game->update(elapsed);

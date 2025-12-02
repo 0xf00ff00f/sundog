@@ -20,6 +20,7 @@ public:
     void handleKey(int key, int scancode, KeyAction action, Modifier mods) override;
     void handleMouseButton(MouseButton button, MouseAction action, Modifier mods) override;
     void handleMouseMove(const glm::vec2 &pos) override;
+    void handleMouseWheel(const glm::vec2 &offset) override;
 
 private:
     bool initializeResources() override;
@@ -89,6 +90,11 @@ void TestWindow::handleMouseButton(MouseButton button, MouseAction action, Modif
 void TestWindow::handleMouseMove(const glm::vec2 &pos)
 {
     m_eventManager.handleMouseMove(pos);
+}
+
+void TestWindow::handleMouseWheel(const glm::vec2 &offset)
+{
+    m_eventManager.handleMouseWheel(cursorPos(), offset);
 }
 
 bool TestWindow::initializeResources()

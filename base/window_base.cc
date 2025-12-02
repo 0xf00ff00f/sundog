@@ -30,6 +30,7 @@ bool WindowBase::initialize(int width, int height, const char *title)
     glfwSetKeyCallback(m_window, WindowBase::handleKey);
     glfwSetMouseButtonCallback(m_window, WindowBase::handleMouseButton);
     glfwSetCursorPosCallback(m_window, WindowBase::handleMouseMove);
+    glfwSetScrollCallback(m_window, WindowBase::handleMouseWheel);
 
     if (!initializeResources())
         return false;
@@ -64,6 +65,12 @@ void WindowBase::handleMouseMove(GLFWwindow *window, double x, double y)
     self->handleMouseMove(glm::vec2{x, y});
 }
 
+void WindowBase::handleMouseWheel(GLFWwindow *window, double xOffset, double yOffset)
+{
+    auto *self = static_cast<WindowBase *>(glfwGetWindowUserPointer(window));
+    self->handleMouseWheel(glm::vec2{xOffset, yOffset});
+}
+
 void WindowBase::handleWindowSize(const SizeI & /* size */) {}
 
 void WindowBase::handleKey(int /* key */, int /* scancode */, KeyAction /* action */, Modifier /* mods */) {}
@@ -71,6 +78,8 @@ void WindowBase::handleKey(int /* key */, int /* scancode */, KeyAction /* actio
 void WindowBase::handleMouseButton(MouseButton /* button */, MouseAction /* action */, Modifier /* mods */) {}
 
 void WindowBase::handleMouseMove(const glm::vec2 & /* pos */) {}
+
+void WindowBase::handleMouseWheel(const glm::vec2 & /* offset */) {}
 
 void WindowBase::run()
 {

@@ -90,7 +90,7 @@ MarketItemDetailsGizmo::MarketItemDetailsGizmo(const Universe *universe, Gizmo *
     descriptionColumn->appendChild<ui::Rectangle>(0.0f, 20.0f);
 
     m_exporterTable = descriptionColumn->appendChild<TableGizmo>(2);
-    m_exporterTable->setHeader("Produced by:");
+    m_exporterTable->setHeader("Also produced by:");
 
     m_exporterTable->setColumnWidth(0, kTotalWidth -
                                            (descriptionScrollArea->verticalScrollbarWidth() + kPriceColumnWidth));

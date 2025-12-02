@@ -200,6 +200,8 @@ public:
     virtual void handleMouseRelease(const glm::vec2 &pos);
     virtual void handleMouseMove(const glm::vec2 &pos);
 
+    virtual bool handleMouseWheel(const glm::vec2 &offset);
+
     virtual void handleHoverEnter();
     virtual void handleHoverLeave();
 
@@ -348,6 +350,7 @@ public:
     void handleMouseRelease(const glm::vec2 &pos) override;
     void handleMouseMove(const glm::vec2 &pos) override;
     void handleHoverLeave() override;
+    bool handleMouseWheel(const glm::vec2 &offset) override;
 
     void updateLayout() override;
 
@@ -448,6 +451,7 @@ public:
 
     bool handleMouseButton(MouseButton button, MouseAction action, const glm::vec2 &pos, Modifier mods);
     bool handleMouseMove(const glm::vec2 &pos);
+    bool handleMouseWheel(const glm::vec2 &mousePos, const glm::vec2 &wheelOffset);
 
 private:
     Gizmo *m_root{nullptr};
