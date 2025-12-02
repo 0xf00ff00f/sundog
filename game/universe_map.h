@@ -22,7 +22,7 @@ public:
     ~UniverseMap();
 
     void setViewportSize(const SizeI &size);
-    void render(JulianDate when) const;
+    void render() const;
 
     void handleMouseButton(MouseButton button, MouseAction action, const glm::vec2 &pos, Modifier mods);
     void handleMouseMove(const glm::vec2 &pos);

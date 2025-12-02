@@ -32,15 +32,16 @@ bool Game::initialize()
     m_universeMap = std::make_unique<UniverseMap>(m_universe.get(), m_shaderManager.get(), m_overlayPainter.get());
 
 #if 0
-    auto ship = m_universe.addShip("Foo");
     {
+        const auto &worlds = m_universe->worlds();
+        const auto *origin = worlds[2];      // Earth
+        const auto *destination = worlds[3]; // Mars
+
+        auto ship = m_universe->addShip(origin, "Foo");
+
         const auto transitInterval = JulianClock::duration{253.5};
         const auto timeDeparture = JulianDate{JulianClock::duration{2455892.126389}};
         const auto timeArrival = timeDeparture + transitInterval;
-
-        const auto &worlds = m_universe.worlds();
-        const auto *origin = worlds[2];      // Earth
-        const auto *destination = worlds[3]; // Mars
 
         auto posDeparture = glm::dvec3(origin->position(timeDeparture));
         auto posArrival = glm::dvec3(destination->position(timeArrival));
@@ -56,22 +57,22 @@ bool Game::initialize()
 
         const auto orbitalElements = orbitalElementsFromStateVector(posArrival, velArrival, timeArrival);
 
-        Transit transit{
+        MissionPlan transit{
             .origin = origin, .destination = destination, .departureTime = timeDeparture, .arrivalTime = timeArrival};
         transit.orbit.setElements(orbitalElements);
 
-        ship->setTransit(std::move(transit));
+        ship->setMissionPlan(std::move(transit));
 
-        m_currentTime = timeDeparture;
+        m_universe->setDate(timeDeparture);
     }
 #else
-    m_currentTime = JulianClock::now() + JulianClock::duration{200.0 * 365.0};
+    m_universe->setDate(JulianClock::now() + JulianClock::duration{200.0 * 365.0});
 #endif
 
     m_uiRoot = std::make_unique<ui::Rectangle>(100, 100);
 
     m_dateGizmo = m_uiRoot->appendChild<DateGizmo>();
-    m_dateGizmo->setDate(m_currentTime);
+    m_dateGizmo->setDate(m_universe->date());
     m_dateGizmo->setAlign(ui::Align::Right | ui::Align::Top);
 
     m_tradingWindow = m_uiRoot->appendChild<TradingWindow>(m_universe.get());
@@ -106,7 +107,7 @@ void Game::render() const
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     m_overlayPainter->begin();
-    m_universeMap->render(m_currentTime);
+    m_universeMap->render();
 
     m_uiRoot->paint(m_overlayPainter.get(), glm::vec2{0.0f, 0.0f}, 0);
 
@@ -115,12 +116,10 @@ void Game::render() const
 
 void Game::update(Seconds elapsed)
 {
-#if 0
-    m_currentTime += elapsed.count() * JulianClock::duration{20.0f};
-#else
-    m_currentTime += elapsed;
-#endif
-    m_dateGizmo->setDate(m_currentTime);
+    m_universe->update(elapsed);
+    // m_universe->update(elapsed.count() * JulianClock::duration{20.0f});
+    m_dateGizmo->setDate(m_universe->date());
+    // TODO make DateGizmo grab date from Universe, listen to dateChangedSignal
     m_universeMap->update(elapsed);
 }
 

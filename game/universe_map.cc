@@ -85,7 +85,7 @@ void UniverseMap::setViewportSize(const SizeI &size)
     m_cameraController.setViewportSize(size);
 }
 
-void UniverseMap::render(JulianDate when) const
+void UniverseMap::render() const
 {
     const auto viewMatrix = m_cameraController.viewMatrix();
 
@@ -119,10 +119,9 @@ void UniverseMap::render(JulianDate when) const
     const auto ships = m_universe->ships();
     for (const auto *ship : ships)
     {
-        const auto transit = ship->transit();
-        if (transit.has_value() && transit->departureTime < when && when < transit->arrivalTime)
+        if (auto *orbit = ship->orbit())
         {
-            drawOrbit(transit->orbit, glm::vec4{1.0, 0.0, 0.0, 1.0});
+            drawOrbit(*orbit, glm::vec4{1.0, 0.0, 0.0, 1.0});
         }
     }
 
@@ -173,7 +172,7 @@ void UniverseMap::render(JulianDate when) const
     m_shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4(1.0, 1.0, 1.0, 1.0));
     for (const auto *world : worlds)
     {
-        drawBillboard(world->position(when), world->name());
+        drawBillboard(world->position(), world->name());
     }
 
     // render ship billboards
@@ -181,11 +180,7 @@ void UniverseMap::render(JulianDate when) const
     m_shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4(1.0, 0.0, 0.0, 1.0));
     for (const auto *ship : ships)
     {
-        const auto transit = ship->transit();
-        if (transit.has_value() && transit->departureTime < when && when < transit->arrivalTime)
-        {
-            drawBillboard(transit->orbit.position(when), ship->name());
-        }
+        drawBillboard(ship->position(), ship->name());
     }
 }
 

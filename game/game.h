@@ -1,7 +1,5 @@
 #pragma once
 
-#include "julian_clock.h"
-
 #include <base/window_base.h>
 
 #include <glm/glm.hpp>
@@ -50,7 +48,6 @@ private:
     std::unique_ptr<ShaderManager> m_shaderManager;
     std::unique_ptr<Painter> m_overlayPainter;
     std::unique_ptr<UniverseMap> m_universeMap;
-    JulianDate m_currentTime;
     std::unique_ptr<ui::Rectangle> m_uiRoot;
     std::unique_ptr<ui::EventManager> m_uiEventManager;
     DateGizmo *m_dateGizmo{nullptr};

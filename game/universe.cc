@@ -88,7 +88,7 @@ void Orbit::updateOrbitRotationMatrix()
     m_orbitRotationMatrix = rN * ri * rw;
 }
 
-World::World(const Universe *universe, std::string name, const OrbitalElements &elems)
+World::World(Universe *universe, std::string name, const OrbitalElements &elems)
     : m_universe(universe)
     , m_name(std::move(name))
     , m_orbit(elems)
@@ -109,9 +109,14 @@ World::World(const Universe *universe, std::string name, const OrbitalElements &
     }
 }
 
-glm::vec3 World::position(JulianDate when) const
+glm::vec3 World::position() const
 {
-    return m_orbit.position(when);
+    return position(m_universe->date());
+}
+
+glm::vec3 World::position(JulianDate date) const
+{
+    return m_orbit.position(date);
 }
 
 const MarketItemPrice *World::findMarketItemPrice(const MarketItem *item) const
@@ -120,9 +125,17 @@ const MarketItemPrice *World::findMarketItemPrice(const MarketItem *item) const
     return it != m_marketItemPrices.end() ? &*it : nullptr;
 }
 
-Ship::Ship(std::string_view name)
-    : m_name(name)
+Ship::Ship(Universe *universe, const World *world, std::string_view name)
+    : m_universe(universe)
+    , m_world(world)
+    , m_name(name)
+    , m_dateChangedConnection(m_universe->dateChangedSignal.connect([this](JulianDate date) { updateState(date); }))
 {
+}
+
+Ship::~Ship()
+{
+    m_dateChangedConnection.disconnect();
 }
 
 void Ship::setName(std::string_view name)
@@ -130,14 +143,14 @@ void Ship::setName(std::string_view name)
     m_name = name;
 }
 
-void Ship::setTransit(std::optional<Transit> transit)
+void Ship::setMissionPlan(std::optional<MissionPlan> missionPlan)
 {
-    m_transit = std::move(transit);
+    m_missionPlan = std::move(missionPlan);
 }
 
-const std::optional<Transit> &Ship::transit() const
+const std::optional<MissionPlan> &Ship::missionPlan() const
 {
-    return m_transit;
+    return m_missionPlan;
 }
 
 size_t Ship::totalCargo() const
@@ -170,11 +183,84 @@ void Ship::removeCargo(const MarketItem *item, size_t count)
         m_cargo.erase(it);
 }
 
+void Ship::updateState(JulianDate date)
+{
+    switch (m_state)
+    {
+    case State::Docked: {
+        assert(m_world != nullptr);
+        if (m_missionPlan.has_value() && m_missionPlan->departureTime < date && date < m_missionPlan->arrivalTime)
+        {
+            assert(m_world == m_missionPlan->origin); // sanity check
+            // started mission
+            m_state = State::InTransit;
+            m_world = nullptr;
+        }
+        break;
+    }
+    case State::InTransit: {
+        assert(m_missionPlan.has_value());
+        if (m_missionPlan->arrivalTime < date)
+        {
+            // arrived at destination
+            m_state = State::Docked;
+            m_world = m_missionPlan->destination;
+            m_missionPlan.reset();
+        }
+        break;
+    }
+    }
+}
+
+glm::vec3 Ship::position() const
+{
+    switch (m_state)
+    {
+    case State::Docked: {
+        assert(m_world != nullptr);
+        return m_world->position();
+    }
+    case State::InTransit: {
+        assert(m_missionPlan.has_value());
+        return m_missionPlan->orbit.position(m_universe->date());
+    }
+    }
+}
+
+const World *Ship::world() const
+{
+    if (m_state != State::Docked)
+        return nullptr;
+    assert(m_world != nullptr);
+    return m_world;
+}
+
+const Orbit *Ship::orbit() const
+{
+    if (m_state != State::InTransit)
+        return nullptr;
+    assert(m_missionPlan.has_value());
+    return &m_missionPlan->orbit;
+}
+
 Universe::Universe() = default;
 
-Ship *Universe::addShip(std::string_view name)
+void Universe::setDate(JulianDate date)
 {
-    m_ships.push_back(std::make_unique<Ship>(name));
+    if (date == m_date)
+        return;
+    m_date = date;
+    dateChangedSignal(m_date);
+}
+
+void Universe::update(Seconds elapsed)
+{
+    setDate(m_date + elapsed);
+}
+
+Ship *Universe::addShip(const World *world, std::string_view name)
+{
+    m_ships.push_back(std::make_unique<Ship>(this, world, name));
     return m_ships.back().get();
 }
 
