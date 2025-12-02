@@ -140,6 +140,36 @@ const std::optional<Transit> &Ship::transit() const
     return m_transit;
 }
 
+size_t Ship::totalCargo() const
+{
+    return std::ranges::fold_left(m_cargo, std::size_t{0},
+                                  [](std::size_t count, const auto &item) { return count + item.second; });
+}
+
+size_t Ship::cargo(const MarketItem *item) const
+{
+    auto it = m_cargo.find(item);
+    return it != m_cargo.end() ? it->second : 0;
+}
+
+void Ship::addCargo(const MarketItem *item, size_t count)
+{
+    auto it = m_cargo.find(item);
+    if (it == m_cargo.end())
+        it = m_cargo.insert(it, {item, 0});
+    it->second += count;
+}
+
+void Ship::removeCargo(const MarketItem *item, size_t count)
+{
+    auto it = m_cargo.find(item);
+    if (it == m_cargo.end())
+        return;
+    it->second -= count;
+    if (it->second <= 0)
+        m_cargo.erase(it);
+}
+
 Universe::Universe() = default;
 
 Ship *Universe::addShip(std::string_view name)

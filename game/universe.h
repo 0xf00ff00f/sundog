@@ -94,9 +94,16 @@ public:
     void setTransit(std::optional<Transit> transit);
     const std::optional<Transit> &transit() const;
 
+    size_t totalCargo() const;
+    size_t cargo(const MarketItem *item) const;
+
+    void addCargo(const MarketItem *item, size_t count);
+    void removeCargo(const MarketItem *item, size_t count);
+
 private:
     std::string m_name;
     std::optional<Transit> m_transit;
+    std::unordered_map<const MarketItem *, size_t> m_cargo;
 };
 
 struct Universe
