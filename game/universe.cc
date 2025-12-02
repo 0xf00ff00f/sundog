@@ -70,7 +70,7 @@ glm::vec3 Orbit::position(JulianDate when) const
 
 void Orbit::updatePeriod()
 {
-    constexpr auto kEarthYearInDays = 365.2425;
+    // assuming kGMSun = 1 AU^3/years^2 * 4 * pi
     m_period = std::pow(m_elems.semiMajorAxis, 3.0 / 2.0) * kEarthYearInDays;
 }
 

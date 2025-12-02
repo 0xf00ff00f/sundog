@@ -21,8 +21,10 @@ struct OrbitalElements
 
 double meanAnomalyFromTrueAnomaly(const double nu, const double e);
 
+inline constexpr auto kEarthYearInDays = 365.2425;
+
 // Sun's gravitational parameter in AU^3/days^2
-inline constexpr auto kGMSun = 7.496 * 1e-6 * 4 * glm::pi<double>() * glm::pi<double>();
+inline constexpr auto kGMSun = 4.0 * glm::pi<double>() * glm::pi<double>() / (kEarthYearInDays * kEarthYearInDays);
 
 OrbitalElements orbitalElementsFromStateVector(const glm::dvec3 &r, const glm::dvec3 &v, JulianDate epoch,
                                                double mu = kGMSun);
