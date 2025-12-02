@@ -71,8 +71,7 @@ bool Game::initialize()
 
     m_uiRoot = std::make_unique<ui::Rectangle>(100, 100);
 
-    m_dateGizmo = m_uiRoot->appendChild<DateGizmo>();
-    m_dateGizmo->setDate(m_universe->date());
+    m_dateGizmo = m_uiRoot->appendChild<DateGizmo>(m_universe.get());
     m_dateGizmo->setAlign(ui::Align::Right | ui::Align::Top);
 
     m_tradingWindow = m_uiRoot->appendChild<TradingWindow>(m_universe.get());
@@ -118,8 +117,6 @@ void Game::update(Seconds elapsed)
 {
     m_universe->update(elapsed);
     // m_universe->update(elapsed.count() * JulianClock::duration{20.0f});
-    m_dateGizmo->setDate(m_universe->date());
-    // TODO make DateGizmo grab date from Universe, listen to dateChangedSignal
     m_universeMap->update(elapsed);
 }
 

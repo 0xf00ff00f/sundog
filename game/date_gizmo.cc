@@ -1,9 +1,12 @@
 #include "date_gizmo.h"
 
+#include "universe.h"
+
 #include <print>
 
-DateGizmo::DateGizmo(ui::Gizmo *parent)
+DateGizmo::DateGizmo(Universe *universe, ui::Gizmo *parent)
     : ui::Column(parent)
+    , m_dateChangedConnection(universe->dateChangedSignal.connect([this](JulianDate date) { setDate(date); }))
 {
     constexpr auto kFont = "DejaVuSans.ttf";
 
@@ -16,6 +19,13 @@ DateGizmo::DateGizmo(ui::Gizmo *parent)
     m_dateText->setFont(Font{kFont, 24.0f, 0});
     m_dateText->color = glm::vec4{1.0f};
     m_dateText->setAlign(ui::Align::HorizontalCenter);
+
+    setDate(universe->date());
+}
+
+DateGizmo::~DateGizmo()
+{
+    m_dateChangedConnection.disconnect();
 }
 
 void DateGizmo::setDate(JulianDate date)
