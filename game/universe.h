@@ -6,7 +6,7 @@
 
 struct MarketSector;
 
-struct MarketItemInfo
+struct MarketItem
 {
     const MarketSector *sector{nullptr};
     std::string name;
@@ -16,7 +16,7 @@ struct MarketItemInfo
 struct MarketSector
 {
     std::string name;
-    std::vector<std::unique_ptr<MarketItemInfo>> items;
+    std::vector<std::unique_ptr<MarketItem>> items;
 };
 
 class Orbit
@@ -43,9 +43,9 @@ private:
     glm::mat3 m_orbitRotationMatrix;
 };
 
-struct MarketItem
+struct MarketItemPrice
 {
-    const MarketItemInfo *info{nullptr};
+    const MarketItem *item{nullptr};
     uint64_t sellPrice{0}; // 0: not sold
     uint64_t buyPrice{0};  // 0: not bought
 };
@@ -60,14 +60,14 @@ public:
     const Universe *universe() const { return m_universe; }
     std::string_view name() const { return m_name; }
     const Orbit &orbit() const { return m_orbit; }
-    std::span<const MarketItem> marketItems() const { return m_marketItems; }
-    const MarketItem *findMarketItem(const MarketItemInfo *info) const;
+    std::span<const MarketItemPrice> marketItemPrices() const { return m_marketItemPrices; }
+    const MarketItemPrice *findMarketItemPrice(const MarketItem *item) const;
 
     glm::vec3 position(JulianDate when) const;
 
 private:
     const Universe *m_universe{nullptr};
-    std::vector<MarketItem> m_marketItems;
+    std::vector<MarketItemPrice> m_marketItemPrices;
     std::string m_name;
     Orbit m_orbit;
 };

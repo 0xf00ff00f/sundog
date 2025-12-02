@@ -35,7 +35,7 @@ MarketSnapshotGizmo::MarketSnapshotGizmo(const Universe *universe, Gizmo *parent
     m_tableGizmo->rowSelectedSignal.connect([this](const TableGizmoRow *row) {
         if (row)
         {
-            const auto *item = std::any_cast<const MarketItemInfo *>(row->data());
+            const auto *item = std::any_cast<const MarketItem *>(row->data());
             itemSelectedSignal(item);
         }
     });
@@ -45,20 +45,20 @@ void MarketSnapshotGizmo::initializeFrom(const World *world)
 {
     m_tableGizmo->clearRows();
 
-    const auto &items = world->marketItems();
+    const auto &prices = world->marketItemPrices();
 
     for (const auto *sector : m_universe->marketSectors())
     {
-        auto filteredItems =
-            items | std::views::filter([sector](const auto &item) { return item.info->sector == sector; });
-        if (!filteredItems.empty())
+        auto filteredPrices =
+            prices | std::views::filter([sector](const auto &price) { return price.item->sector == sector; });
+        if (!filteredPrices.empty())
         {
             auto *row = m_tableGizmo->appendRow(sector->name);
             row->setTextColor(g_styleSettings.accentColor);
 
-            for (const auto &item : filteredItems)
+            for (const auto &price : filteredPrices)
             {
-                auto *row = m_tableGizmo->appendRow(item.info->name, item.buyPrice, item.sellPrice);
+                auto *row = m_tableGizmo->appendRow(price.item->name, price.buyPrice, price.sellPrice);
                 row->setHoverable(true);
                 row->setHoveredColor(glm::vec4{1.0f, 1.0f, 1.0f, 0.25f});
                 row->setSelectedColor(g_styleSettings.baseColor);
@@ -66,7 +66,7 @@ void MarketSnapshotGizmo::initializeFrom(const World *world)
                 row->setSelectedTextColor(kBlack);
                 row->setIndent(0, 20.0f);
                 row->setSelectable(true);
-                row->setData(item.info);
+                row->setData(price.item);
             }
         }
     }

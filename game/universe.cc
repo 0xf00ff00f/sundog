@@ -70,7 +70,7 @@ glm::vec3 Orbit::position(JulianDate when) const
 
 void Orbit::updatePeriod()
 {
-    // assuming kGMSun = 1 AU^3/years^2 * 4 * pi
+    // assuming kGMSun = (4.0 * pi^2) AU^3/years^2
     m_period = std::pow(m_elems.semiMajorAxis, 3.0 / 2.0) * kEarthYearInDays;
 }
 
@@ -104,7 +104,7 @@ World::World(const Universe *universe, std::string name, const OrbitalElements &
                 continue;
             const auto buyPrice = bought ? rnd() % 50000 + 5000 : 0;
             const auto sellPrice = sold ? rnd() % 50000 + 5000 : 0;
-            m_marketItems.emplace_back(item.get(), buyPrice, sellPrice);
+            m_marketItemPrices.emplace_back(item.get(), buyPrice, sellPrice);
         }
     }
 }
@@ -114,10 +114,10 @@ glm::vec3 World::position(JulianDate when) const
     return m_orbit.position(when);
 }
 
-const MarketItem *World::findMarketItem(const MarketItemInfo *info) const
+const MarketItemPrice *World::findMarketItemPrice(const MarketItem *item) const
 {
-    auto it = std::ranges::find_if(m_marketItems, [info](const auto &item) { return item.info == info; });
-    return it != m_marketItems.end() ? &*it : nullptr;
+    auto it = std::ranges::find_if(m_marketItemPrices, [item](const auto &price) { return price.item == item; });
+    return it != m_marketItemPrices.end() ? &*it : nullptr;
 }
 
 Ship::Ship(std::string_view name)
@@ -163,7 +163,7 @@ bool Universe::load(const std::string &path)
         sector->name = sectorJson.at("name").get<std::string>();
         for (const nlohmann::json &itemJson : sectorJson.at("items"))
         {
-            auto &item = sector->items.emplace_back(std::make_unique<MarketItemInfo>());
+            auto &item = sector->items.emplace_back(std::make_unique<MarketItem>());
             item->sector = sector.get();
             item->name = itemJson.at("name").get<std::string>();
             item->description = itemJson.at("description").get<std::string>();

@@ -99,15 +99,15 @@ MarketItemDetailsGizmo::MarketItemDetailsGizmo(const Universe *universe, Gizmo *
     m_exporterTable->setColumnAlign(1, Align::Right);
 }
 
-void MarketItemDetailsGizmo::initializeFrom(const World *currentWorld, const MarketItemInfo *marketItem)
+void MarketItemDetailsGizmo::initializeFrom(const World *currentWorld, const MarketItem *item)
 {
-    m_nameText->setText(marketItem->name);
-    m_sectorText->setText(marketItem->sector->name);
-    m_descriptionText->setText(marketItem->description);
+    m_nameText->setText(item->name);
+    m_sectorText->setText(item->sector->name);
+    m_descriptionText->setText(item->description);
 
-    const auto *marketPrices = currentWorld->findMarketItem(marketItem);
-    m_sellPriceText->setText(formatCredits(marketPrices ? marketPrices->buyPrice : 0));
-    m_buyPriceText->setText(formatCredits(marketPrices ? marketPrices->sellPrice : 0));
+    const auto *price = currentWorld->findMarketItemPrice(item);
+    m_sellPriceText->setText(formatCredits(price ? price->buyPrice : 0));
+    m_buyPriceText->setText(formatCredits(price ? price->sellPrice : 0));
 
     struct WorldPrice
     {
@@ -119,13 +119,13 @@ void MarketItemDetailsGizmo::initializeFrom(const World *currentWorld, const Mar
     {
         if (world == currentWorld)
             continue;
-        const auto *marketPrices = world->findMarketItem(marketItem);
-        if (marketPrices)
+        const auto *price = world->findMarketItemPrice(item);
+        if (price)
         {
-            if (marketPrices->buyPrice)
-                buyPrices.emplace_back(world, marketPrices->buyPrice);
-            if (marketPrices->sellPrice)
-                sellPrices.emplace_back(world, marketPrices->sellPrice);
+            if (price->buyPrice)
+                buyPrices.emplace_back(world, price->buyPrice);
+            if (price->sellPrice)
+                sellPrices.emplace_back(world, price->sellPrice);
         }
     }
     std::ranges::sort(buyPrices, std::ranges::greater{}, &WorldPrice::price);

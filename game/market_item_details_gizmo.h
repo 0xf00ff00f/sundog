@@ -3,7 +3,7 @@
 #include <base/gui.h>
 
 class Universe;
-class MarketItemInfo;
+class MarketItem;
 class TableGizmo;
 class World;
 
@@ -12,7 +12,7 @@ class MarketItemDetailsGizmo : public ui::Column
 public:
     explicit MarketItemDetailsGizmo(const Universe *universe, ui::Gizmo *parent = nullptr);
 
-    void initializeFrom(const World *world, const MarketItemInfo *marketItem);
+    void initializeFrom(const World *world, const MarketItem *item);
 
 private:
     const Universe *m_universe{nullptr};
