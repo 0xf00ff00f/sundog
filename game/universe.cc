@@ -153,34 +153,43 @@ const std::optional<MissionPlan> &Ship::missionPlan() const
     return m_missionPlan;
 }
 
-size_t Ship::totalCargo() const
+int Ship::totalCargo() const
 {
-    return std::ranges::fold_left(m_cargo, std::size_t{0},
-                                  [](std::size_t count, const auto &item) { return count + item.second; });
+    return std::ranges::fold_left(m_cargo, 0, [](int count, const auto &item) { return count + item.second; });
 }
 
-size_t Ship::cargo(const MarketItem *item) const
+int Ship::cargoCapacity() const
+{
+    // XXX
+    return 20;
+}
+
+int Ship::cargo(const MarketItem *item) const
 {
     auto it = m_cargo.find(item);
     return it != m_cargo.end() ? it->second : 0;
 }
 
-void Ship::addCargo(const MarketItem *item, size_t count)
+void Ship::changeCargo(const MarketItem *item, int count)
 {
-    auto it = m_cargo.find(item);
-    if (it == m_cargo.end())
-        it = m_cargo.insert(it, {item, 0});
-    it->second += count;
-}
-
-void Ship::removeCargo(const MarketItem *item, size_t count)
-{
-    auto it = m_cargo.find(item);
-    if (it == m_cargo.end())
+    const auto currentCargo = cargo(item);
+    auto updatedCargo = std::clamp(currentCargo + count, 0, cargoCapacity());
+    if (updatedCargo == currentCargo)
         return;
-    it->second -= count;
-    if (it->second <= 0)
-        m_cargo.erase(it);
+    auto it = m_cargo.find(item);
+    if (updatedCargo == 0)
+    {
+        // remove if 0
+        if (it != m_cargo.end())
+            m_cargo.erase(it);
+    }
+    else
+    {
+        if (it == m_cargo.end())
+            it = m_cargo.insert(it, {item, 0});
+        it->second = updatedCargo;
+    }
+    cargoChangedSignal(item);
 }
 
 void Ship::updateState(JulianDate date)

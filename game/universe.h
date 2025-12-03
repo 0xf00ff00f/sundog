@@ -118,11 +118,13 @@ public:
     void setMissionPlan(std::optional<MissionPlan> missionPlan);
     const std::optional<MissionPlan> &missionPlan() const;
 
-    size_t totalCargo() const;
-    size_t cargo(const MarketItem *item) const;
+    int totalCargo() const;
+    int cargoCapacity() const;
 
-    void addCargo(const MarketItem *item, size_t count);
-    void removeCargo(const MarketItem *item, size_t count);
+    int cargo(const MarketItem *item) const;
+    void changeCargo(const MarketItem *item, int count);
+
+    muslots::Signal<const MarketItem *> cargoChangedSignal;
 
 private:
     void updateState(JulianDate date);
@@ -132,7 +134,7 @@ private:
     std::string m_name;
     State m_state{State::Docked};
     std::optional<MissionPlan> m_missionPlan;
-    std::unordered_map<const MarketItem *, size_t> m_cargo;
+    std::unordered_map<const MarketItem *, int> m_cargo;
     muslots::Connection m_dateChangedConnection;
 };
 

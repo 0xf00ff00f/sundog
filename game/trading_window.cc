@@ -7,7 +7,7 @@
 
 using namespace ui;
 
-TradingWindow::TradingWindow(const World *world, const Ship *ship, Gizmo *parent)
+TradingWindow::TradingWindow(const World *world, Ship *ship, Gizmo *parent)
     : Column(parent)
     , m_world(world)
     , m_ship(ship)
@@ -30,7 +30,7 @@ TradingWindow::TradingWindow(const World *world, const Ship *ship, Gizmo *parent
     marketRow->setSpacing(40.0f);
 
     m_marketSnapshot = marketRow->appendChild<MarketSnapshotGizmo>(world, ship);
-    m_marketItemDetails = marketRow->appendChild<MarketItemDetailsGizmo>(world);
+    m_marketItemDetails = marketRow->appendChild<MarketItemDetailsGizmo>(world, ship);
 
     m_marketSnapshot->itemSelectedSignal.connect(
         [this](const MarketItem *item) { m_marketItemDetails->setItem(item); });

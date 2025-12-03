@@ -11,7 +11,7 @@ namespace
 constexpr auto kBlack = glm::vec4{0.0f, 0.0f, 0.0f, 1.0f};
 }
 
-MarketSnapshotGizmo::MarketSnapshotGizmo(const World *world, const Ship *ship, Gizmo *parent)
+MarketSnapshotGizmo::MarketSnapshotGizmo(const World *world, Ship *ship, Gizmo *parent)
     : Column(parent)
     , m_world(world)
     , m_ship(ship)
@@ -45,6 +45,30 @@ MarketSnapshotGizmo::MarketSnapshotGizmo(const World *world, const Ship *ship, G
     });
 
     initialize();
+
+    m_cargoChangedConnection = m_ship->cargoChangedSignal.connect([this](const MarketItem *item) {
+        auto *row = [this, item]() -> TableGizmoRow * {
+            for (std::size_t i = 0; i < m_tableGizmo->rowCount(); ++i)
+            {
+                auto *row = m_tableGizmo->rowAt(i);
+                auto rowData = row->data();
+                if (rowData.has_value())
+                {
+                    const auto *rowItem = std::any_cast<const MarketItem *>(rowData);
+                    if (rowItem == item)
+                        return row;
+                }
+            }
+            return nullptr;
+        }();
+        if (row)
+            row->setValue(0, m_ship->cargo(item));
+    });
+}
+
+MarketSnapshotGizmo::~MarketSnapshotGizmo()
+{
+    m_cargoChangedConnection.disconnect();
 }
 
 void MarketSnapshotGizmo::initialize()

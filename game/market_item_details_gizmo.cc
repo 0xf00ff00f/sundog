@@ -3,6 +3,7 @@
 #include "universe.h"
 #include "style_settings.h"
 #include "table_gizmo.h"
+#include "button_gizmo.h"
 #include "util.h"
 
 #include <algorithm>
@@ -23,7 +24,7 @@ void addSeparator(Gizmo *parent, float width, const glm::vec4 &color)
 
 } // namespace
 
-MarketItemDetailsGizmo::MarketItemDetailsGizmo(const World *world, const Ship *ship, Gizmo *parent)
+MarketItemDetailsGizmo::MarketItemDetailsGizmo(const World *world, Ship *ship, Gizmo *parent)
     : Column(parent)
     , m_world(world)
     , m_ship(ship)
@@ -98,15 +99,39 @@ MarketItemDetailsGizmo::MarketItemDetailsGizmo(const World *world, const Ship *s
 
     m_exporterTable->setColumnWidth(1, kPriceColumnWidth);
     m_exporterTable->setColumnAlign(1, Align::Right);
+
+    auto *buttonRow = appendChild<ui::Row>();
+    buttonRow->setAlign(Align::VerticalCenter | Align::Right);
+
+    m_sellButton = buttonRow->appendChild<ButtonGizmo>("Sell");
+    m_sellButton->setSize(80, 30);
+
+    m_buyButton = buttonRow->appendChild<ButtonGizmo>("Buy");
+    m_buyButton->setSize(80, 30);
+
+    m_sellButton->clickedSignal.connect([this] {
+        if (m_item)
+            m_ship->changeCargo(m_item, -1);
+    });
+
+    m_buyButton->clickedSignal.connect([this] {
+        if (m_item)
+            m_ship->changeCargo(m_item, 1);
+    });
 }
 
 void MarketItemDetailsGizmo::setItem(const MarketItem *item)
 {
-    m_nameText->setText(item->name);
-    m_sectorText->setText(item->sector->name);
-    m_descriptionText->setText(item->description);
+    if (item == m_item)
+        return;
 
-    const auto *price = m_world->findMarketItemPrice(item);
+    m_item = item;
+
+    m_nameText->setText(m_item->name);
+    m_sectorText->setText(m_item->sector->name);
+    m_descriptionText->setText(m_item->description);
+
+    const auto *price = m_world->findMarketItemPrice(m_item);
     m_sellPriceText->setText(formatCredits(price ? price->buyPrice : 0));
     m_buyPriceText->setText(formatCredits(price ? price->sellPrice : 0));
 
@@ -120,7 +145,7 @@ void MarketItemDetailsGizmo::setItem(const MarketItem *item)
     {
         if (world == m_world)
             continue;
-        const auto *price = world->findMarketItemPrice(item);
+        const auto *price = world->findMarketItemPrice(m_item);
         if (price)
         {
             if (price->buyPrice)

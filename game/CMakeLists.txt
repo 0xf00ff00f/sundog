@@ -37,7 +37,9 @@ target_sources(
          trading_window.h
          trading_window.cc
          util.h
-         util.cc)
+         util.cc
+         button_gizmo.h
+         button_gizmo.cc)
 target_compile_features(game PUBLIC cxx_std_23)
 target_compile_definitions(game PUBLIC GLM_ENABLE_EXPERIMENTAL)
 target_link_libraries(game PRIVATE nlohmann_json::nlohmann_json base)

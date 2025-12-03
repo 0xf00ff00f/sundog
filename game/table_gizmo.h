@@ -83,6 +83,7 @@ public:
     void clearRows();
 
     std::size_t rowCount() const;
+    TableGizmoRow *rowAt(std::size_t index) const;
 
     template<typename... Args>
     TableGizmoRow *appendRow(Args &&...values)

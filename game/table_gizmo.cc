@@ -286,3 +286,8 @@ std::size_t TableGizmo::rowCount() const
 {
     return m_dataRows->childCount();
 }
+
+TableGizmoRow *TableGizmo::rowAt(std::size_t index) const
+{
+    return static_cast<TableGizmoRow *>(m_dataRows->childAt(index));
+}
