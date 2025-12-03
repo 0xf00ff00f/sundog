@@ -23,8 +23,14 @@ TableGizmoRow::TableGizmoRow(TableGizmo *table, Gizmo *parent)
     updateColumnStyles();
     updateColors();
 
-    m_table->columnStyleChangedSignal.connect([this] { updateColumnStyles(); });
-    m_table->cellMarginsChangedSignal.connect([this] { updateColumnStyles(); });
+    m_columnStyleChangedConnection = m_table->columnStyleChangedSignal.connect([this] { updateColumnStyles(); });
+    m_cellMarginsChangedConnection = m_table->cellMarginsChangedSignal.connect([this] { updateColumnStyles(); });
+}
+
+TableGizmoRow::~TableGizmoRow()
+{
+    m_columnStyleChangedConnection.disconnect();
+    m_cellMarginsChangedConnection.disconnect();
 }
 
 void TableGizmoRow::updateColumnStyles()

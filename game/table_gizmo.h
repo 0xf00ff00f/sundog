@@ -11,6 +11,7 @@ class TableGizmoRow : public ui::Row
 {
 public:
     explicit TableGizmoRow(TableGizmo *table, ui::Gizmo *parent = nullptr);
+    ~TableGizmoRow() override;
 
     void setValue(std::size_t column, std::string_view value);
     void setValue(std::size_t column, uint64_t value);
@@ -57,6 +58,8 @@ private:
     bool m_selectable{false};
     bool m_selected{false};
     std::any m_data;
+    muslots::Connection m_columnStyleChangedConnection;
+    muslots::Connection m_cellMarginsChangedConnection;
 };
 
 class TableGizmo : public ui::Column
