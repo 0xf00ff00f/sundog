@@ -2,21 +2,21 @@
 
 #include <base/gui.h>
 
-class Universe;
 class World;
+class Ship;
 class MarketSnapshotGizmo;
 class MarketItemDetailsGizmo;
 
 class TradingWindow : public ui::Column
 {
 public:
-    explicit TradingWindow(const Universe *universe, ui::Gizmo *parent = nullptr);
-
-    void initializeFrom(const World *world);
+    explicit TradingWindow(const World *world, const Ship *ship, ui::Gizmo *parent = nullptr);
 
 private:
-    const Universe *m_universe{nullptr};
+    void initialize();
+
     const World *m_world{nullptr};
+    const Ship *m_ship{nullptr};
     ui::Text *m_title{nullptr};
     MarketSnapshotGizmo *m_marketSnapshot{nullptr};
     MarketItemDetailsGizmo *m_marketItemDetails{nullptr};

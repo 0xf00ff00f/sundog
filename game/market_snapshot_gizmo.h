@@ -2,22 +2,22 @@
 
 #include <base/gui.h>
 
-class Universe;
 class World;
+class Ship;
 class TableGizmo;
 class MarketItem;
 
 class MarketSnapshotGizmo : public ui::Column
 {
 public:
-    explicit MarketSnapshotGizmo(const Universe *universe, ui::Gizmo *parent = nullptr);
-
-    void initializeFrom(const World *world);
+    explicit MarketSnapshotGizmo(const World *world, const Ship *ship, ui::Gizmo *parent = nullptr);
 
     muslots::Signal<const MarketItem *> itemSelectedSignal;
 
 private:
-    const Universe *m_universe{nullptr};
+    void initialize();
+
     const World *m_world{nullptr};
+    const Ship *m_ship{nullptr};
     TableGizmo *m_tableGizmo{nullptr};
 };

@@ -31,14 +31,14 @@ bool Game::initialize()
 
     m_universeMap = std::make_unique<UniverseMap>(m_universe.get(), m_shaderManager.get(), m_overlayPainter.get());
 
-#if 0
+    const auto &worlds = m_universe->worlds();
+    const auto *origin = worlds[2];      // Earth
+    const auto *destination = worlds[3]; // Mars
+
+    auto ship = m_universe->addShip(origin, "Mary Celeste");
+
     {
-        const auto &worlds = m_universe->worlds();
-        const auto *origin = worlds[2];      // Earth
-        const auto *destination = worlds[3]; // Mars
-
-        auto ship = m_universe->addShip(origin, "Foo");
-
+#if 0
         const auto transitInterval = JulianClock::duration{253.5};
         const auto timeDeparture = JulianDate{JulianClock::duration{2455892.126389}};
         const auto timeArrival = timeDeparture + transitInterval;
@@ -64,19 +64,18 @@ bool Game::initialize()
         ship->setMissionPlan(std::move(transit));
 
         m_universe->setDate(timeDeparture);
-    }
 #else
-    m_universe->setDate(JulianClock::now() + JulianClock::duration{200.0 * 365.0});
+        m_universe->setDate(JulianClock::now() + JulianClock::duration{200.0 * 365.0});
 #endif
+    }
 
     m_uiRoot = std::make_unique<ui::Rectangle>(100, 100);
 
     m_dateGizmo = m_uiRoot->appendChild<DateGizmo>(m_universe.get());
     m_dateGizmo->setAlign(ui::Align::Right | ui::Align::Top);
 
-    m_tradingWindow = m_uiRoot->appendChild<TradingWindow>(m_universe.get());
+    m_tradingWindow = m_uiRoot->appendChild<TradingWindow>(origin, ship);
     m_tradingWindow->setAlign(ui::Align::HorizontalCenter | ui::Align::VerticalCenter);
-    m_tradingWindow->initializeFrom(m_universe->worlds().front());
 
     m_uiEventManager = std::make_unique<ui::EventManager>();
     m_uiEventManager->setRoot(m_uiRoot.get());

@@ -23,9 +23,10 @@ void addSeparator(Gizmo *parent, float width, const glm::vec4 &color)
 
 } // namespace
 
-MarketItemDetailsGizmo::MarketItemDetailsGizmo(const Universe *universe, Gizmo *parent)
+MarketItemDetailsGizmo::MarketItemDetailsGizmo(const World *world, const Ship *ship, Gizmo *parent)
     : Column(parent)
-    , m_universe(universe)
+    , m_world(world)
+    , m_ship(ship)
 {
     setMinimumWidth(kTotalWidth);
 
@@ -99,13 +100,13 @@ MarketItemDetailsGizmo::MarketItemDetailsGizmo(const Universe *universe, Gizmo *
     m_exporterTable->setColumnAlign(1, Align::Right);
 }
 
-void MarketItemDetailsGizmo::initializeFrom(const World *currentWorld, const MarketItem *item)
+void MarketItemDetailsGizmo::setItem(const MarketItem *item)
 {
     m_nameText->setText(item->name);
     m_sectorText->setText(item->sector->name);
     m_descriptionText->setText(item->description);
 
-    const auto *price = currentWorld->findMarketItemPrice(item);
+    const auto *price = m_world->findMarketItemPrice(item);
     m_sellPriceText->setText(formatCredits(price ? price->buyPrice : 0));
     m_buyPriceText->setText(formatCredits(price ? price->sellPrice : 0));
 
@@ -115,9 +116,9 @@ void MarketItemDetailsGizmo::initializeFrom(const World *currentWorld, const Mar
         uint64_t price;
     };
     std::vector<WorldPrice> buyPrices, sellPrices;
-    for (const auto *world : m_universe->worlds())
+    for (const auto *world : m_world->universe()->worlds())
     {
-        if (world == currentWorld)
+        if (world == m_world)
             continue;
         const auto *price = world->findMarketItemPrice(item);
         if (price)

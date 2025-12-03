@@ -103,10 +103,12 @@ public:
     explicit Ship(Universe *universe, const World *world, std::string_view name);
     ~Ship();
 
+    const Universe *universe() const { return m_universe; }
+
     void setName(std::string_view name);
     std::string_view name() const { return m_name; }
 
-    State state() const;
+    State state() const { return m_state; }
 
     glm::vec3 position() const;
 

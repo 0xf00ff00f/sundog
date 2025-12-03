@@ -7,9 +7,10 @@
 
 using namespace ui;
 
-TradingWindow::TradingWindow(const Universe *universe, Gizmo *parent)
+TradingWindow::TradingWindow(const World *world, const Ship *ship, Gizmo *parent)
     : Column(parent)
-    , m_universe(universe)
+    , m_world(world)
+    , m_ship(ship)
 {
     setFillBackground(true);
     backgroundColor = glm::vec4{0.0f, 0.0f, 0.0f, 0.75f};
@@ -22,23 +23,18 @@ TradingWindow::TradingWindow(const Universe *universe, Gizmo *parent)
     auto *marketName = appendChild<ui::Text>();
     marketName->setFont(g_styleSettings.normalFont);
     marketName->color = g_styleSettings.baseColor;
-    marketName->setText("Terminator City Commodities Exchange");
 
     appendChild<Rectangle>(1.0f, 40.0f);
 
     auto *marketRow = appendChild<ui::Row>();
     marketRow->setSpacing(40.0f);
 
-    m_marketSnapshot = marketRow->appendChild<MarketSnapshotGizmo>(universe);
-    m_marketItemDetails = marketRow->appendChild<MarketItemDetailsGizmo>(universe);
+    m_marketSnapshot = marketRow->appendChild<MarketSnapshotGizmo>(world, ship);
+    m_marketItemDetails = marketRow->appendChild<MarketItemDetailsGizmo>(world);
 
     m_marketSnapshot->itemSelectedSignal.connect(
-        [this](const MarketItem *item) { m_marketItemDetails->initializeFrom(m_world, item); });
-}
+        [this](const MarketItem *item) { m_marketItemDetails->setItem(item); });
 
-void TradingWindow::initializeFrom(const World *world)
-{
-    m_world = world;
     m_title->setText(m_world->name());
-    m_marketSnapshot->initializeFrom(m_world);
+    marketName->setText("Terminator City Commodities Exchange");
 }
