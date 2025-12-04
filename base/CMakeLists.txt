@@ -13,6 +13,7 @@ target_sources(
           utf8_util.h
           utf8_util.cc
           image.h
+          image.cc
           font.h
           font.cc
           font_info.h
@@ -43,7 +44,9 @@ target_sources(
           gui.h
           gui.cc
           system.h
-          system.cc)
+          system.cc
+          icon_cache.h
+          icon_cache.cc)
 target_compile_features(base PUBLIC cxx_std_23)
 target_compile_definitions(base PUBLIC GLM_ENABLE_EXPERIMENTAL)
 target_include_directories(base PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)

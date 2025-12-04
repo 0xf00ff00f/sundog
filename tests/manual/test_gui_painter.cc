@@ -91,6 +91,12 @@ void TestWindow::render() const
         m_painter->strokeRoundedRect(rect, radii, 10.0f);
     }
 
+    {
+        const auto pos = glm::vec2{0.75f, 0.25f} * glm::vec2{m_viewportSize.width(), m_viewportSize.height()} -
+                         glm::vec2{64.0f, 64.0f};
+        m_painter->drawIcon(pos, "vim.png");
+    }
+
     m_painter->end();
 }
 

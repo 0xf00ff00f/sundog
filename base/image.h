@@ -42,8 +42,16 @@ public:
     std::span<PixelT> pixels() { return m_pixels; }
     std::span<const PixelT> pixels() const { return m_pixels; }
 
+    bool isNull() const { return m_width == 0 || m_height == 0; }
+
 private:
     size_t m_width{0};
     size_t m_height{0};
     std::vector<PixelT> m_pixels;
 };
+
+using Image32 = Image<uint32_t>;
+
+Image32 loadImage(const std::string &path, bool flip = false);
+
+const Image32 *findOrCreateImage(std::string_view name);

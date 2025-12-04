@@ -3,7 +3,7 @@
 #include "shader_manager.h"
 #include "glyph_cache.h"
 #include "sprite_texture_book.h"
-#include "image_cache.h"
+#include "icon_cache.h"
 #include "system.h"
 
 #include <span>
@@ -427,6 +427,7 @@ void DrawSpriteBatch::dumpVertices(VertexPosTexColorBuffer &buffer) const
 
 Painter::Painter()
     : m_spriteBook(std::make_unique<SpriteTextureBook>(kSpriteSheetHeight, kSpriteSheetWidth))
+    , m_iconCache(std::make_unique<IconCache>(m_spriteBook.get()))
 {
 }
 
@@ -649,4 +650,16 @@ void Painter::drawText(const glm::vec2 &pos, const std::string_view text, int de
 
     for (auto &[_, command] : commands)
         m_commands.push_back(std::move(command));
+}
+
+void Painter::drawIcon(const glm::vec2 &pos, std::string_view name, int depth)
+{
+    auto icon = m_iconCache->findOrCreateIcon(name);
+    if (icon.has_value())
+    {
+        auto command = std::make_unique<DrawSpriteBatch>(icon->texture, m_color, depth);
+        command->addSprite({pos, icon->texCoords.topLeft()},
+                           {pos + glm::vec2{icon->size.width(), icon->size.height()}, icon->texCoords.bottomRight()});
+        m_commands.push_back(std::move(command));
+    }
 }

@@ -2,7 +2,6 @@
 
 #include "rect.h"
 #include "font.h"
-#include "image_cache.h"
 
 #include <glm/glm.hpp>
 
@@ -12,6 +11,7 @@
 
 class GlyphCache;
 class SpriteTextureBook;
+class IconCache;
 class DrawCommand;
 
 class Painter
@@ -51,6 +51,7 @@ public:
     void strokeRoundedRect(const RectF &rect, float radius, float thickness, int depth = 0);
     void strokeRoundedRect(const RectF &rect, const CornerRadii &radii, float thickness, int depth = 0);
     void drawText(const glm::vec2 &pos, const std::string_view text, int depth = 0);
+    void drawIcon(const glm::vec2 &pos, std::string_view name, int depth = 0);
 
 private:
     void flushCommandQueue();
@@ -63,6 +64,7 @@ private:
     std::optional<FontMetrics> m_fontMetrics;
     std::unique_ptr<SpriteTextureBook> m_spriteBook;
     std::unordered_map<Font, std::unique_ptr<GlyphCache>> m_glyphCaches;
+    std::unique_ptr<IconCache> m_iconCache;
     GlyphCache *m_glyphCache{nullptr};
     glm::mat4 m_projectionMatrix;
 };

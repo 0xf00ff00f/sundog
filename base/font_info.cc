@@ -87,6 +87,7 @@ int FontInfo::kernAdvance(char32_t a, char32_t b) const
 
 FontInfo *findOrCreateFontInfo(std::string_view name)
 {
+    // TODO: heterogeneous lookup
     static std::unordered_map<std::string, std::unique_ptr<FontInfo>> cache;
     auto it = cache.find(std::string(name));
     if (it == cache.end())

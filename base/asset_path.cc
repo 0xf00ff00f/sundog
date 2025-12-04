@@ -27,3 +27,8 @@ std::string dataFilePath(std::string_view name)
 {
     return (assetsDir() / "data" / name).string();
 }
+
+std::string imageFilePath(std::string_view name)
+{
+    return (assetsDir() / "images" / name).string();
+}
