@@ -80,6 +80,9 @@ TestWindow::TestWindow()
     r6->backgroundColor = kRed;
     r6->setFillBackground(true);
 
+    auto *icon = col->appendChild<Icon>("vim.png");
+    icon->setAlign(Align::Right);
+
     const Font font{"DejaVuSans.ttf", 16.0f, 0};
 
     auto *frame = col->appendChild<Row>();

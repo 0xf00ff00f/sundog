@@ -442,6 +442,24 @@ private:
     float m_lineWidth{0.0f};
 };
 
+class Icon : public Gizmo
+{
+public:
+    using Gizmo::Gizmo;
+    explicit Icon(std::string_view source, Gizmo *parent = nullptr);
+
+    void setSource(std::string_view source);
+    std::string_view source() const { return m_source; }
+
+    glm::vec4 color{1.0f};
+
+protected:
+    void paintContents(Painter *painter, const glm::vec2 &pos, int depth) const override;
+
+private:
+    std::string m_source;
+};
+
 class EventManager
 {
 public:

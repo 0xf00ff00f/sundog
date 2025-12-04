@@ -1,5 +1,7 @@
 #include "gui.h"
 
+#include "image.h"
+
 #include <glm/gtx/string_cast.hpp>
 
 #include <cassert>
@@ -846,6 +848,28 @@ void MultiLineText::paintContents(Painter *painter, const glm::vec2 &pos, int de
         painter->drawText(linePos, line, depth);
         linePos.y += lineHeight;
     }
+}
+
+Icon::Icon(std::string_view source, Gizmo *parent)
+    : Gizmo(parent)
+{
+    setSource(source);
+}
+
+void Icon::setSource(std::string_view source)
+{
+    if (source == m_source)
+        return;
+    m_source = source;
+    if (const auto *image = findOrCreateImage(source))
+        setSize(SizeF{image->size()});
+}
+
+void Icon::paintContents(Painter *painter, const glm::vec2 &pos, int depth) const
+{
+    Gizmo::paintContents(painter, pos, depth);
+    painter->setColor(color);
+    painter->drawIcon(pos, m_source, depth);
 }
 
 EventManager::EventManager() = default;

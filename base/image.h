@@ -1,5 +1,7 @@
 #pragma once
 
+#include "rect.h"
+
 #include <vector>
 #include <span>
 
@@ -39,6 +41,7 @@ public:
 
     size_t width() const { return m_width; }
     size_t height() const { return m_height; }
+    SizeI size() const { return SizeI{static_cast<int>(m_width), static_cast<int>(m_height)}; }
     std::span<PixelT> pixels() { return m_pixels; }
     std::span<const PixelT> pixels() const { return m_pixels; }
 
