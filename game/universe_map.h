@@ -12,13 +12,12 @@
 
 class Universe;
 class Mesh;
-class ShaderManager;
 class Painter;
 
 class UniverseMap
 {
 public:
-    explicit UniverseMap(const Universe *universe, ShaderManager *shaderManager, Painter *overlayPainter);
+    explicit UniverseMap(const Universe *universe, Painter *overlayPainter);
     ~UniverseMap();
 
     void setViewportSize(const SizeI &size);
@@ -33,7 +32,6 @@ private:
     void initializeMeshes();
 
     const Universe *m_universe{nullptr};
-    ShaderManager *m_shaderManager{nullptr};
     Painter *m_overlayPainter;
     SizeI m_viewportSize;
     std::unique_ptr<Mesh> m_bodyBillboardMesh;

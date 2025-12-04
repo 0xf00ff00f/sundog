@@ -1,5 +1,7 @@
 #include "game_window.h"
 
+#include <base/system.h>
+
 #include <GLFW/glfw3.h>
 
 #include <cassert>
@@ -7,23 +9,11 @@
 
 int main(int argc, char *argv[])
 {
-    if (!glfwInit())
+    System system;
+
+    GameWindow window;
+    if (window.initialize(1200, 800, "hello"))
     {
-        std::println(stderr, "Failed to initialize GLFW");
-        return 1;
+        window.run();
     }
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    {
-        GameWindow window;
-        if (window.initialize(1200, 800, "hello"))
-        {
-            window.run();
-        }
-    }
-
-    glfwTerminate();
 }

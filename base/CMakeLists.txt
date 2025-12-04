@@ -41,7 +41,9 @@ target_sources(
           window_base.h
           window_base.cc
           gui.h
-          gui.cc)
+          gui.cc
+          system.h
+          system.cc)
 target_compile_features(base PUBLIC cxx_std_23)
 target_compile_definitions(base PUBLIC GLM_ENABLE_EXPERIMENTAL)
 target_include_directories(base PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)

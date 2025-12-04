@@ -1,3 +1,4 @@
+#include <base/system.h>
 #include <base/shader_manager.h>
 #include <base/window_base.h>
 #include <base/gui.h>
@@ -25,7 +26,6 @@ private:
     void render() const override;
 
     SizeI m_viewportSize;
-    std::unique_ptr<ShaderManager> m_shaderManager;
     std::unique_ptr<Painter> m_painter;
     std::unique_ptr<Gizmo> m_uiRoot;
     MultiLineText *m_text{nullptr};
@@ -116,12 +116,7 @@ void TestWindow::handleMouseMove(const glm::vec2 &position) {}
 
 bool TestWindow::initializeResources()
 {
-    m_shaderManager = std::make_unique<ShaderManager>();
-    if (!m_shaderManager->initialize())
-        return false;
-
-    m_painter = std::make_unique<Painter>(m_shaderManager.get());
-
+    m_painter = std::make_unique<Painter>();
     return true;
 }
 
@@ -150,23 +145,11 @@ void TestWindow::render() const
 
 int main(int argc, char *argv[])
 {
-    if (!glfwInit())
+    System system;
+
+    TestWindow w;
+    if (w.initialize(600, 600, "test"))
     {
-        std::println(stderr, "Failed to initialized GLFW");
-        return 1;
+        w.run();
     }
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    {
-        TestWindow w;
-        if (w.initialize(600, 600, "test"))
-        {
-            w.run();
-        }
-    }
-
-    glfwTerminate();
 }

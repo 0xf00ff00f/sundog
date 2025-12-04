@@ -3,6 +3,8 @@
 #include "shader_manager.h"
 #include "glyph_cache.h"
 #include "sprite_texture_book.h"
+#include "image_cache.h"
+#include "system.h"
 
 #include <span>
 #include <tuple>
@@ -423,9 +425,8 @@ void DrawSpriteBatch::dumpVertices(VertexPosTexColorBuffer &buffer) const
     }
 }
 
-Painter::Painter(ShaderManager *shaderManager)
-    : m_shaderManager(shaderManager)
-    , m_spriteBook(std::make_unique<SpriteTextureBook>(kSpriteSheetHeight, kSpriteSheetWidth))
+Painter::Painter()
+    : m_spriteBook(std::make_unique<SpriteTextureBook>(kSpriteSheetHeight, kSpriteSheetWidth))
 {
 }
 
@@ -437,11 +438,12 @@ void Painter::setViewportSize(const SizeI &size)
 
     m_projectionMatrix = glm::ortho(0.0f, static_cast<float>(size.width()), static_cast<float>(size.height()), 0.0f);
 
-    m_shaderManager->setCurrent(ShaderManager::Shader::Text);
-    m_shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, m_projectionMatrix);
+    auto *shaderManager = System::instance()->shaderManager();
+    shaderManager->setCurrent(ShaderManager::Shader::Text);
+    shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, m_projectionMatrix);
 
-    m_shaderManager->setCurrent(ShaderManager::Shader::Flat);
-    m_shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, m_projectionMatrix);
+    shaderManager->setCurrent(ShaderManager::Shader::Flat);
+    shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, m_projectionMatrix);
 }
 
 void Painter::begin()
@@ -473,6 +475,8 @@ void Painter::flushCommandQueue()
     VertexPosColorBuffer vertexPosColorBuffer;
     VertexPosTexColorBuffer vertexPosTexColorBuffer;
 
+    auto *shaderManager = System::instance()->shaderManager();
+
     auto batchStart = m_commands.begin();
     while (batchStart != m_commands.end())
     {
@@ -495,14 +499,14 @@ void Painter::flushCommandQueue()
         {
         case VertexType::PosColor: {
             fillBuffer(vertexPosColorBuffer);
-            m_shaderManager->setCurrent(ShaderManager::Shader::Flat);
+            shaderManager->setCurrent(ShaderManager::Shader::Flat);
             vertexPosColorBuffer.draw();
             break;
         }
         case VertexType::PosTexColor: {
             fillBuffer(vertexPosTexColorBuffer);
             texture->bind();
-            m_shaderManager->setCurrent(ShaderManager::Shader::Text);
+            shaderManager->setCurrent(ShaderManager::Shader::Text);
             vertexPosTexColorBuffer.draw();
             break;
         }

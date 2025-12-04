@@ -2,6 +2,7 @@
 
 #include "rect.h"
 #include "font.h"
+#include "image_cache.h"
 
 #include <glm/glm.hpp>
 
@@ -9,7 +10,6 @@
 #include <memory>
 #include <span>
 
-class ShaderManager;
 class GlyphCache;
 class SpriteTextureBook;
 class DrawCommand;
@@ -25,7 +25,7 @@ public:
         float bottomLeft;
     };
 
-    explicit Painter(ShaderManager *shaderManager);
+    Painter();
     ~Painter();
 
     void setViewportSize(const SizeI &size);
@@ -55,7 +55,6 @@ public:
 private:
     void flushCommandQueue();
 
-    ShaderManager *m_shaderManager{nullptr};
     SizeI m_viewportSize;
 
     std::vector<std::unique_ptr<DrawCommand>> m_commands;

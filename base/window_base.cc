@@ -1,5 +1,7 @@
 #include "window_base.h"
 
+#include "system.h"
+
 #include <print>
 
 WindowBase::WindowBase() = default;
@@ -12,6 +14,10 @@ WindowBase::~WindowBase()
 
 bool WindowBase::initialize(int width, int height, const char *title)
 {
+    glfwWindowHint(GLFW_SAMPLES, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     m_window = glfwCreateWindow(width, height, title, nullptr, nullptr);
     if (!m_window)
         return false;
@@ -24,6 +30,9 @@ bool WindowBase::initialize(int width, int height, const char *title)
     std::println("Loaded OpenGL {}.{}", GLAD_VERSION_MAJOR(gladVersion), GLAD_VERSION_MINOR(gladVersion));
     std::println("OpenGL renderer: {}", reinterpret_cast<const char *>(glGetString(GL_RENDERER)));
     std::println("OpenGL version: {}", reinterpret_cast<const char *>(glGetString(GL_VERSION)));
+
+    if (!System::instance()->initializeResources())
+        return false;
 
     glfwSetWindowUserPointer(m_window, this);
     glfwSetWindowSizeCallback(m_window, WindowBase::handleWindowSize);

@@ -2,6 +2,7 @@
 
 #include "style_settings.h"
 
+#include <base/system.h>
 #include <base/shader_manager.h>
 #include <base/painter.h>
 #include <base/mesh.h>
@@ -67,9 +68,8 @@ std::unique_ptr<Mesh> createBodyBillboardMesh()
 } // namespace
 
 // TODO: ShaderManager, Painter singleton
-UniverseMap::UniverseMap(const Universe *universe, ShaderManager *shaderManager, Painter *overlayPainter)
+UniverseMap::UniverseMap(const Universe *universe, Painter *overlayPainter)
     : m_universe(universe)
-    , m_shaderManager(shaderManager)
     , m_overlayPainter(overlayPainter)
 {
     initializeMeshes();
@@ -91,8 +91,9 @@ void UniverseMap::render() const
 
     // render orbits
 
-    m_shaderManager->setCurrent(ShaderManager::Shader::Orbit);
-    auto drawOrbit = [this, &viewMatrix](const Orbit &orbit, const glm::vec4 &color) {
+    auto *shaderManager = System::instance()->shaderManager();
+    shaderManager->setCurrent(ShaderManager::Shader::Orbit);
+    auto drawOrbit = [this, shaderManager, &viewMatrix](const Orbit &orbit, const glm::vec4 &color) {
         const auto elems = orbit.elements();
         const auto rotationMatrix = orbit.orbitRotationMatrix();
 
@@ -102,10 +103,10 @@ void UniverseMap::render() const
         const auto modelMatrix = glm::mat4{orbit.orbitRotationMatrix()};
         const auto mvp = m_projectionMatrix * viewMatrix * modelMatrix;
 
-        m_shaderManager->setUniform(ShaderManager::Uniform::Color, color);
-        m_shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
-        m_shaderManager->setUniform(ShaderManager::Uniform::SemiMajorAxis, semiMajorAxis);
-        m_shaderManager->setUniform(ShaderManager::Uniform::Eccentricity, eccentricity);
+        shaderManager->setUniform(ShaderManager::Uniform::Color, color);
+        shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
+        shaderManager->setUniform(ShaderManager::Uniform::SemiMajorAxis, semiMajorAxis);
+        shaderManager->setUniform(ShaderManager::Uniform::Eccentricity, eccentricity);
 
         m_orbitMesh->draw(Mesh::Primitive::LineLoop, 0, kOrbitVertexCount);
     };
@@ -131,15 +132,15 @@ void UniverseMap::render() const
     const auto &font = g_styleSettings.normalFont;
     m_overlayPainter->setFont(font);
 
-    m_shaderManager->setCurrent(ShaderManager::Shader::Billboard);
-    m_shaderManager->setUniform(ShaderManager::Uniform::ProjectionMatrix, m_projectionMatrix);
-    m_shaderManager->setUniform(ShaderManager::Uniform::ViewMatrix, viewMatrix);
+    shaderManager->setCurrent(ShaderManager::Shader::Billboard);
+    shaderManager->setUniform(ShaderManager::Uniform::ProjectionMatrix, m_projectionMatrix);
+    shaderManager->setUniform(ShaderManager::Uniform::ViewMatrix, viewMatrix);
 
     // render sun billboard
 
-    m_shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4(1.0, 1.0, 0.0, 1.0));
-    m_shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
-    m_shaderManager->setUniform(ShaderManager::Uniform::ModelMatrix, modelMatrix);
+    shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4(1.0, 1.0, 0.0, 1.0));
+    shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
+    shaderManager->setUniform(ShaderManager::Uniform::ModelMatrix, modelMatrix);
     m_bodyBillboardMesh->draw(Mesh::Primitive::LineLoop, 0, kCircleMeshVertexCount);
 
     auto drawBillboard = [&](const glm::vec3 &position, std::string_view name) {
@@ -147,8 +148,8 @@ void UniverseMap::render() const
 
         const auto bodyModelMatrix = modelMatrix * glm::translate(glm::mat4(1.0), position);
         const auto mvp = m_projectionMatrix * viewMatrix * bodyModelMatrix;
-        m_shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
-        m_shaderManager->setUniform(ShaderManager::Uniform::ModelMatrix, bodyModelMatrix);
+        shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
+        shaderManager->setUniform(ShaderManager::Uniform::ModelMatrix, bodyModelMatrix);
         m_bodyBillboardMesh->draw(Mesh::Primitive::LineLoop, 0, kCircleMeshVertexCount);
 
         // label
@@ -169,7 +170,7 @@ void UniverseMap::render() const
 
     // render world billboards
 
-    m_shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4(1.0, 1.0, 1.0, 1.0));
+    shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4(1.0, 1.0, 1.0, 1.0));
     for (const auto *world : worlds)
     {
         drawBillboard(world->position(), world->name());
@@ -177,7 +178,7 @@ void UniverseMap::render() const
 
     // render ship billboards
 
-    m_shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4(1.0, 0.0, 0.0, 1.0));
+    shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4(1.0, 0.0, 0.0, 1.0));
     for (const auto *ship : ships)
     {
         drawBillboard(ship->position(), ship->name());

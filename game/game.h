@@ -45,7 +45,6 @@ private:
     bool m_playing = false;
     SizeI m_viewportSize;
     std::unique_ptr<Universe> m_universe;
-    std::unique_ptr<ShaderManager> m_shaderManager;
     std::unique_ptr<Painter> m_overlayPainter;
     std::unique_ptr<UniverseMap> m_universeMap;
     std::unique_ptr<ui::Rectangle> m_uiRoot;

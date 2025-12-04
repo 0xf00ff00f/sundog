@@ -23,13 +23,9 @@ bool Game::initialize()
     if (!m_universe->load(dataFilePath("universe.json")))
         return false;
 
-    m_shaderManager = std::make_unique<ShaderManager>();
-    if (!m_shaderManager->initialize())
-        return false;
+    m_overlayPainter = std::make_unique<Painter>();
 
-    m_overlayPainter = std::make_unique<Painter>(m_shaderManager.get());
-
-    m_universeMap = std::make_unique<UniverseMap>(m_universe.get(), m_shaderManager.get(), m_overlayPainter.get());
+    m_universeMap = std::make_unique<UniverseMap>(m_universe.get(), m_overlayPainter.get());
 
     const auto &worlds = m_universe->worlds();
     const auto *origin = worlds[2];      // Earth
