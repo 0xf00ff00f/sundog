@@ -1,6 +1,7 @@
 #include "font_info.h"
 
 #include "file.h"
+#include "dict.h"
 #include "asset_path.h"
 
 #include <print>
@@ -87,13 +88,12 @@ int FontInfo::kernAdvance(char32_t a, char32_t b) const
 
 FontInfo *findOrCreateFontInfo(std::string_view name)
 {
-    // TODO: heterogeneous lookup
-    static std::unordered_map<std::string, std::unique_ptr<FontInfo>> cache;
-    auto it = cache.find(std::string(name));
+    static Dict<std::unique_ptr<FontInfo>> cache;
+    auto it = cache.find(name);
     if (it == cache.end())
     {
         auto font = std::make_unique<FontInfo>(name);
-        it = cache.insert(it, {std::string(name), std::move(font)});
+        it = cache.insert(it, {std::string{name}, std::move(font)});
     }
     return it->second.get();
 }

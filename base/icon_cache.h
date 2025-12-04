@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sprite_texture_book.h"
+#include "dict.h"
 
 class IconCache
 {
@@ -18,5 +19,5 @@ public:
 
 private:
     SpriteTextureBook *m_spriteBook{nullptr};
-    std::unordered_map<std::string, std::optional<Icon>> m_entries;
+    Dict<std::optional<Icon>> m_entries;
 };

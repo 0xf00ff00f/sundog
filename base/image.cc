@@ -2,6 +2,7 @@
 
 #include "file.h"
 #include "asset_path.h"
+#include "dict.h"
 
 #include <stb_image.h>
 
@@ -35,9 +36,8 @@ Image32 loadImage(const std::string &path, bool flip)
 
 const Image<uint32_t> *findOrCreateImage(std::string_view name)
 {
-    // TODO: heterogeneous lookup
-    static std::unordered_map<std::string, std::unique_ptr<Image32>> cache;
-    auto it = cache.find(std::string(name));
+    static Dict<std::unique_ptr<Image32>> cache;
+    auto it = cache.find(name);
     if (it == cache.end())
     {
         auto image = loadImage(imageFilePath(name));

@@ -9,8 +9,7 @@ IconCache::~IconCache() = default;
 
 std::optional<IconCache::Icon> IconCache::findOrCreateIcon(std::string_view name)
 {
-    // TODO: heterogeneous lookup
-    auto it = m_entries.find(std::string{name});
+    auto it = m_entries.find(name);
     if (it == m_entries.end())
     {
         const auto entry = [this, &name]() -> Icon {
