@@ -203,7 +203,7 @@ void UniverseMap::render() const
 
     glEnable(GL_DEPTH_TEST);
 
-    // render orbits
+    // orbits
 
     auto *shaderManager = System::instance()->shaderManager();
     shaderManager->setCurrent(ShaderManager::Shader::Orbit);
@@ -212,13 +212,11 @@ void UniverseMap::render() const
     shaderManager->setUniform(ShaderManager::Uniform::Thickness, 3.0f / static_cast<float>(m_viewportSize.height()));
     auto drawOrbit = [this, shaderManager, &viewMatrix](const Orbit &orbit, const glm::vec4 &color) {
         const auto elems = orbit.elements();
-        const auto rotationMatrix = orbit.orbitRotationMatrix();
-
         const auto semiMajorAxis = elems.semiMajorAxis;
         const auto eccentricity = elems.eccentricity;
 
-        const auto modelMatrix = glm::mat4{orbit.orbitRotationMatrix()};
-        const auto mvp = m_projectionMatrix * viewMatrix * modelMatrix;
+        const auto orbitRotation = glm::mat4{orbit.orbitRotationMatrix()};
+        const auto mvp = m_projectionMatrix * viewMatrix * orbitRotation;
 
         shaderManager->setUniform(ShaderManager::Uniform::Color, color);
         shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
@@ -243,12 +241,10 @@ void UniverseMap::render() const
             drawOrbit(*orbit, glm::vec4{1.0, 0.0, 0.0, 1.0});
     }
 
-    const auto modelMatrix = glm::mat4{1.0f};
-    const auto mvp = m_projectionMatrix * viewMatrix * modelMatrix;
-
     shaderManager->setCurrent(ShaderManager::Shader::Wireframe);
 
-    // sun
+    // sun mesh
+
     {
         shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4{1.0, 1.0, 0.5, 1.0f});
         const auto scale = glm::scale(glm::mat4{1.0f}, glm::vec3{0.1f});
@@ -261,6 +257,8 @@ void UniverseMap::render() const
 #endif
     }
 
+    // planet meshes
+
     shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4{0.25, 0.75, 0.25, 1.0f});
     for (const auto *world : worlds)
     {
@@ -268,8 +266,8 @@ void UniverseMap::render() const
         const auto translation = glm::translate(glm::mat4{1.0f}, glm::vec3{world->positionOnOrbitPlane(), 0.0f});
         const auto scale = glm::scale(glm::mat4{1.0f}, glm::vec3{0.1f});
         const auto model = orbitRotation * translation * scale;
-        shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix,
-                                  m_projectionMatrix * viewMatrix * model);
+        const auto mvp = m_projectionMatrix * viewMatrix * model;
+        shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
 #if !defined(SPHERE_WIREFRAME)
         m_sphereMesh->draw(Mesh::Primitive::Triangles);
 #else
@@ -285,10 +283,8 @@ void UniverseMap::render() const
     m_overlayPainter->setFont(font);
 
     auto drawLabel = [&](const glm::vec3 &position, std::string_view name) {
-        const auto bodyModelMatrix = modelMatrix * glm::translate(glm::mat4(1.0), position);
-        const auto mvp = m_projectionMatrix * viewMatrix * bodyModelMatrix;
-
-        const auto positionProjected = mvp * glm::vec4(0.0, 0.0, 0.0, 1.0);
+        const auto mvp = m_projectionMatrix * viewMatrix;
+        const auto positionProjected = mvp * glm::vec4(position, 1.0);
         if (positionProjected.z > 0.0f)
         {
             glm::vec2 labelPosition;
@@ -302,14 +298,14 @@ void UniverseMap::render() const
         }
     };
 
-    // render world labels
+    // world labels
     shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4(1.0, 1.0, 1.0, 1.0));
     for (const auto *world : worlds)
     {
         drawLabel(world->position(), world->name());
     }
 
-    // render ship labels
+    // ship labels
     shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4(1.0, 0.0, 0.0, 1.0));
     for (const auto *ship : ships)
     {
