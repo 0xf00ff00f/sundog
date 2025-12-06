@@ -338,7 +338,10 @@ void UniverseMap::handleMouseButton(MouseButton button, MouseAction action, cons
     if (action == MouseAction::Press && button == MouseButton::Left)
     {
         if (const auto *world = pickWorld(pos))
+        {
             std::println("picked {}", world->name());
+            m_cameraController.moveCameraCenter(world->position());
+        }
     }
     m_cameraController.handleMouseButton(button, action, pos, mods);
 }

@@ -29,6 +29,15 @@ public:
 
     void update(Seconds seconds);
 
+    glm::vec3 cameraCenter() const { return m_cameraCenter; }
+    void setCameraCenter(const glm::vec3 &center);
+    void moveCameraCenter(const glm::vec3 &center);
+
+    glm::vec3 cameraEye() const { return m_cameraEye; }
+
+    glm::vec3 upDir() const { return m_upDir; };
+    void setUpDir(const glm::vec3 &upDir);
+
     glm::mat4 viewMatrix() const { return m_viewMatrix; }
 
 private:

@@ -128,3 +128,23 @@ void CameraController::rotate(const glm::vec2 &dir)
 
     updateViewMatrix();
 }
+
+void CameraController::setCameraCenter(const glm::vec3 &cameraCenter)
+{
+    m_cameraCenter = cameraCenter;
+    updateViewMatrix();
+}
+
+void CameraController::moveCameraCenter(const glm::vec3 &cameraCenter)
+{
+    const auto eyeToCamera = m_cameraEye - m_cameraCenter;
+    m_cameraCenter = cameraCenter;
+    m_cameraEye = m_cameraCenter + eyeToCamera;
+    updateViewMatrix();
+}
+
+void CameraController::setUpDir(const glm::vec3 &upDir)
+{
+    m_upDir = upDir;
+    updateViewMatrix();
+}
