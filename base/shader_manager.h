@@ -26,6 +26,8 @@ public:
         Color,
         SemiMajorAxis,
         Eccentricity,
+        StartAngle,
+        EndAngle,
         AspectRatio,
         Thickness,
         Count

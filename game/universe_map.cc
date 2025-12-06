@@ -41,7 +41,7 @@ glm::vec3 latLonToCartesian(float lat, float lon)
 
 std::unique_ptr<Mesh> createOrbitMesh()
 {
-    static constexpr auto kOrbitVertexCount = 300;
+    static constexpr auto kVertexCount = 120;
 
     struct Vertex
     {
@@ -52,10 +52,10 @@ std::unique_ptr<Mesh> createOrbitMesh()
     auto mesh = std::make_unique<Mesh>();
 
     std::vector<Vertex> verts;
-    verts.reserve(kOrbitVertexCount * 2);
-    for (std::size_t i = 0; i < kOrbitVertexCount; ++i)
+    verts.reserve(kVertexCount * 2);
+    for (std::size_t i = 0; i < kVertexCount; ++i)
     {
-        const auto meanAnomaly = i * 2.0f * glm::pi<float>() / (kOrbitVertexCount - 1);
+        const auto meanAnomaly = i * 2.0f * glm::pi<float>() / (kVertexCount - 1);
         verts.emplace_back(meanAnomaly, -1.0f);
         verts.emplace_back(meanAnomaly, 1.0f);
     }
@@ -63,8 +63,8 @@ std::unique_ptr<Mesh> createOrbitMesh()
 
 #if defined(ORBIT_WIREFRAME)
     std::vector<uint32_t> indices;
-    indices.reserve(kOrbitVertexCount * 8);
-    for (std::size_t i = 0; i < kOrbitVertexCount; ++i)
+    indices.reserve(kVertexCount * 8);
+    for (std::size_t i = 0; i < kVertexCount - 1; ++i)
     {
         const auto baseIndex = i * 2;
 
@@ -72,13 +72,13 @@ std::unique_ptr<Mesh> createOrbitMesh()
         indices.push_back(baseIndex + 1);
 
         indices.push_back(baseIndex);
-        indices.push_back((baseIndex + 2) % (kOrbitVertexCount * 2));
+        indices.push_back(baseIndex + 2);
 
         indices.push_back(baseIndex + 1);
-        indices.push_back((baseIndex + 2) % (kOrbitVertexCount * 2));
+        indices.push_back(baseIndex + 2);
 
         indices.push_back(baseIndex + 1);
-        indices.push_back((baseIndex + 3) % (kOrbitVertexCount * 2));
+        indices.push_back(baseIndex + 3);
     }
     mesh->setIndexData(std::span{indices});
 #endif
@@ -223,7 +223,8 @@ void UniverseMap::render() const
     shaderManager->setUniform(ShaderManager::Uniform::AspectRatio,
                               static_cast<float>(m_viewportSize.width()) / static_cast<float>(m_viewportSize.height()));
     shaderManager->setUniform(ShaderManager::Uniform::Thickness, 3.0f / static_cast<float>(m_viewportSize.height()));
-    auto drawOrbit = [this, shaderManager, &viewMatrix](const Orbit &orbit, const glm::vec4 &color) {
+    auto drawOrbit = [this, shaderManager, &viewMatrix](const Orbit &orbit, float startAngle, float endAngle,
+                                                        const glm::vec4 &color) {
         const auto elems = orbit.elements();
         const auto semiMajorAxis = elems.semiMajorAxis;
         const auto eccentricity = elems.eccentricity;
@@ -235,23 +236,35 @@ void UniverseMap::render() const
         shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
         shaderManager->setUniform(ShaderManager::Uniform::SemiMajorAxis, semiMajorAxis);
         shaderManager->setUniform(ShaderManager::Uniform::Eccentricity, eccentricity);
+        shaderManager->setUniform(ShaderManager::Uniform::StartAngle, startAngle);
+        shaderManager->setUniform(ShaderManager::Uniform::EndAngle, endAngle);
 
 #if !defined(ORBIT_WIREFRAME)
         m_orbitMesh->draw(Mesh::Primitive::TriangleStrip);
 #else
-        m_orbitMesh->drawElements(Mesh::Primitive::Lines);
+        m_orbitMesh->draw(Mesh::Primitive::Lines);
 #endif
     };
 
     const auto worlds = m_universe->worlds();
     for (const auto *world : worlds)
-        drawOrbit(world->orbit(), glm::vec4{0.5, 0.5, 0.5, 1.0});
+        drawOrbit(world->orbit(), 0.0f, 2.0f * glm::pi<float>(), glm::vec4{0.5, 0.5, 0.5, 1.0});
 
     const auto ships = m_universe->ships();
     for (const auto *ship : ships)
     {
         if (auto *orbit = ship->orbit())
-            drawOrbit(*orbit, glm::vec4{1.0, 0.0, 0.0, 1.0});
+        {
+            const auto &plan = ship->missionPlan();
+            assert(plan.has_value());
+
+            const auto startAngle = orbit->eccentricAnomaly(plan->departureTime);
+            const auto endAngle = orbit->eccentricAnomaly(plan->arrivalTime);
+
+            shaderManager->setUniform(ShaderManager::Uniform::Thickness,
+                                      3.0f / static_cast<float>(m_viewportSize.height()));
+            drawOrbit(*orbit, startAngle, endAngle, glm::vec4{1.0, 0.0, 0.0, 1.0});
+        }
     }
 
     shaderManager->setCurrent(ShaderManager::Shader::Wireframe);
@@ -272,20 +285,35 @@ void UniverseMap::render() const
 
     // planet meshes
 
-    shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4{0.25, 0.75, 0.25, 1.0f});
-    for (const auto *world : worlds)
-    {
-        const auto orbitRotation = glm::mat4{world->orbit().orbitRotationMatrix()};
-        const auto translation = glm::translate(glm::mat4{1.0f}, glm::vec3{world->positionOnOrbitPlane(), 0.0f});
-        const auto scale = glm::scale(glm::mat4{1.0f}, glm::vec3{0.1f});
-        const auto model = orbitRotation * translation * scale;
-        const auto mvp = m_projectionMatrix * viewMatrix * model;
+    auto drawBodyMesh = [this, shaderManager, &viewMatrix](const Orbit &orbit, float scale) {
+        const auto position = orbit.positionOnOrbitPlane(m_universe->date());
+        const auto orbitRotation = glm::mat4{orbit.orbitRotationMatrix()};
+        const auto translationMatrix = glm::translate(glm::mat4{1.0f}, glm::vec3{position, 0.0f});
+        const auto scaleMatrix = glm::scale(glm::mat4{1.0f}, glm::vec3{scale});
+        const auto modelMatrix = orbitRotation * translationMatrix * scaleMatrix;
+        const auto mvp = m_projectionMatrix * viewMatrix * modelMatrix;
         shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
 #if !defined(SPHERE_WIREFRAME)
         m_sphereMesh->draw(Mesh::Primitive::Triangles);
 #else
         m_sphereMesh->draw(Mesh::Primitive::Lines);
 #endif
+    };
+
+    shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4{0.25, 0.75, 0.25, 1.0f});
+    for (const auto *world : worlds)
+    {
+        drawBodyMesh(world->orbit(), 0.1f);
+    }
+
+    // ship meshes
+    shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4{1.0f});
+    for (const auto *ship : ships)
+    {
+        if (const auto *orbit = ship->orbit())
+        {
+            drawBodyMesh(*orbit, 0.05f);
+        }
     }
 
     glDisable(GL_DEPTH_TEST);
