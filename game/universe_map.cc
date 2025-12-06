@@ -15,6 +15,19 @@
 namespace
 {
 
+float raySphereIntersect(const glm::vec3 &rayFrom, const glm::vec3 &rayDir, const glm::vec3 &sphereCenter,
+                         float sphereRadius)
+{
+    const glm::vec3 delta = rayFrom - sphereCenter;
+    const float a = glm::dot(rayDir, rayDir);
+    const float b = 2.0 * dot(rayDir, delta);
+    const float c = glm::dot(delta, delta) - sphereRadius * sphereRadius;
+    const float discriminant = b * b - 4.0f * a * c;
+    if (discriminant < 0.0f)
+        return -1.0;
+    return (-b - sqrt(discriminant)) / (2.0f * a);
+}
+
 // latitude: n/s, -pi/2 to pi/2
 // longitude: e/w, -pi to pi
 glm::vec3 latLonToCartesian(float lat, float lon)
@@ -322,7 +335,44 @@ void UniverseMap::initializeMeshes()
 
 void UniverseMap::handleMouseButton(MouseButton button, MouseAction action, const glm::vec2 &pos, Modifier mods)
 {
+    if (action == MouseAction::Press && button == MouseButton::Left)
+    {
+        if (const auto *world = pickWorld(pos))
+            std::println("picked {}", world->name());
+    }
     m_cameraController.handleMouseButton(button, action, pos, mods);
+}
+
+const World *UniverseMap::pickWorld(const glm::vec2 &viewportPos)
+{
+    const auto viewMatrix = m_cameraController.viewMatrix();
+    auto normalizedPos =
+        (viewportPos / glm::vec2{m_viewportSize.width(), m_viewportSize.height()}) * 2.0f - glm::vec2{1.0f};
+    normalizedPos.y = -normalizedPos.y;
+    const auto viewToWorldMatrix = glm::inverse(m_projectionMatrix * viewMatrix);
+    const auto near = viewToWorldMatrix * glm::vec4{normalizedPos, -1.0f, 1.0f};
+    const auto far = viewToWorldMatrix * glm::vec4{normalizedPos, 1.0f, 1.0f};
+
+    const auto rayFrom = glm::vec3{near} / near.w;
+    const auto rayTo = glm::vec3{far} / far.w;
+    const auto rayDir = glm::normalize(rayTo - rayFrom);
+
+    const auto worlds = m_universe->worlds();
+    float closestDist = std::numeric_limits<float>::max();
+    const World *closestWorld = nullptr;
+    for (const auto *world : worlds)
+    {
+        const auto position = world->position();
+        constexpr auto kRadius = 0.1f;
+        const auto dist = raySphereIntersect(rayFrom, rayDir, position, kRadius);
+        if (dist > 0.0f && dist < closestDist)
+        {
+            closestDist = dist;
+            closestWorld = world;
+        }
+    }
+
+    return closestWorld;
 }
 
 void UniverseMap::handleMouseMove(const glm::vec2 &pos)

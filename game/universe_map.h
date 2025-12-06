@@ -30,6 +30,7 @@ public:
 
 private:
     void initializeMeshes();
+    const World *pickWorld(const glm::vec2 &viewportPos);
 
     const Universe *m_universe{nullptr};
     Painter *m_overlayPainter;
