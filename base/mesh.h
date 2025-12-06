@@ -28,16 +28,21 @@ public:
     };
     void setVertexAttributes(std::span<const VertexAttribute> attributes, std::size_t stride);
     void setVertexData(std::span<const std::byte> vertexData);
+    void setIndexData(std::span<const std::uint32_t> indexData);
 
     enum class Primitive : GLenum
     {
         Triangles = GL_TRIANGLES,
+        TriangleStrip = GL_TRIANGLE_STRIP,
+        TriangleFan = GL_TRIANGLE_FAN,
         Lines = GL_LINES,
         LineLoop = GL_LINE_LOOP
     };
     void draw(Primitive primitive, std::size_t firstVertex, std::size_t vertexCount) const;
+    void drawElements(Primitive primitive, std::size_t count) const;
 
 private:
     gl::Buffer m_vertexBuffer;
+    gl::Buffer m_indexBuffer;
     gl::VertexArray m_vertexArray;
 };

@@ -26,6 +26,8 @@ public:
         Color,
         SemiMajorAxis,
         Eccentricity,
+        AspectRatio,
+        Thickness,
         Count
     };
 

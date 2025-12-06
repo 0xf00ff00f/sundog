@@ -80,7 +80,8 @@ int ShaderManager::uniformLocation(Uniform uniform)
     if (locations[index] == -1)
     {
         static const std::array<std::string, static_cast<size_t>(Uniform::Count)> uniforms = {
-            "projectionMatrix", "viewMatrix", "modelMatrix", "mvp", "color", "semiMajorAxis", "eccentricity"};
+            "projectionMatrix", "viewMatrix",   "modelMatrix", "mvp",      "color",
+            "semiMajorAxis",    "eccentricity", "aspectRatio", "thickness"};
         locations[index] = m_currentShader->program.uniformLocation(uniforms[index]);
     }
     return locations[index];

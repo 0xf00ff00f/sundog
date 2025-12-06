@@ -9,6 +9,8 @@
 
 #include <glm/gtx/string_cast.hpp>
 
+// #define ORBIT_WIREFRAME
+
 namespace
 {
 
@@ -20,22 +22,46 @@ std::unique_ptr<Mesh> createOrbitMesh()
     struct Vertex
     {
         float meanAnomaly;
+        float normalDirection;
     };
-    // clang-format off
-    const std::vector<Vertex> verts =
-        std::views::iota(0, kOrbitVertexCount)
-        | std::views::transform([](const std::size_t i) -> Vertex {
-              const auto meanAnomaly = i * 2.0f * glm::pi<float>() / kOrbitVertexCount;
-              return Vertex{.meanAnomaly = meanAnomaly};
-          })
-        | std::ranges::to<std::vector>();
-    // clang-format on
 
     auto mesh = std::make_unique<Mesh>();
+
+    std::vector<Vertex> verts;
+    verts.reserve(kOrbitVertexCount * 2);
+    for (std::size_t i = 0; i < kOrbitVertexCount; ++i)
+    {
+        const auto meanAnomaly = i * 2.0f * glm::pi<float>() / (kOrbitVertexCount - 1);
+        verts.emplace_back(meanAnomaly, -1.0f);
+        verts.emplace_back(meanAnomaly, 1.0f);
+    }
     mesh->setVertexData(std::as_bytes(std::span{verts}));
 
-    const std::array<Mesh::VertexAttribute, 1> attributes = {
-        Mesh::VertexAttribute{1, Mesh::Type::Float, offsetof(Vertex, meanAnomaly)}};
+#if defined(ORBIT_WIREFRAME)
+    std::vector<uint32_t> indices;
+    indices.reserve(kOrbitVertexCount * 8);
+    for (std::size_t i = 0; i < kOrbitVertexCount; ++i)
+    {
+        const auto baseIndex = i * 2;
+
+        indices.push_back(baseIndex);
+        indices.push_back(baseIndex + 1);
+
+        indices.push_back(baseIndex);
+        indices.push_back((baseIndex + 2) % (kOrbitVertexCount * 2));
+
+        indices.push_back(baseIndex + 1);
+        indices.push_back((baseIndex + 2) % (kOrbitVertexCount * 2));
+
+        indices.push_back(baseIndex + 1);
+        indices.push_back((baseIndex + 3) % (kOrbitVertexCount * 2));
+    }
+    mesh->setIndexData(std::span{indices});
+#endif
+
+    const std::array<Mesh::VertexAttribute, 2> attributes = {
+        Mesh::VertexAttribute{1, Mesh::Type::Float, offsetof(Vertex, meanAnomaly)},
+        Mesh::VertexAttribute{1, Mesh::Type::Float, offsetof(Vertex, normalDirection)}};
     mesh->setVertexAttributes(attributes, sizeof(Vertex));
 
     return mesh;
@@ -93,6 +119,9 @@ void UniverseMap::render() const
 
     auto *shaderManager = System::instance()->shaderManager();
     shaderManager->setCurrent(ShaderManager::Shader::Orbit);
+    shaderManager->setUniform(ShaderManager::Uniform::AspectRatio,
+                              static_cast<float>(m_viewportSize.width()) / static_cast<float>(m_viewportSize.height()));
+    shaderManager->setUniform(ShaderManager::Uniform::Thickness, 3.0f / static_cast<float>(m_viewportSize.height()));
     auto drawOrbit = [this, shaderManager, &viewMatrix](const Orbit &orbit, const glm::vec4 &color) {
         const auto elems = orbit.elements();
         const auto rotationMatrix = orbit.orbitRotationMatrix();
@@ -108,7 +137,11 @@ void UniverseMap::render() const
         shaderManager->setUniform(ShaderManager::Uniform::SemiMajorAxis, semiMajorAxis);
         shaderManager->setUniform(ShaderManager::Uniform::Eccentricity, eccentricity);
 
-        m_orbitMesh->draw(Mesh::Primitive::LineLoop, 0, kOrbitVertexCount);
+#if !defined(ORBIT_WIREFRAME)
+        m_orbitMesh->draw(Mesh::Primitive::TriangleStrip, 0, 2 * kOrbitVertexCount);
+#else
+        m_orbitMesh->drawElements(Mesh::Primitive::Lines, kOrbitVertexCount * 8);
+#endif
     };
 
     const auto worlds = m_universe->worlds();
