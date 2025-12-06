@@ -14,11 +14,10 @@
 namespace
 {
 
-static constexpr auto kOrbitVertexCount = 300;
-static constexpr auto kCircleMeshVertexCount = 20;
-
 std::unique_ptr<Mesh> createOrbitMesh()
 {
+    static constexpr auto kOrbitVertexCount = 300;
+
     struct Vertex
     {
         float meanAnomaly;
@@ -35,7 +34,7 @@ std::unique_ptr<Mesh> createOrbitMesh()
         verts.emplace_back(meanAnomaly, -1.0f);
         verts.emplace_back(meanAnomaly, 1.0f);
     }
-    mesh->setVertexData(std::as_bytes(std::span{verts}));
+    mesh->setVertexData(std::as_bytes(std::span{verts}), verts.size());
 
 #if defined(ORBIT_WIREFRAME)
     std::vector<uint32_t> indices;
@@ -69,6 +68,7 @@ std::unique_ptr<Mesh> createOrbitMesh()
 
 std::unique_ptr<Mesh> createBodyBillboardMesh()
 {
+    static constexpr auto kCircleMeshVertexCount = 20;
     constexpr auto kRadius = 0.05;
 
     // clang-format off
@@ -83,7 +83,7 @@ std::unique_ptr<Mesh> createBodyBillboardMesh()
     // clang-format on
 
     auto mesh = std::make_unique<Mesh>();
-    mesh->setVertexData(std::as_bytes(std::span{verts}));
+    mesh->setVertexData(std::as_bytes(std::span{verts}), verts.size());
 
     const std::array<Mesh::VertexAttribute, 1> attributes = {Mesh::VertexAttribute{2, Mesh::Type::Float, 0}};
     mesh->setVertexAttributes(attributes, sizeof(glm::vec2));
@@ -138,9 +138,9 @@ void UniverseMap::render() const
         shaderManager->setUniform(ShaderManager::Uniform::Eccentricity, eccentricity);
 
 #if !defined(ORBIT_WIREFRAME)
-        m_orbitMesh->draw(Mesh::Primitive::TriangleStrip, 0, 2 * kOrbitVertexCount);
+        m_orbitMesh->draw(Mesh::Primitive::TriangleStrip);
 #else
-        m_orbitMesh->drawElements(Mesh::Primitive::Lines, kOrbitVertexCount * 8);
+        m_orbitMesh->drawElements(Mesh::Primitive::Lines);
 #endif
     };
 
@@ -174,7 +174,7 @@ void UniverseMap::render() const
     shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4(1.0, 1.0, 0.0, 1.0));
     shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
     shaderManager->setUniform(ShaderManager::Uniform::ModelMatrix, modelMatrix);
-    m_bodyBillboardMesh->draw(Mesh::Primitive::LineLoop, 0, kCircleMeshVertexCount);
+    m_bodyBillboardMesh->draw(Mesh::Primitive::LineLoop);
 
     auto drawBillboard = [&](const glm::vec3 &position, std::string_view name) {
         // billboard
@@ -183,7 +183,7 @@ void UniverseMap::render() const
         const auto mvp = m_projectionMatrix * viewMatrix * bodyModelMatrix;
         shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
         shaderManager->setUniform(ShaderManager::Uniform::ModelMatrix, bodyModelMatrix);
-        m_bodyBillboardMesh->draw(Mesh::Primitive::LineLoop, 0, kCircleMeshVertexCount);
+        m_bodyBillboardMesh->draw(Mesh::Primitive::LineLoop);
 
         // label
 
