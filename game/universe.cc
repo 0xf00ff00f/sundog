@@ -53,7 +53,7 @@ double Orbit::eccentricAnomaly(JulianDate when) const
     return E;
 }
 
-glm::vec3 Orbit::position(JulianDate when) const
+glm::vec2 Orbit::positionOnOrbitPlane(JulianDate when) const
 {
     const auto e = m_elems.eccentricity;
     const auto a = m_elems.semiMajorAxis;
@@ -61,11 +61,15 @@ glm::vec3 Orbit::position(JulianDate when) const
 
     const auto E = eccentricAnomaly(when);
 
-    // position in orbit
     const auto x = a * (std::cos(E) - e);
     const auto y = b * std::sin(E);
 
-    return m_orbitRotationMatrix * glm::vec3(x, y, 0.0);
+    return {x, y};
+}
+
+glm::vec3 Orbit::position(JulianDate when) const
+{
+    return m_orbitRotationMatrix * glm::vec3(positionOnOrbitPlane(when), 0.0);
 }
 
 void Orbit::updatePeriod()
@@ -117,6 +121,16 @@ glm::vec3 World::position() const
 glm::vec3 World::position(JulianDate date) const
 {
     return m_orbit.position(date);
+}
+
+glm::vec2 World::positionOnOrbitPlane() const
+{
+    return positionOnOrbitPlane(m_universe->date());
+}
+
+glm::vec2 World::positionOnOrbitPlane(JulianDate date) const
+{
+    return m_orbit.positionOnOrbitPlane(date);
 }
 
 const MarketItemPrice *World::findMarketItemPrice(const MarketItem *item) const

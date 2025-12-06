@@ -36,6 +36,7 @@ public:
     double period() const { return m_period; }      // Earth years
     double meanAnomaly(JulianDate when) const;      // radians
     double eccentricAnomaly(JulianDate when) const; // radians
+    glm::vec2 positionOnOrbitPlane(JulianDate when) const; // AU
     glm::vec3 position(JulianDate when) const;      // AU
 
 private:
@@ -69,6 +70,9 @@ public:
 
     glm::vec3 position() const;
     glm::vec3 position(JulianDate date) const;
+
+    glm::vec2 positionOnOrbitPlane() const;
+    glm::vec2 positionOnOrbitPlane(JulianDate date) const;
 
 private:
     Universe *m_universe{nullptr};

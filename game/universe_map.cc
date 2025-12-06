@@ -10,9 +10,21 @@
 #include <glm/gtx/string_cast.hpp>
 
 // #define ORBIT_WIREFRAME
+// #define SPHERE_WIREFRAME
 
 namespace
 {
+
+// latitude: n/s, -pi/2 to pi/2
+// longitude: e/w, -pi to pi
+glm::vec3 latLonToCartesian(float lat, float lon)
+{
+    const auto r = std::cos(lat);
+    const auto x = r * std::cos(lon);
+    const auto y = r * std::sin(lon);
+    const auto z = std::sin(lat);
+    return {x, y, z};
+}
 
 std::unique_ptr<Mesh> createOrbitMesh()
 {
@@ -66,6 +78,80 @@ std::unique_ptr<Mesh> createOrbitMesh()
     return mesh;
 }
 
+std::unique_ptr<Mesh> createSphereMesh()
+{
+    constexpr auto kRings = 20;
+    constexpr auto kSlices = 20;
+
+    struct Vertex
+    {
+        glm::vec3 position;
+        glm::vec2 texCoord;
+    };
+
+    auto mesh = std::make_unique<Mesh>();
+
+    std::vector<Vertex> verts;
+    for (std::size_t i = 0; i < kRings; ++i)
+    {
+        const auto lat = i * glm::pi<float>() / (kRings - 1) - 0.5f * glm::pi<float>();
+        const auto u = static_cast<float>(i) / (kRings - 1);
+        for (std::size_t j = 0; j < kSlices; ++j)
+        {
+            const auto lon = j * 2.0f * glm::pi<float>() / kSlices - glm::pi<float>();
+            const auto v = static_cast<float>(j) / kSlices;
+
+            const auto position = latLonToCartesian(lat, lon);
+            const auto texCoord = glm::vec2{v, u};
+
+            verts.emplace_back(position, texCoord);
+        }
+    }
+    mesh->setVertexData(std::as_bytes(std::span{verts}), verts.size());
+
+    std::vector<uint32_t> indices;
+    for (std::size_t i = 0; i < kRings - 1; ++i)
+    {
+        for (std::size_t j = 0; j < kSlices; ++j)
+        {
+            const auto v0 = i * kSlices + j;
+            const auto v1 = (i + 1) * kSlices + j;
+            const auto v2 = (i + 1) * kSlices + (j + 1) % kSlices;
+            const auto v3 = i * kSlices + (j + 1) % kSlices;
+
+#if !defined(SPHERE_WIREFRAME)
+            indices.push_back(v0);
+            indices.push_back(v1);
+            indices.push_back(v2);
+
+            indices.push_back(v2);
+            indices.push_back(v3);
+            indices.push_back(v0);
+#else
+            indices.push_back(v0);
+            indices.push_back(v1);
+
+            indices.push_back(v1);
+            indices.push_back(v2);
+
+            indices.push_back(v2);
+            indices.push_back(v3);
+
+            indices.push_back(v3);
+            indices.push_back(v0);
+#endif
+        }
+    }
+    mesh->setIndexData(indices);
+
+    const std::array<Mesh::VertexAttribute, 2> attributes = {
+        Mesh::VertexAttribute{3, Mesh::Type::Float, offsetof(Vertex, position)},
+        Mesh::VertexAttribute{2, Mesh::Type::Float, offsetof(Vertex, texCoord)}};
+    mesh->setVertexAttributes(attributes, sizeof(Vertex));
+
+    return mesh;
+}
+
 std::unique_ptr<Mesh> createBodyBillboardMesh()
 {
     static constexpr auto kCircleMeshVertexCount = 20;
@@ -93,7 +179,7 @@ std::unique_ptr<Mesh> createBodyBillboardMesh()
 
 } // namespace
 
-// TODO: ShaderManager, Painter singleton
+// TODO: Painter singleton
 UniverseMap::UniverseMap(const Universe *universe, Painter *overlayPainter)
     : m_universe(universe)
     , m_overlayPainter(overlayPainter)
@@ -114,6 +200,8 @@ void UniverseMap::setViewportSize(const SizeI &size)
 void UniverseMap::render() const
 {
     const auto viewMatrix = m_cameraController.viewMatrix();
+
+    glEnable(GL_DEPTH_TEST);
 
     // render orbits
 
@@ -146,46 +234,59 @@ void UniverseMap::render() const
 
     const auto worlds = m_universe->worlds();
     for (const auto *world : worlds)
-    {
         drawOrbit(world->orbit(), glm::vec4{0.5, 0.5, 0.5, 1.0});
-    }
 
     const auto ships = m_universe->ships();
     for (const auto *ship : ships)
     {
         if (auto *orbit = ship->orbit())
-        {
             drawOrbit(*orbit, glm::vec4{1.0, 0.0, 0.0, 1.0});
-        }
     }
 
     const auto modelMatrix = glm::mat4{1.0f};
     const auto mvp = m_projectionMatrix * viewMatrix * modelMatrix;
 
+    shaderManager->setCurrent(ShaderManager::Shader::Wireframe);
+
+    // sun
+    {
+        shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4{1.0, 1.0, 0.5, 1.0f});
+        const auto scale = glm::scale(glm::mat4{1.0f}, glm::vec3{0.1f});
+        shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix,
+                                  m_projectionMatrix * viewMatrix * scale);
+#if !defined(SPHERE_WIREFRAME)
+        m_sphereMesh->draw(Mesh::Primitive::Triangles);
+#else
+        m_sphereMesh->draw(Mesh::Primitive::Lines);
+#endif
+    }
+
+    shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4{0.25, 0.75, 0.25, 1.0f});
+    for (const auto *world : worlds)
+    {
+        const auto orbitRotation = glm::mat4{world->orbit().orbitRotationMatrix()};
+        const auto translation = glm::translate(glm::mat4{1.0f}, glm::vec3{world->positionOnOrbitPlane(), 0.0f});
+        const auto scale = glm::scale(glm::mat4{1.0f}, glm::vec3{0.1f});
+        const auto model = orbitRotation * translation * scale;
+        shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix,
+                                  m_projectionMatrix * viewMatrix * model);
+#if !defined(SPHERE_WIREFRAME)
+        m_sphereMesh->draw(Mesh::Primitive::Triangles);
+#else
+        m_sphereMesh->draw(Mesh::Primitive::Lines);
+#endif
+    }
+
+    glDisable(GL_DEPTH_TEST);
+
+    // draw labels
+
     const auto &font = g_styleSettings.normalFont;
     m_overlayPainter->setFont(font);
 
-    shaderManager->setCurrent(ShaderManager::Shader::Billboard);
-    shaderManager->setUniform(ShaderManager::Uniform::ProjectionMatrix, m_projectionMatrix);
-    shaderManager->setUniform(ShaderManager::Uniform::ViewMatrix, viewMatrix);
-
-    // render sun billboard
-
-    shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4(1.0, 1.0, 0.0, 1.0));
-    shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
-    shaderManager->setUniform(ShaderManager::Uniform::ModelMatrix, modelMatrix);
-    m_bodyBillboardMesh->draw(Mesh::Primitive::LineLoop);
-
-    auto drawBillboard = [&](const glm::vec3 &position, std::string_view name) {
-        // billboard
-
+    auto drawLabel = [&](const glm::vec3 &position, std::string_view name) {
         const auto bodyModelMatrix = modelMatrix * glm::translate(glm::mat4(1.0), position);
         const auto mvp = m_projectionMatrix * viewMatrix * bodyModelMatrix;
-        shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
-        shaderManager->setUniform(ShaderManager::Uniform::ModelMatrix, bodyModelMatrix);
-        m_bodyBillboardMesh->draw(Mesh::Primitive::LineLoop);
-
-        // label
 
         const auto positionProjected = mvp * glm::vec4(0.0, 0.0, 0.0, 1.0);
         if (positionProjected.z > 0.0f)
@@ -201,27 +302,26 @@ void UniverseMap::render() const
         }
     };
 
-    // render world billboards
-
+    // render world labels
     shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4(1.0, 1.0, 1.0, 1.0));
     for (const auto *world : worlds)
     {
-        drawBillboard(world->position(), world->name());
+        drawLabel(world->position(), world->name());
     }
 
-    // render ship billboards
-
+    // render ship labels
     shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4(1.0, 0.0, 0.0, 1.0));
     for (const auto *ship : ships)
     {
-        drawBillboard(ship->position(), ship->name());
+        drawLabel(ship->position(), ship->name());
     }
 }
 
 void UniverseMap::initializeMeshes()
 {
     m_orbitMesh = createOrbitMesh();
-    m_bodyBillboardMesh = createBodyBillboardMesh();
+    m_circleBillboardMesh = createBodyBillboardMesh();
+    m_sphereMesh = createSphereMesh();
 }
 
 void UniverseMap::handleMouseButton(MouseButton button, MouseAction action, const glm::vec2 &pos, Modifier mods)

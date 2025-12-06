@@ -34,7 +34,8 @@ private:
     const Universe *m_universe{nullptr};
     Painter *m_overlayPainter;
     SizeI m_viewportSize;
-    std::unique_ptr<Mesh> m_bodyBillboardMesh;
+    std::unique_ptr<Mesh> m_circleBillboardMesh;
+    std::unique_ptr<Mesh> m_sphereMesh;
     std::unique_ptr<Mesh> m_orbitMesh;
     glm::mat4 m_projectionMatrix;
     CameraController m_cameraController;
