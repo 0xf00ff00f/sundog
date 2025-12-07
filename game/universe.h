@@ -33,11 +33,13 @@ public:
     OrbitalElements elements() const { return m_elems; }
 
     glm::mat3 orbitRotationMatrix() const { return m_orbitRotationMatrix; }
-    double period() const { return m_period; }      // Earth years
+    double period() const { return m_period; }      // Earth days
     double meanAnomaly(JulianDate when) const;      // radians
     double eccentricAnomaly(JulianDate when) const; // radians
     glm::vec2 positionOnOrbitPlane(JulianDate when) const; // AU
+    glm::vec2 velocityOnOrbitPlane(JulianDate when) const; // AU/days
     glm::vec3 position(JulianDate when) const;      // AU
+    glm::vec3 velocity(JulianDate when) const;      // AU/days
 
 private:
     void updatePeriod();
@@ -91,6 +93,7 @@ struct MissionPlan
     JulianDate departureTime;
     JulianDate arrivalTime;
     Orbit orbit;
+    float deltaV{0.0f};
 
     JulianClock::duration transitTime() const { return arrivalTime - departureTime; }
 };

@@ -13,6 +13,55 @@
 
 #include <glm/gtx/string_cast.hpp>
 
+namespace
+{
+
+std::optional<MissionPlan> findMissionPlan(const World *origin, const World *destination, JulianDate start)
+{
+    std::optional<MissionPlan> bestPlan;
+
+    constexpr JulianClock::duration kMinTransitInterval{90.0};
+    constexpr JulianClock::duration kMaxTransitInterval{4.0 * 365.0};
+    constexpr JulianClock::duration kMaxWait{3.0 * 365.0};
+    constexpr JulianClock::duration kStep{5.0};
+
+    for (JulianDate timeDeparture = start; timeDeparture < start + kMaxWait; timeDeparture += kStep)
+    {
+        const auto posDeparture = origin->orbit().position(timeDeparture);
+        const auto velWorldDeparture = origin->orbit().velocity(timeDeparture);
+
+        for (JulianClock::duration transitInterval = kMinTransitInterval; transitInterval < kMaxTransitInterval;
+             transitInterval += kStep)
+        {
+            const auto timeArrival = timeDeparture + transitInterval;
+            const auto posArrival = destination->orbit().position(timeArrival);
+            const auto velWorldArrival = destination->orbit().velocity(timeArrival);
+
+            auto result = lambert_battin(kGMSun, posDeparture, posArrival, transitInterval.count());
+            if (result.has_value())
+            {
+                const auto [velDeparture, velArrival] = *result;
+                const auto orbitalElements = orbitalElementsFromStateVector(posArrival, velArrival, timeArrival);
+                const auto deltaV = glm::length(glm::vec3{velDeparture} - origin->orbit().velocity(timeDeparture)) +
+                                    glm::length(glm::vec3{velArrival} - destination->orbit().velocity(timeArrival));
+                if (!bestPlan.has_value() || bestPlan->deltaV > deltaV)
+                {
+                    bestPlan = MissionPlan{.origin = origin,
+                                           .destination = destination,
+                                           .departureTime = timeDeparture,
+                                           .arrivalTime = timeArrival};
+                    bestPlan->orbit.setElements(orbitalElements);
+                    bestPlan->deltaV = deltaV;
+                }
+            }
+        }
+    }
+
+    return bestPlan;
+}
+
+} // namespace
+
 Game::Game() = default;
 
 Game::~Game() = default;
@@ -23,6 +72,8 @@ bool Game::initialize()
     if (!m_universe->load(dataFilePath("universe.json")))
         return false;
 
+    m_universe->setDate(JulianClock::now());
+
     m_overlayPainter = std::make_unique<Painter>();
 
     m_universeMap = std::make_unique<UniverseMap>(m_universe.get(), m_overlayPainter.get());
@@ -32,46 +83,26 @@ bool Game::initialize()
     const auto *destination = worlds[3]; // Mars
 
     auto ship = m_universe->addShip(origin, "Mary Celeste");
-
+#if 1
+    auto plan = findMissionPlan(origin, destination, JulianClock::now());
+    if (plan.has_value())
     {
-#if 0
-        const auto transitInterval = JulianClock::duration{253.5};
-        const auto timeDeparture = JulianDate{JulianClock::duration{2455892.126389}};
-        const auto timeArrival = timeDeparture + transitInterval;
-
-        auto posDeparture = glm::dvec3(origin->position(timeDeparture));
-        auto posArrival = glm::dvec3(destination->position(timeArrival));
-
-        std::println("posDeparture={}", glm::to_string(posDeparture));
-        std::println("posArrival={}", glm::to_string(posArrival));
-        std::println("mu={}", kGMSun);
-        std::println("transit={}", transitInterval.count());
-
-        auto result = lambert_battin(kGMSun, posDeparture, posArrival, transitInterval.count());
-        assert(result.has_value());
-        const auto [velDeparture, velArrival] = *result;
-
-        const auto orbitalElements = orbitalElementsFromStateVector(posArrival, velArrival, timeArrival);
-
-        MissionPlan transit{
-            .origin = origin, .destination = destination, .departureTime = timeDeparture, .arrivalTime = timeArrival};
-        transit.orbit.setElements(orbitalElements);
-
-        ship->setMissionPlan(std::move(transit));
-
-        m_universe->setDate(timeDeparture);
-#else
-        m_universe->setDate(JulianClock::now() + JulianClock::duration{200.0 * 365.0});
-#endif
+        std::println("interval={} deltaV={} AU/days={} km/s", plan->transitTime().count(), plan->deltaV,
+                     plan->deltaV * 1.496e+8 / (24 * 60 * 60));
+        m_universe->setDate(plan->departureTime);
+        ship->setMissionPlan(std::move(plan.value()));
     }
+#endif
 
     m_uiRoot = std::make_unique<ui::Rectangle>(100, 100);
 
     m_dateGizmo = m_uiRoot->appendChild<DateGizmo>(m_universe.get());
     m_dateGizmo->setAlign(ui::Align::Right | ui::Align::Top);
 
+#if 0
     m_tradingWindow = m_uiRoot->appendChild<TradingWindow>(origin, ship);
     m_tradingWindow->setAlign(ui::Align::HorizontalCenter | ui::Align::VerticalCenter);
+#endif
 
     m_uiEventManager = std::make_unique<ui::EventManager>();
     m_uiEventManager->setRoot(m_uiRoot.get());
@@ -110,8 +141,9 @@ void Game::render() const
 
 void Game::update(Seconds elapsed)
 {
-    m_universe->update(elapsed);
-    // m_universe->update(elapsed.count() * JulianClock::duration{20.0f});
+    // m_universe->update(elapsed);
+    m_universe->update(elapsed.count() * JulianClock::duration{20.0f});
+    // m_universe->update(elapsed.count() * JulianClock::duration{10.0f});
     m_universeMap->update(elapsed);
 }
 

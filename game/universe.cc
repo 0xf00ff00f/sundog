@@ -57,12 +57,43 @@ glm::vec2 Orbit::positionOnOrbitPlane(JulianDate when) const
 {
     const auto e = m_elems.eccentricity;
     const auto a = m_elems.semiMajorAxis;
-    const auto b = a * std::sqrt(1.0 - e * e); // semi-minor axis
 
     const auto E = eccentricAnomaly(when);
 
+#if 0
+    const auto b = a * std::sqrt(1.0 - e * e); // semi-minor axis
     const auto x = a * (std::cos(E) - e);
     const auto y = b * std::sin(E);
+#else
+    // true anomaly
+    const auto nu =
+        2.0f * std::atan2(std::sqrt(1.0f + e) * std::sin(0.5f * E), std::sqrt(1.0f - e) * std::cos(0.5f * E));
+
+    // distance
+    const auto r = a * (1.0f - e * std::cos(E));
+
+    const auto x = r * std::cos(nu);
+    const auto y = r * std::sin(nu);
+#endif
+
+    return {x, y};
+}
+
+glm::vec2 Orbit::velocityOnOrbitPlane(JulianDate when) const
+{
+    const auto e = m_elems.eccentricity;
+    const auto a = m_elems.semiMajorAxis;
+
+    const auto E = eccentricAnomaly(when);
+
+    // true anomaly
+    const auto nu =
+        2.0f * std::atan2(std::sqrt(1.0f + e) * std::sin(0.5f * E), std::sqrt(1.0f - e) * std::cos(0.5f * E));
+
+    const auto h = std::sqrt(kGMSun * a * (1 - e * e));
+
+    const auto x = -kGMSun / h * std::sin(nu);
+    const auto y = kGMSun / h * (e + std::cos(nu));
 
     return {x, y};
 }
@@ -70,6 +101,11 @@ glm::vec2 Orbit::positionOnOrbitPlane(JulianDate when) const
 glm::vec3 Orbit::position(JulianDate when) const
 {
     return m_orbitRotationMatrix * glm::vec3(positionOnOrbitPlane(when), 0.0);
+}
+
+glm::vec3 Orbit::velocity(JulianDate when) const
+{
+    return m_orbitRotationMatrix * glm::vec3(velocityOnOrbitPlane(when), 0.0);
 }
 
 void Orbit::updatePeriod()
