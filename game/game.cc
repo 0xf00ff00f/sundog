@@ -78,11 +78,14 @@ bool Game::initialize()
 
     m_universeMap = std::make_unique<UniverseMap>(m_universe.get(), m_overlayPainter.get());
 
+    const auto &shipClasses = m_universe->shipClasses();
     const auto &worlds = m_universe->worlds();
-    const auto *origin = worlds[2];      // Earth
-    const auto *destination = worlds[3]; // Mars
 
-    auto ship = m_universe->addShip(origin, "Mary Celeste");
+    const auto *origin = worlds[2];      // Earth
+    const auto *destination = worlds[8]; // Mars
+    const auto *shipClass = shipClasses[1];
+
+    auto ship = m_universe->addShip(shipClass, origin, "SIGBUS");
 #if 1
     auto plan = findMissionPlan(origin, destination, JulianClock::now());
     if (plan.has_value())
@@ -142,7 +145,7 @@ void Game::render() const
 void Game::update(Seconds elapsed)
 {
     // m_universe->update(elapsed);
-    m_universe->update(elapsed.count() * JulianClock::duration{20.0f});
+    m_universe->update(elapsed.count() * JulianClock::duration{30.0f});
     // m_universe->update(elapsed.count() * JulianClock::duration{10.0f});
     m_universeMap->update(elapsed);
 }

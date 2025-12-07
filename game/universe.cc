@@ -175,8 +175,9 @@ const MarketItemPrice *World::findMarketItemPrice(const MarketItem *item) const
     return it != m_marketItemPrices.end() ? &*it : nullptr;
 }
 
-Ship::Ship(Universe *universe, const World *world, std::string_view name)
+Ship::Ship(Universe *universe, const ShipClass *shipClass, const World *world, std::string_view name)
     : m_universe(universe)
+    , m_shipClass(shipClass)
     , m_world(world)
     , m_name(name)
     , m_dateChangedConnection(m_universe->dateChangedSignal.connect([this](JulianDate date) { updateState(date); }))
@@ -210,8 +211,7 @@ int Ship::totalCargo() const
 
 int Ship::cargoCapacity() const
 {
-    // XXX
-    return 20;
+    return m_shipClass->cargoCapacity;
 }
 
 int Ship::cargo(const MarketItem *item) const
@@ -317,10 +317,9 @@ void Universe::update(Seconds elapsed)
     setDate(m_date + elapsed);
 }
 
-Ship *Universe::addShip(const World *world, std::string_view name)
+Ship *Universe::addShip(const ShipClass *shipClass, const World *world, std::string_view name)
 {
-    m_ships.push_back(std::make_unique<Ship>(this, world, name));
-    return m_ships.back().get();
+    return m_ships.emplace_back(std::make_unique<Ship>(this, shipClass, world, name)).get();
 }
 
 bool Universe::load(const std::string &path)
@@ -330,6 +329,19 @@ bool Universe::load(const std::string &path)
         return false;
 
     const nlohmann::json json = nlohmann::json::parse(jsonData);
+
+    // ship classes
+    for (const nlohmann::json &shipClassJson : json.at("ships").at("classes"))
+    {
+        constexpr auto kTonsPerUnit = 10.0;
+        auto &shipClass = m_shipClasses.emplace_back(std::make_unique<ShipClass>());
+        shipClass->name = shipClassJson.at("name").get<std::string>();
+        shipClass->drive = shipClassJson.at("drive").get<std::string>();
+        shipClass->cargoCapacity = static_cast<std::size_t>(shipClassJson.at("cargo").get<double>() / kTonsPerUnit);
+        shipClass->specificImpulse = shipClassJson.at("isp").get<double>();
+        shipClass->thrust = shipClassJson.at("thrust").get<double>();
+        shipClass->power = shipClassJson.at("power").get<double>();
+    }
 
     // market
     for (const nlohmann::json &sectorJson : json.at("market").at("sectors"))

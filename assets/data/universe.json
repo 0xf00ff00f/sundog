@@ -169,6 +169,42 @@
             }
         }
     ],
+    "ships": {
+        "classes": [
+            {
+                "name": "Drifter Scout",
+                "cargo": 50,
+                "drive": "Hall-effect Ion Thruster (xenon propellant, solar-electric powered)",
+                "isp": 5000,
+                "thrust": 0.1,
+                "power": 10
+            },
+            {
+                "name": "Hauler Freighter",
+                "cargo": 5000,
+                "drive": "Fusion Thermal Rocket (D-He3 plasma exhaust)",
+                "isp": 20000,
+                "thrust": 100000,
+                "power": 5000
+            },
+            {
+                "name": "Bulk Carrier",
+                "cargo": 100000,
+                "drive": "Nuclear Thermal (fission-heated hydrogen)",
+                "isp": 900,
+                "thrust": 100000000,
+                "power": 5000000000
+            },
+            {
+                "name": "Courier Liner",
+                "cargo": 1000,
+                "drive": "VASIMR Plasma Drive (RF-heated argon)",
+                "isp": 9000,
+                "thrust": 5000,
+                "power": 200000000
+            }
+        ]
+    },
     "market": {
         "sectors": [
             {

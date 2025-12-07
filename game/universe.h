@@ -23,6 +23,16 @@ struct MarketSector
     std::vector<std::unique_ptr<MarketItem>> items;
 };
 
+struct ShipClass
+{
+    std::string name;
+    std::string drive;
+    std::size_t cargoCapacity; // units; TODO make this tons, add weight/unit for market items
+    double specificImpulse;    // seconds
+    double thrust;             // N
+    double power;              // kW
+};
+
 class Orbit
 {
 public:
@@ -37,9 +47,9 @@ public:
     double meanAnomaly(JulianDate when) const;      // radians
     double eccentricAnomaly(JulianDate when) const; // radians
     glm::vec2 positionOnOrbitPlane(JulianDate when) const; // AU
-    glm::vec2 velocityOnOrbitPlane(JulianDate when) const; // AU/days
+    glm::vec2 velocityOnOrbitPlane(JulianDate when) const; // AU/day
     glm::vec3 position(JulianDate when) const;      // AU
-    glm::vec3 velocity(JulianDate when) const;      // AU/days
+    glm::vec3 velocity(JulianDate when) const;      // AU/day
 
 private:
     void updatePeriod();
@@ -93,7 +103,7 @@ struct MissionPlan
     JulianDate departureTime;
     JulianDate arrivalTime;
     Orbit orbit;
-    float deltaV{0.0f};
+    float deltaV{0.0f}; // AU/day
 
     JulianClock::duration transitTime() const { return arrivalTime - departureTime; }
 };
@@ -107,7 +117,7 @@ public:
         InTransit
     };
 
-    explicit Ship(Universe *universe, const World *world, std::string_view name);
+    explicit Ship(Universe *universe, const ShipClass *shipClass, const World *initialWorld, std::string_view name);
     ~Ship();
 
     const Universe *universe() const { return m_universe; }
@@ -137,6 +147,7 @@ private:
     void updateState(JulianDate date);
 
     Universe *m_universe{nullptr};
+    const ShipClass *m_shipClass{nullptr};
     const World *m_world{nullptr};
     std::string m_name;
     State m_state{State::Docked};
@@ -173,13 +184,20 @@ public:
                std::views::transform([](const auto &sector) -> const MarketSector * { return sector.get(); });
     }
 
-    Ship *addShip(const World *world, std::string_view name);
+    auto shipClasses() const
+    {
+        return m_shipClasses |
+               std::views::transform([](const auto &shipClass) -> const ShipClass * { return shipClass.get(); });
+    };
+
+    Ship *addShip(const ShipClass *shipClass, const World *world, std::string_view name);
 
     muslots::Signal<JulianDate> dateChangedSignal;
 
 private:
     JulianDate m_date{};
     std::vector<std::unique_ptr<MarketSector>> m_marketSectors;
+    std::vector<std::unique_ptr<ShipClass>> m_shipClasses;
     std::vector<std::unique_ptr<World>> m_worlds;
     std::vector<std::unique_ptr<Ship>> m_ships;
 };
