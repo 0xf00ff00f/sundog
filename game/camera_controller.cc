@@ -7,6 +7,7 @@
 namespace
 {
 constexpr auto kTargetAnimationMinDistance = 0.001f;
+constexpr auto kZoomAnimationMinDistance = 0.001f;
 }
 
 VelocitySampler::VelocitySampler() = default;
@@ -81,6 +82,32 @@ void CameraController::handleMouseMove(const glm::vec2 &viewportPos)
     }
 }
 
+void CameraController::handleMouseWheel(const glm::vec2 &, const glm::vec2 &wheelOffset)
+{
+    constexpr auto kMinCameraDistance = 1.0f;
+    constexpr auto kMaxCameraDistance = 20.0f;
+
+    const auto curDistance = glm::distance(m_cameraCenter, m_cameraEye);
+
+    auto distance = curDistance * std::powf(1.3f, -wheelOffset.y);
+    distance = std::clamp(distance, kMinCameraDistance, kMaxCameraDistance);
+
+    if (std::abs(distance - curDistance) < kZoomAnimationMinDistance)
+    {
+        setCameraDistance(distance);
+    }
+    else
+    {
+        m_targetCameraDistance = distance;
+    }
+}
+
+void CameraController::setCameraDistance(float distance)
+{
+    m_cameraEye = m_cameraCenter - distance * glm::normalize(m_cameraCenter - m_cameraEye);
+    updateViewMatrix();
+}
+
 void CameraController::updateViewMatrix()
 {
     m_viewMatrix = glm::lookAt(m_cameraEye, m_cameraCenter, m_upDir);
@@ -109,13 +136,26 @@ void CameraController::update(Seconds seconds)
     if (m_targetCameraCenter.has_value())
     {
         const auto alpha = std::expf(-100.f * static_cast<float>(seconds.count()));
-        const auto updatedCameraCenter = alpha * m_targetCameraCenter.value() + (1.0f - alpha) * m_cameraCenter;
+        auto updatedCameraCenter = alpha * m_targetCameraCenter.value() + (1.0f - alpha) * m_cameraCenter;
         if (glm::distance(updatedCameraCenter, m_targetCameraCenter.value()) < kTargetAnimationMinDistance)
         {
-            m_cameraCenter = m_targetCameraCenter.value();
+            updatedCameraCenter = m_targetCameraCenter.value();
             m_targetCameraCenter.reset();
         }
         moveCameraCenter(updatedCameraCenter);
+    }
+
+    if (m_targetCameraDistance.has_value())
+    {
+        const auto alpha = std::expf(-100.0f * static_cast<float>(seconds.count()));
+        const auto cameraDistance = glm::distance(m_cameraCenter, m_cameraEye);
+        auto updatedCameraDistance = alpha * m_targetCameraDistance.value() + (1.0f - alpha) * cameraDistance;
+        if (std::abs(updatedCameraDistance - m_targetCameraDistance.value()) < kZoomAnimationMinDistance)
+        {
+            updatedCameraDistance = m_targetCameraDistance.value();
+            m_targetCameraDistance.reset();
+        }
+        setCameraDistance(updatedCameraDistance);
     }
 }
 

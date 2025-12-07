@@ -25,6 +25,7 @@ public:
 
     void handleMouseButton(MouseButton button, MouseAction action, const glm::vec2 &pos, Modifier mods);
     void handleMouseMove(const glm::vec2 &pos);
+    void handleMouseWheel(const glm::vec2 &mousePos, const glm::vec2 &wheelOffset);
 
     void update(Seconds elapsed);
 

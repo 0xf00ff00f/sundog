@@ -166,5 +166,6 @@ void Game::handleMouseMove(const glm::vec2 &pos)
 
 void Game::handleMouseWheel(const glm::vec2 &mousePos, const glm::vec2 &wheelOffset)
 {
-    m_uiEventManager->handleMouseWheel(mousePos, wheelOffset);
+    if (!m_uiEventManager->handleMouseWheel(mousePos, wheelOffset))
+        m_universeMap->handleMouseWheel(mousePos, wheelOffset);
 }

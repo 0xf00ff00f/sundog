@@ -26,6 +26,7 @@ public:
 
     void handleMouseButton(MouseButton button, MouseAction action, const glm::vec2 &pos, Modifier mods);
     void handleMouseMove(const glm::vec2 &pos);
+    void handleMouseWheel(const glm::vec2 &mousePos, const glm::vec2 &wheelOffset);
 
     void update(Seconds seconds);
 
@@ -43,6 +44,7 @@ public:
 private:
     glm::vec2 normalizedViewportPos(const glm::vec2 &viewportPos) const;
     void moveCameraCenter(const glm::vec3 &center);
+    void setCameraDistance(float distance);
     void updateViewMatrix();
     void rotate(const glm::vec2 &dir);
 
@@ -56,5 +58,6 @@ private:
     VelocitySampler m_mouseVelocitySampler;
     glm::vec2 m_rotationVelocity = glm::vec2{0.0f};
     std::optional<glm::vec3> m_targetCameraCenter;
+    std::optional<float> m_targetCameraDistance;
     SizeI m_viewportSize;
 };

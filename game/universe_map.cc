@@ -401,6 +401,11 @@ void UniverseMap::handleMouseButton(MouseButton button, MouseAction action, cons
     m_cameraController.handleMouseButton(button, action, pos, mods);
 }
 
+void UniverseMap::handleMouseWheel(const glm::vec2 &mousePos, const glm::vec2 &wheelOffset)
+{
+    m_cameraController.handleMouseWheel(mousePos, wheelOffset);
+}
+
 const World *UniverseMap::pickWorld(const glm::vec2 &viewportPos)
 {
     const auto viewMatrix = m_cameraController.viewMatrix();
