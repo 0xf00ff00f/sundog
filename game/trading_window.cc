@@ -35,6 +35,6 @@ TradingWindow::TradingWindow(const World *world, Ship *ship, Gizmo *parent)
     m_marketSnapshot->itemSelectedSignal.connect(
         [this](const MarketItem *item) { m_marketItemDetails->setItem(item); });
 
-    m_title->setText(m_world->name());
-    marketName->setText("Terminator City Commodities Exchange");
+    m_title->setText(m_world->name);
+    marketName->setText(m_world->marketName);
 }

@@ -72,10 +72,9 @@ class Universe;
 class World
 {
 public:
-    explicit World(Universe *universe, std::string name, const OrbitalElements &elems);
+    explicit World(Universe *universe, const OrbitalElements &elems);
 
     const Universe *universe() const { return m_universe; }
-    std::string_view name() const { return m_name; }
     const Orbit &orbit() const { return m_orbit; }
     std::span<const MarketItemPrice> marketItemPrices() const { return m_marketItemPrices; }
     const MarketItemPrice *findMarketItemPrice(const MarketItem *item) const;
@@ -86,13 +85,15 @@ public:
     glm::vec2 positionOnOrbitPlane() const;
     glm::vec2 positionOnOrbitPlane(JulianDate date) const;
 
+    std::string name;
+    std::string marketName;
+
 private:
     Universe *m_universe{nullptr};
     // TODO: replace this with std::unordered_map<const MarketItem *, Price>?
     // TODO: change API to something like `std::optional<Price> price(const MarketItem *item) const`
     // to make it easier to build the market snapshot table from World/Ship?
     std::vector<MarketItemPrice> m_marketItemPrices;
-    std::string m_name;
     Orbit m_orbit;
 };
 
@@ -117,13 +118,10 @@ public:
         InTransit
     };
 
-    explicit Ship(Universe *universe, const ShipClass *shipClass, const World *initialWorld, std::string_view name);
+    explicit Ship(Universe *universe, const ShipClass *shipClass, const World *initialWorld);
     ~Ship();
 
     const Universe *universe() const { return m_universe; }
-
-    void setName(std::string_view name);
-    std::string_view name() const { return m_name; }
 
     State state() const { return m_state; }
 
@@ -143,13 +141,14 @@ public:
 
     muslots::Signal<const MarketItem *> cargoChangedSignal;
 
+    std::string name;
+
 private:
     void updateState(JulianDate date);
 
     Universe *m_universe{nullptr};
     const ShipClass *m_shipClass{nullptr};
     const World *m_world{nullptr};
-    std::string m_name;
     State m_state{State::Docked};
     std::optional<MissionPlan> m_missionPlan;
     std::unordered_map<const MarketItem *, int> m_cargo;

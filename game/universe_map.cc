@@ -369,14 +369,14 @@ void UniverseMap::render() const
     shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4(1.0, 1.0, 1.0, 1.0));
     for (const auto *world : worlds)
     {
-        drawLabel(world->position(), world->name());
+        drawLabel(world->position(), world->name);
     }
 
     // ship labels
     shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4(1.0, 0.0, 0.0, 1.0));
     for (const auto *ship : ships)
     {
-        drawLabel(ship->position(), ship->name());
+        drawLabel(ship->position(), ship->name);
     }
 }
 
@@ -393,7 +393,7 @@ void UniverseMap::handleMouseButton(MouseButton button, MouseAction action, cons
     {
         if (const auto *world = pickWorld(pos))
         {
-            std::println("picked {}", world->name());
+            std::println("picked {}", world->name);
             m_cameraTarget = world;
             m_cameraController.moveCameraCenter(m_cameraTarget->position(), true);
         }

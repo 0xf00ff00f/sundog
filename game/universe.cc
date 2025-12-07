@@ -128,9 +128,8 @@ void Orbit::updateOrbitRotationMatrix()
     m_orbitRotationMatrix = rN * ri * rw;
 }
 
-World::World(Universe *universe, std::string name, const OrbitalElements &elems)
+World::World(Universe *universe, const OrbitalElements &elems)
     : m_universe(universe)
-    , m_name(std::move(name))
     , m_orbit(elems)
 {
     std::random_device rnd;
@@ -175,11 +174,10 @@ const MarketItemPrice *World::findMarketItemPrice(const MarketItem *item) const
     return it != m_marketItemPrices.end() ? &*it : nullptr;
 }
 
-Ship::Ship(Universe *universe, const ShipClass *shipClass, const World *world, std::string_view name)
+Ship::Ship(Universe *universe, const ShipClass *shipClass, const World *world)
     : m_universe(universe)
     , m_shipClass(shipClass)
     , m_world(world)
-    , m_name(name)
     , m_dateChangedConnection(m_universe->dateChangedSignal.connect([this](JulianDate date) { updateState(date); }))
 {
 }
@@ -187,11 +185,6 @@ Ship::Ship(Universe *universe, const ShipClass *shipClass, const World *world, s
 Ship::~Ship()
 {
     m_dateChangedConnection.disconnect();
-}
-
-void Ship::setName(std::string_view name)
-{
-    m_name = name;
 }
 
 void Ship::setMissionPlan(std::optional<MissionPlan> missionPlan)
@@ -319,7 +312,9 @@ void Universe::update(Seconds elapsed)
 
 Ship *Universe::addShip(const ShipClass *shipClass, const World *world, std::string_view name)
 {
-    return m_ships.emplace_back(std::make_unique<Ship>(this, shipClass, world, name)).get();
+    auto &ship = m_ships.emplace_back(std::make_unique<Ship>(this, shipClass, world));
+    ship->name = name;
+    return ship.get();
 }
 
 bool Universe::load(const std::string &path)
@@ -360,8 +355,12 @@ bool Universe::load(const std::string &path)
     // worlds
     for (const nlohmann::json &worldJson : json.at("worlds"))
     {
-        m_worlds.emplace_back(std::make_unique<World>(this, worldJson.at("name").get<std::string>(),
-                                                      worldJson.at("orbit").get<OrbitalElements>()));
+        auto name = worldJson.at("name").get<std::string>();
+        auto marketName = worldJson.at("market").get<std::string>();
+        auto orbit = worldJson.at("orbit").get<OrbitalElements>();
+        auto &world = m_worlds.emplace_back(std::make_unique<World>(this, orbit));
+        world->name = std::move(name);
+        world->marketName = std::move(marketName);
     }
 
     return true;

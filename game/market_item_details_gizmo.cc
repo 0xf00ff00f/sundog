@@ -159,11 +159,11 @@ void MarketItemDetailsGizmo::setItem(const MarketItem *item)
 
     m_importerTable->clearRows();
     for (const auto &[world, price] : buyPrices | std::views::take(4))
-        m_importerTable->appendRow(world->name(), price);
+        m_importerTable->appendRow(world->name, price);
     m_importerTable->setVisibleRowCount(m_importerTable->rowCount());
 
     m_exporterTable->clearRows();
     for (const auto &[world, price] : sellPrices | std::views::take(4))
-        m_exporterTable->appendRow(world->name(), price);
+        m_exporterTable->appendRow(world->name, price);
     m_exporterTable->setVisibleRowCount(m_exporterTable->rowCount());
 }
