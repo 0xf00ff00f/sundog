@@ -28,6 +28,7 @@ public:
         SemiMajorAxis,
         Eccentricity,
         StartAngle,
+        CurrentAngle,
         EndAngle,
         AspectRatio,
         Thickness,

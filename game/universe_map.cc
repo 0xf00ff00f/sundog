@@ -265,6 +265,7 @@ void UniverseMap::render() const
             assert(plan.has_value());
 
             const auto startAngle = orbit->eccentricAnomaly(plan->departureTime);
+            const auto currentAngle = orbit->eccentricAnomaly(m_universe->date());
             const auto endAngle = orbit->eccentricAnomaly(plan->arrivalTime);
 
             shaderManager->setUniform(ShaderManager::Uniform::Thickness,
@@ -282,6 +283,7 @@ void UniverseMap::render() const
             shaderManager->setUniform(ShaderManager::Uniform::SemiMajorAxis, semiMajorAxis);
             shaderManager->setUniform(ShaderManager::Uniform::Eccentricity, eccentricity);
             shaderManager->setUniform(ShaderManager::Uniform::StartAngle, startAngle);
+            shaderManager->setUniform(ShaderManager::Uniform::CurrentAngle, currentAngle);
             shaderManager->setUniform(ShaderManager::Uniform::EndAngle, endAngle);
 
 #if !defined(ORBIT_WIREFRAME)

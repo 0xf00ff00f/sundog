@@ -8,8 +8,10 @@ uniform float aspectRatio;
 uniform float thickness;
 uniform float startAngle;
 uniform float endAngle;
+uniform float currentAngle;
 
 out float vs_angle;
+out float vs_currentAngle;
 out float vs_endAngle;
 
 void main() {
@@ -41,6 +43,7 @@ void main() {
     normalClip.x /= aspectRatio;
 
     vs_angle = angle;
+    vs_currentAngle = currentAngle;
     vs_endAngle = endAngle;
     gl_Position = currentClip + vec4(normalDirection * normalClip * currentClip.w, 0.0, 0.0);
 }
