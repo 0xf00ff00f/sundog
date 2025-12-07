@@ -40,4 +40,5 @@ private:
     std::unique_ptr<Mesh> m_orbitMesh;
     glm::mat4 m_projectionMatrix;
     CameraController m_cameraController;
+    const World *m_cameraTarget{nullptr};
 };
