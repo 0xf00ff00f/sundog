@@ -4,6 +4,11 @@
 
 #include <print>
 
+namespace
+{
+constexpr auto kTargetAnimationMinDistance = 0.001f;
+}
+
 VelocitySampler::VelocitySampler() = default;
 
 void VelocitySampler::reset(const glm::vec2 &position)
@@ -100,6 +105,18 @@ void CameraController::update(Seconds seconds)
             m_rotationVelocity *= std::expf(-5.0f * static_cast<float>(seconds.count()));
         }
     }
+
+    if (m_targetCameraCenter.has_value())
+    {
+        const auto alpha = std::expf(-100.f * static_cast<float>(seconds.count()));
+        const auto updatedCameraCenter = alpha * m_targetCameraCenter.value() + (1.0f - alpha) * m_cameraCenter;
+        if (glm::distance(updatedCameraCenter, m_targetCameraCenter.value()) < kTargetAnimationMinDistance)
+        {
+            m_cameraCenter = m_targetCameraCenter.value();
+            m_targetCameraCenter.reset();
+        }
+        moveCameraCenter(updatedCameraCenter);
+    }
 }
 
 void CameraController::rotate(const glm::vec2 &dir)
@@ -133,6 +150,18 @@ void CameraController::setCameraCenter(const glm::vec3 &cameraCenter)
 {
     m_cameraCenter = cameraCenter;
     updateViewMatrix();
+}
+
+void CameraController::moveCameraCenter(const glm::vec3 &cameraCenter, bool animate)
+{
+    if (animate && glm::distance(cameraCenter, m_cameraCenter) >= kTargetAnimationMinDistance)
+    {
+        m_targetCameraCenter = cameraCenter;
+    }
+    else
+    {
+        moveCameraCenter(cameraCenter);
+    }
 }
 
 void CameraController::moveCameraCenter(const glm::vec3 &cameraCenter)

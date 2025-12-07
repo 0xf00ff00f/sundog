@@ -31,7 +31,7 @@ public:
 
     glm::vec3 cameraCenter() const { return m_cameraCenter; }
     void setCameraCenter(const glm::vec3 &center);
-    void moveCameraCenter(const glm::vec3 &center);
+    void moveCameraCenter(const glm::vec3 &center, bool animate);
 
     glm::vec3 cameraEye() const { return m_cameraEye; }
 
@@ -42,6 +42,7 @@ public:
 
 private:
     glm::vec2 normalizedViewportPos(const glm::vec2 &viewportPos) const;
+    void moveCameraCenter(const glm::vec3 &center);
     void updateViewMatrix();
     void rotate(const glm::vec2 &dir);
 
@@ -54,5 +55,6 @@ private:
     glm::vec2 m_lastPosition;
     VelocitySampler m_mouseVelocitySampler;
     glm::vec2 m_rotationVelocity = glm::vec2{0.0f};
+    std::optional<glm::vec3> m_targetCameraCenter;
     SizeI m_viewportSize;
 };

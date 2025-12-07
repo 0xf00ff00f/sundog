@@ -395,7 +395,7 @@ void UniverseMap::handleMouseButton(MouseButton button, MouseAction action, cons
         {
             std::println("picked {}", world->name());
             m_cameraTarget = world;
-            m_cameraController.moveCameraCenter(m_cameraTarget->position());
+            m_cameraController.moveCameraCenter(m_cameraTarget->position(), true);
         }
     }
     m_cameraController.handleMouseButton(button, action, pos, mods);
@@ -441,6 +441,6 @@ void UniverseMap::handleMouseMove(const glm::vec2 &pos)
 void UniverseMap::update(Seconds seconds)
 {
     if (m_cameraTarget)
-        m_cameraController.moveCameraCenter(m_cameraTarget->position());
+        m_cameraController.moveCameraCenter(m_cameraTarget->position(), true);
     m_cameraController.update(seconds);
 }
