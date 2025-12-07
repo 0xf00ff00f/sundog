@@ -311,12 +311,18 @@ void UniverseMap::render() const
 
     // planet meshes
 
-    auto drawBodyMesh = [this, shaderManager, &viewMatrix](const Orbit &orbit, float radius) {
+    auto drawBodyMesh = [this, shaderManager, &viewMatrix](const Orbit &orbit, float radius, float tilt, float roll) {
+        constexpr auto kTiltAxis = glm::vec3{0.0, 1.0, 0.0};
+        constexpr auto kRollAxis = glm::vec3{0.0, 0.0, 1.0};
+
         const auto position = orbit.positionOnOrbitPlane(m_universe->date());
         const auto orbitRotation = glm::mat4{orbit.orbitRotationMatrix()};
         const auto translationMatrix = glm::translate(glm::mat4{1.0f}, glm::vec3{position, 0.0f});
+        const auto tiltRotationMatrix = glm::rotate(glm::mat4{1.0f}, tilt, kTiltAxis);
+        const auto rollRotationMatrix = glm::rotate(glm::mat4{1.0f}, roll, kRollAxis);
         const auto scaleMatrix = glm::scale(glm::mat4{1.0f}, glm::vec3{radius});
-        const auto modelMatrix = orbitRotation * translationMatrix * scaleMatrix;
+        const auto modelMatrix =
+            orbitRotation * translationMatrix * tiltRotationMatrix * rollRotationMatrix * scaleMatrix;
         const auto mvp = m_projectionMatrix * viewMatrix * modelMatrix;
         shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
 #if !defined(SPHERE_WIREFRAME)
@@ -329,7 +335,9 @@ void UniverseMap::render() const
     shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4{0.25, 0.75, 0.25, 1.0f});
     for (const auto *world : worlds)
     {
-        drawBodyMesh(world->orbit(), scaledRadius(world));
+        const auto t = m_universe->date().time_since_epoch().count(); // XXX not really
+        const float roll = t * 2.0 * glm::pi<float>() / world->rotationPeriod.count();
+        drawBodyMesh(world->orbit(), scaledRadius(world), world->axialTilt, roll);
     }
 
     // ship meshes
@@ -338,7 +346,7 @@ void UniverseMap::render() const
     {
         if (const auto *orbit = ship->orbit())
         {
-            drawBodyMesh(*orbit, 0.05f);
+            drawBodyMesh(*orbit, 0.05f, 0.0, 0.0);
         }
     }
 
