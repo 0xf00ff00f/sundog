@@ -14,6 +14,7 @@ public:
         Flat,
         Text,
         Orbit,
+        PartialOrbit,
         Count
     };
 

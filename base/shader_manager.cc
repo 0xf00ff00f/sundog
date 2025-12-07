@@ -34,7 +34,8 @@ bool ShaderManager::initialize()
          {"billboard.vert", "billboard.frag"},
          {"flat.vert", "flat.frag"},
          {"text.vert", "text.frag"},
-         {"orbit.vert", "orbit.frag"}}};
+         {"orbit.vert", "orbit.frag"},
+         {"partial_orbit.vert", "partial_orbit.frag"}}};
     for (size_t index = 0; const auto &[vsPath, fsPath] : shaders)
     {
         const auto vertexShader = readFile(shaderFilePath(vsPath));
