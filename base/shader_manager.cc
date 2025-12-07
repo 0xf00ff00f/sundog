@@ -35,7 +35,8 @@ bool ShaderManager::initialize()
          {"flat.vert", "flat.frag"},
          {"text.vert", "text.frag"},
          {"orbit.vert", "orbit.frag"},
-         {"partial_orbit.vert", "partial_orbit.frag"}}};
+         {"partial_orbit.vert", "partial_orbit.frag"},
+         {"planet.vert", "planet.frag"}}};
     for (size_t index = 0; const auto &[vsPath, fsPath] : shaders)
     {
         const auto vertexShader = readFile(shaderFilePath(vsPath));
@@ -80,9 +81,25 @@ int ShaderManager::uniformLocation(Uniform uniform)
     const auto index = static_cast<size_t>(uniform);
     if (locations[index] == -1)
     {
-        static const std::array<std::string, static_cast<size_t>(Uniform::Count)> uniforms = {
-            "projectionMatrix", "viewMatrix", "modelMatrix",  "mvp",      "color",       "semiMajorAxis",
-            "eccentricity",     "startAngle", "currentAngle", "endAngle", "aspectRatio", "thickness"};
+        static const std::array<std::string, static_cast<size_t>(Uniform::Count)> uniforms = {"projectionMatrix",
+                                                                                              "viewMatrix",
+                                                                                              "modelMatrix",
+                                                                                              "modelViewMatrix",
+                                                                                              "modelViewNormalMatrix",
+                                                                                              "mvp",
+                                                                                              "color",
+                                                                                              "semiMajorAxis",
+                                                                                              "eccentricity",
+                                                                                              "startAngle",
+                                                                                              "currentAngle",
+                                                                                              "endAngle",
+                                                                                              "aspectRatio",
+                                                                                              "thickness",
+                                                                                              "lightPosition",
+                                                                                              "lightIntensity",
+                                                                                              "ka",
+                                                                                              "ks",
+                                                                                              "shininess"};
         locations[index] = m_currentShader->program.uniformLocation(uniforms[index]);
     }
     return locations[index];

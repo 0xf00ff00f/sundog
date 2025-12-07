@@ -14,7 +14,8 @@
             },
             "radius": 2440.5,
             "rotation_period": 58.6,
-            "axial_tilt": 0.01
+            "axial_tilt": 0.01,
+            "texture": "mercury.png"
         },
         {
             "name": "Venus",
@@ -30,7 +31,8 @@
             },
             "radius": 6051.8,
             "rotation_period": 243,
-            "axial_tilt": 177.4
+            "axial_tilt": 177.4,
+            "texture": "venus.png"
         },
         {
             "name": "Earth",
@@ -46,7 +48,8 @@
             },
             "radius": 6378.1,
             "rotation_period": 0.997,
-            "axial_tilt": 23.4
+            "axial_tilt": 23.4,
+            "texture": "earth.png"
         },
         {
             "name": "Mars",
@@ -62,7 +65,8 @@
             },
             "radius": 3396.2,
             "rotation_period": 1.026,
-            "axial_tilt": 25.2
+            "axial_tilt": 25.2,
+            "texture": "mars.png"
         },
         {
             "name": "Jupiter",
@@ -78,7 +82,8 @@
             },
             "radius": 71492,
             "rotation_period": 3.1,
-            "axial_tilt": 0.414
+            "axial_tilt": 0.414,
+            "texture": "jupiter.png"
         },
         {
             "name": "Saturn",
@@ -94,7 +99,8 @@
             },
             "radius": 60268,
             "rotation_period": 0.444,
-            "axial_tilt": 26.7
+            "axial_tilt": 26.7,
+            "texture": "empty.png"
         },
         {
             "name": "Uranus",
@@ -110,7 +116,8 @@
             },
             "radius": 25559,
             "rotation_period": 0.718,
-            "axial_tilt": 97.8
+            "axial_tilt": 97.8,
+            "texture": "empty.png"
         },
         {
             "name": "Neptune",
@@ -126,7 +133,8 @@
             },
             "radius": 24764,
             "rotation_period": 0.671,
-            "axial_tilt": 28.3
+            "axial_tilt": 28.3,
+            "texture": "empty.png"
         },
         {
             "name": "Ceres",
@@ -142,7 +150,8 @@
             },
             "radius": 469.7,
             "rotation_period": 0.375,
-            "axial_tilt": 4
+            "axial_tilt": 4,
+            "texture": "empty.png"
         },
         {
             "name": "Pallas",
@@ -158,7 +167,8 @@
             },
             "radius": 250,
             "rotation_period": 0.3,
-            "axial_tilt": 84
+            "axial_tilt": 84,
+            "texture": "empty.png"
         },
         {
             "name": "Juno",
@@ -174,7 +184,8 @@
             },
             "radius": 125,
             "rotation_period": 0.3,
-            "axial_tilt": 12
+            "axial_tilt": 12,
+            "texture": "empty.png"
         },
         {
             "name": "Vesta",
@@ -190,7 +201,8 @@
             },
             "radius": 250,
             "rotation_period": 0.2,
-            "axial_tilt": 29
+            "axial_tilt": 29,
+            "texture": "empty.png"
         },
         {
             "name": "Hygiea",
@@ -206,7 +218,8 @@
             },
             "radius": 215,
             "rotation_period": 0.54,
-            "axial_tilt": 120
+            "axial_tilt": 120,
+            "texture": "empty.png"
         },
         {
             "name": "Phaethon",
@@ -222,7 +235,8 @@
             },
             "radius": 2.5,
             "rotation_period": 0.125,
-            "axial_tilt": 32
+            "axial_tilt": 32,
+            "texture": "empty.png"
         }
     ],
     "ships": {

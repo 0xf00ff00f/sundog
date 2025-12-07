@@ -47,7 +47,9 @@ target_sources(
           system.cc
           icon_cache.h
           icon_cache.cc
-          dict.h)
+          dict.h
+          texture_cache.h
+          texture_cache.cc)
 target_compile_features(base PUBLIC cxx_std_23)
 target_compile_definitions(base PUBLIC GLM_ENABLE_EXPERIMENTAL)
 target_include_directories(base PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)

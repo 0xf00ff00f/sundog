@@ -3,6 +3,7 @@
 #include "orbital_elements.h"
 
 #include <base/window_base.h> // FIXME for Seconds, put it somewhere else
+#include <base/glhelpers.h>
 
 #include <muslots/muslots.h>
 
@@ -90,6 +91,7 @@ public:
     JulianClock::duration rotationPeriod;
     double axialTilt; // radians
     std::string marketName;
+    std::string diffuseTexture;
 
 private:
     Universe *m_universe{nullptr};

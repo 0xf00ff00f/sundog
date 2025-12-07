@@ -6,6 +6,7 @@
 #include <base/shader_manager.h>
 #include <base/painter.h>
 #include <base/mesh.h>
+#include <base/texture_cache.h>
 
 #include <glm/gtx/string_cast.hpp>
 
@@ -93,12 +94,13 @@ std::unique_ptr<Mesh> createOrbitMesh()
 
 std::unique_ptr<Mesh> createSphereMesh()
 {
-    constexpr auto kRings = 20;
-    constexpr auto kSlices = 20;
+    constexpr auto kRings = 30;
+    constexpr auto kSlices = 30;
 
     struct Vertex
     {
         glm::vec3 position;
+        glm::vec3 normal;
         glm::vec2 texCoord;
     };
 
@@ -111,13 +113,14 @@ std::unique_ptr<Mesh> createSphereMesh()
         const auto u = static_cast<float>(i) / (kRings - 1);
         for (std::size_t j = 0; j < kSlices; ++j)
         {
-            const auto lon = j * 2.0f * glm::pi<float>() / kSlices - glm::pi<float>();
-            const auto v = static_cast<float>(j) / kSlices;
+            const auto lon = j * 2.0f * glm::pi<float>() / (kSlices - 1) - glm::pi<float>();
+            const auto v = static_cast<float>(j) / (kSlices - 1);
 
             const auto position = latLonToCartesian(lat, lon);
+            const auto normal = glm::normalize(position);
             const auto texCoord = glm::vec2{v, u};
 
-            verts.emplace_back(position, texCoord);
+            verts.emplace_back(position, normal, texCoord);
         }
     }
     mesh->setVertexData(std::as_bytes(std::span{verts}), verts.size());
@@ -125,12 +128,12 @@ std::unique_ptr<Mesh> createSphereMesh()
     std::vector<uint32_t> indices;
     for (std::size_t i = 0; i < kRings - 1; ++i)
     {
-        for (std::size_t j = 0; j < kSlices; ++j)
+        for (std::size_t j = 0; j < kSlices - 1; ++j)
         {
             const auto v0 = i * kSlices + j;
             const auto v1 = (i + 1) * kSlices + j;
-            const auto v2 = (i + 1) * kSlices + (j + 1) % kSlices;
-            const auto v3 = i * kSlices + (j + 1) % kSlices;
+            const auto v2 = (i + 1) * kSlices + j + 1;
+            const auto v3 = i * kSlices + j + 1;
 
 #if !defined(SPHERE_WIREFRAME)
             indices.push_back(v0);
@@ -157,8 +160,9 @@ std::unique_ptr<Mesh> createSphereMesh()
     }
     mesh->setIndexData(indices);
 
-    const std::array<Mesh::VertexAttribute, 2> attributes = {
+    const std::array<Mesh::VertexAttribute, 3> attributes = {
         Mesh::VertexAttribute{3, Mesh::Type::Float, offsetof(Vertex, position)},
+        Mesh::VertexAttribute{3, Mesh::Type::Float, offsetof(Vertex, normal)},
         Mesh::VertexAttribute{2, Mesh::Type::Float, offsetof(Vertex, texCoord)}};
     mesh->setVertexAttributes(attributes, sizeof(Vertex));
 
@@ -217,14 +221,15 @@ void UniverseMap::render() const
     glEnable(GL_DEPTH_TEST);
 
     auto *shaderManager = System::instance()->shaderManager();
+    auto *textureCache = System::instance()->textureCache();
 
     // planet orbits
 
     shaderManager->setCurrent(ShaderManager::Shader::Orbit);
     shaderManager->setUniform(ShaderManager::Uniform::AspectRatio,
                               static_cast<float>(m_viewportSize.width()) / static_cast<float>(m_viewportSize.height()));
-    shaderManager->setUniform(ShaderManager::Uniform::Thickness, 3.0f / static_cast<float>(m_viewportSize.height()));
-    shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4{0.5, 0.5, 0.5, 1.0});
+    shaderManager->setUniform(ShaderManager::Uniform::Thickness, 1.0f / static_cast<float>(m_viewportSize.height()));
+    shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4{0.75, 0.75, 0.75, 1.0});
     const auto worlds = m_universe->worlds();
     for (const auto *world : worlds)
     {
@@ -270,7 +275,6 @@ void UniverseMap::render() const
 
             shaderManager->setUniform(ShaderManager::Uniform::Thickness,
                                       3.0f / static_cast<float>(m_viewportSize.height()));
-            // drawOrbit(*orbit, startAngle, endAngle, glm::vec4{1.0, 0.0, 0.0, 1.0});
 
             const auto elems = orbit->elements();
             const auto semiMajorAxis = elems.semiMajorAxis;
@@ -296,8 +300,10 @@ void UniverseMap::render() const
 
     // sun mesh
 
-    shaderManager->setCurrent(ShaderManager::Shader::Wireframe);
     {
+        // TODO this looks like garbage
+
+        shaderManager->setCurrent(ShaderManager::Shader::Wireframe);
         shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4{1.0, 1.0, 0.5, 1.0f});
         const auto scale = glm::scale(glm::mat4{1.0f}, glm::vec3{0.1f});
         shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix,
@@ -311,10 +317,30 @@ void UniverseMap::render() const
 
     // planet meshes
 
-    auto drawBodyMesh = [this, shaderManager, &viewMatrix](const Orbit &orbit, float radius, float tilt, float roll) {
+    shaderManager->setCurrent(ShaderManager::Shader::Planet);
+    shaderManager->setUniform(ShaderManager::Uniform::LightPosition, glm::vec3{0.0});
+    shaderManager->setUniform(ShaderManager::Uniform::LightIntensity, glm::vec3{1.0});
+    shaderManager->setUniform(ShaderManager::Uniform::Ambient, glm::vec3{0.1});
+    shaderManager->setUniform(ShaderManager::Uniform::Specular, glm::vec3{0.1});
+    shaderManager->setUniform(ShaderManager::Uniform::Shininess, 50.0);
+    for (const auto *world : worlds)
+    {
         constexpr auto kTiltAxis = glm::vec3{0.0, 1.0, 0.0};
         constexpr auto kRollAxis = glm::vec3{0.0, 0.0, 1.0};
 
+        const float tilt = world->axialTilt;
+
+        const auto t = m_universe->date().time_since_epoch().count(); // XXX not really
+        double dummy;
+        const float alpha = std::modf(t / world->rotationPeriod.count(), &dummy);
+        const float roll = alpha * 2.0 * glm::pi<float>();
+
+        const auto radius = scaledRadius(world);
+
+        const auto *texture = textureCache->findOrCreateTexture(world->diffuseTexture);
+        texture->bind();
+
+        const auto &orbit = world->orbit();
         const auto position = orbit.positionOnOrbitPlane(m_universe->date());
         const auto orbitRotation = glm::mat4{orbit.orbitRotationMatrix()};
         const auto translationMatrix = glm::translate(glm::mat4{1.0f}, glm::vec3{position, 0.0f});
@@ -323,30 +349,40 @@ void UniverseMap::render() const
         const auto scaleMatrix = glm::scale(glm::mat4{1.0f}, glm::vec3{radius});
         const auto modelMatrix =
             orbitRotation * translationMatrix * tiltRotationMatrix * rollRotationMatrix * scaleMatrix;
-        const auto mvp = m_projectionMatrix * viewMatrix * modelMatrix;
+        const auto modelViewMatrix = viewMatrix * modelMatrix;
+        shaderManager->setUniform(ShaderManager::Uniform::ViewMatrix, viewMatrix);
+        shaderManager->setUniform(ShaderManager::Uniform::ModelViewMatrix, modelViewMatrix);
+        shaderManager->setUniform(ShaderManager::Uniform::ModelViewNormalMatrix,
+                                  glm::transpose(glm::inverse(glm::mat3{modelViewMatrix})));
+        const auto mvp = m_projectionMatrix * modelViewMatrix;
         shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
 #if !defined(SPHERE_WIREFRAME)
         m_sphereMesh->draw(Mesh::Primitive::Triangles);
 #else
         m_sphereMesh->draw(Mesh::Primitive::Lines);
 #endif
-    };
-
-    shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4{0.25, 0.75, 0.25, 1.0f});
-    for (const auto *world : worlds)
-    {
-        const auto t = m_universe->date().time_since_epoch().count(); // XXX not really
-        const float roll = t * 2.0 * glm::pi<float>() / world->rotationPeriod.count();
-        drawBodyMesh(world->orbit(), scaledRadius(world), world->axialTilt, roll);
     }
 
     // ship meshes
-    shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4{1.0f});
+    shaderManager->setCurrent(ShaderManager::Shader::Wireframe);
+    shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4{1.0});
     for (const auto *ship : ships)
     {
         if (const auto *orbit = ship->orbit())
         {
-            drawBodyMesh(*orbit, 0.05f, 0.0, 0.0);
+            constexpr auto kRadius = 0.05f;
+            const auto position = orbit->positionOnOrbitPlane(m_universe->date());
+            const auto orbitRotation = glm::mat4{orbit->orbitRotationMatrix()};
+            const auto translationMatrix = glm::translate(glm::mat4{1.0f}, glm::vec3{position, 0.0f});
+            const auto scaleMatrix = glm::scale(glm::mat4{1.0f}, glm::vec3{kRadius});
+            const auto modelMatrix = orbitRotation * translationMatrix * scaleMatrix;
+            const auto mvp = m_projectionMatrix * viewMatrix * modelMatrix;
+            shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
+#if !defined(SPHERE_WIREFRAME)
+            m_sphereMesh->draw(Mesh::Primitive::Triangles);
+#else
+            m_sphereMesh->draw(Mesh::Primitive::Lines);
+#endif
         }
     }
 

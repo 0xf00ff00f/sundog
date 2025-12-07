@@ -1,6 +1,7 @@
 #include "universe.h"
 
 #include <base/file.h>
+#include <base/asset_path.h>
 
 #include <glm/gtx/transform.hpp>
 
@@ -361,12 +362,14 @@ bool Universe::load(const std::string &path)
         const auto axialTilt = glm::radians(worldJson.at("axial_tilt").get<double>());
         auto marketName = worldJson.at("market").get<std::string>();
         auto orbit = worldJson.at("orbit").get<OrbitalElements>();
+        auto texture = worldJson.at("texture").get<std::string>();
         auto &world = m_worlds.emplace_back(std::make_unique<World>(this, orbit));
         world->name = std::move(name);
         world->radius = radius;
         world->rotationPeriod = rotationPeriod;
         world->axialTilt = axialTilt;
         world->marketName = std::move(marketName);
+        world->diffuseTexture = std::move(texture);
     }
 
     return true;

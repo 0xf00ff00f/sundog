@@ -15,6 +15,7 @@ public:
         Text,
         Orbit,
         PartialOrbit,
+        Planet,
         Count
     };
 
@@ -23,6 +24,8 @@ public:
         ProjectionMatrix,
         ViewMatrix,
         ModelMatrix,
+        ModelViewMatrix,
+        ModelViewNormalMatrix,
         ModelViewProjectionMatrix,
         Color,
         SemiMajorAxis,
@@ -32,6 +35,11 @@ public:
         EndAngle,
         AspectRatio,
         Thickness,
+        LightPosition,
+        LightIntensity,
+        Ambient,
+        Specular,
+        Shininess,
         Count
     };
 
