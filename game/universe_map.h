@@ -31,6 +31,7 @@ public:
 
 private:
     void initializeMeshes();
+    float scaledRadius(const World *world) const;
     const World *pickWorld(const glm::vec2 &viewportPos);
 
     const Universe *m_universe{nullptr};

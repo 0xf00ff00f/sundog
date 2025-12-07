@@ -86,6 +86,9 @@ public:
     glm::vec2 positionOnOrbitPlane(JulianDate date) const;
 
     std::string name;
+    double radius; // km
+    JulianClock::duration rotationPeriod;
+    double axialTilt; // radians
     std::string marketName;
 
 private:

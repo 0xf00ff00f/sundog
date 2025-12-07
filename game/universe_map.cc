@@ -311,11 +311,11 @@ void UniverseMap::render() const
 
     // planet meshes
 
-    auto drawBodyMesh = [this, shaderManager, &viewMatrix](const Orbit &orbit, float scale) {
+    auto drawBodyMesh = [this, shaderManager, &viewMatrix](const Orbit &orbit, float radius) {
         const auto position = orbit.positionOnOrbitPlane(m_universe->date());
         const auto orbitRotation = glm::mat4{orbit.orbitRotationMatrix()};
         const auto translationMatrix = glm::translate(glm::mat4{1.0f}, glm::vec3{position, 0.0f});
-        const auto scaleMatrix = glm::scale(glm::mat4{1.0f}, glm::vec3{scale});
+        const auto scaleMatrix = glm::scale(glm::mat4{1.0f}, glm::vec3{radius});
         const auto modelMatrix = orbitRotation * translationMatrix * scaleMatrix;
         const auto mvp = m_projectionMatrix * viewMatrix * modelMatrix;
         shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
@@ -329,7 +329,7 @@ void UniverseMap::render() const
     shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4{0.25, 0.75, 0.25, 1.0f});
     for (const auto *world : worlds)
     {
-        drawBodyMesh(world->orbit(), 0.1f);
+        drawBodyMesh(world->orbit(), scaledRadius(world));
     }
 
     // ship meshes
@@ -406,6 +406,11 @@ void UniverseMap::handleMouseWheel(const glm::vec2 &mousePos, const glm::vec2 &w
     m_cameraController.handleMouseWheel(mousePos, wheelOffset);
 }
 
+float UniverseMap::scaledRadius(const World *world) const
+{
+    return 0.05 + 0.04 * std::log(std::max(0.001 * world->radius, 1.0));
+}
+
 const World *UniverseMap::pickWorld(const glm::vec2 &viewportPos)
 {
     const auto viewMatrix = m_cameraController.viewMatrix();
@@ -426,8 +431,7 @@ const World *UniverseMap::pickWorld(const glm::vec2 &viewportPos)
     for (const auto *world : worlds)
     {
         const auto position = world->position();
-        constexpr auto kRadius = 0.1f;
-        const auto dist = raySphereIntersect(rayFrom, rayDir, position, kRadius);
+        const auto dist = raySphereIntersect(rayFrom, rayDir, position, scaledRadius(world));
         if (dist > 0.0f && dist < closestDist)
         {
             closestDist = dist;

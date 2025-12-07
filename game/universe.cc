@@ -356,10 +356,16 @@ bool Universe::load(const std::string &path)
     for (const nlohmann::json &worldJson : json.at("worlds"))
     {
         auto name = worldJson.at("name").get<std::string>();
+        const auto radius = worldJson.at("radius").get<double>();
+        const auto rotationPeriod = JulianClock::duration{worldJson.at("rotation_period").get<double>()};
+        const auto axialTilt = glm::radians(worldJson.at("axial_tilt").get<double>());
         auto marketName = worldJson.at("market").get<std::string>();
         auto orbit = worldJson.at("orbit").get<OrbitalElements>();
         auto &world = m_worlds.emplace_back(std::make_unique<World>(this, orbit));
         world->name = std::move(name);
+        world->radius = radius;
+        world->rotationPeriod = rotationPeriod;
+        world->axialTilt = axialTilt;
         world->marketName = std::move(marketName);
     }
 
