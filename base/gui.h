@@ -143,6 +143,8 @@ public:
     void setOptions(Option options);
 
     SizeF size() const { return m_size; }
+    float width() const { return m_size.width(); }
+    float height() const { return m_size.height(); }
     RectF rect() const { return RectF{glm::vec2{0.0f}, m_size}; }
 
     void paint(Painter *painter, const glm::vec2 &pos, int depth) const;

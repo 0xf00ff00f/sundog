@@ -246,8 +246,9 @@ void Ship::updateState(JulianDate date)
         {
             assert(m_world == m_missionPlan->origin); // sanity check
             // started mission
-            m_state = State::InTransit;
             m_world = nullptr;
+            m_state = State::InTransit;
+            stateChangedSignal(m_state);
         }
         break;
     }
@@ -256,9 +257,10 @@ void Ship::updateState(JulianDate date)
         if (m_missionPlan->arrivalTime < date)
         {
             // arrived at destination
-            m_state = State::Docked;
             m_world = m_missionPlan->destination;
             m_missionPlan.reset();
+            m_state = State::Docked;
+            stateChangedSignal(m_state);
         }
         break;
     }
@@ -315,6 +317,7 @@ Ship *Universe::addShip(const ShipClass *shipClass, const World *world, std::str
 {
     auto &ship = m_ships.emplace_back(std::make_unique<Ship>(this, shipClass, world));
     ship->name = name;
+    shipAddedSignal(ship.get());
     return ship.get();
 }
 

@@ -127,6 +127,7 @@ public:
     ~Ship();
 
     const Universe *universe() const { return m_universe; }
+    const ShipClass *shipClass() const { return m_shipClass; }
 
     State state() const { return m_state; }
 
@@ -145,6 +146,7 @@ public:
     void changeCargo(const MarketItem *item, int count);
 
     muslots::Signal<const MarketItem *> cargoChangedSignal;
+    mutable muslots::Signal<State> stateChangedSignal;
 
     std::string name;
 
@@ -197,6 +199,8 @@ public:
     Ship *addShip(const ShipClass *shipClass, const World *world, std::string_view name);
 
     muslots::Signal<JulianDate> dateChangedSignal;
+    muslots::Signal<const Ship *> shipAddedSignal;
+    muslots::Signal<const Ship *> shipAboutToBeRemovedSignal;
 
 private:
     JulianDate m_date{};

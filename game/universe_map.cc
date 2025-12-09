@@ -6,6 +6,7 @@
 #include <base/shader_manager.h>
 #include <base/painter.h>
 #include <base/mesh.h>
+#include <base/gui.h>
 #include <base/texture_cache.h>
 
 #include <glm/gtx/string_cast.hpp>
@@ -15,6 +16,11 @@
 
 namespace
 {
+
+double scaledRadius(double radius)
+{
+    return 0.05 + 0.04 * std::log(std::max(0.001 * radius, 1.0));
+}
 
 float raySphereIntersect(const glm::vec3 &rayFrom, const glm::vec3 &rayDir, const glm::vec3 &sphereCenter,
                          float sphereRadius)
@@ -196,15 +202,154 @@ std::unique_ptr<Mesh> createBodyBillboardMesh()
 
 } // namespace
 
+class MapLabel : public ui::Column
+{
+public:
+    explicit MapLabel(ui::Gizmo *parent = nullptr);
+
+    virtual const World *world() const { return nullptr; }
+    virtual const Ship *ship() const { return nullptr; }
+    // TODO rename to clipSpacePosition
+    virtual glm::vec3 clipSpacePosition(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix) const = 0;
+    void paintContents(Painter *painter, const glm::vec2 &pos, int depth) const override;
+    virtual bool visible() const = 0;
+};
+
+class WorldLabel : public MapLabel
+{
+public:
+    explicit WorldLabel(const World *world);
+
+    const World *world() const override { return m_world; }
+    glm::vec3 clipSpacePosition(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix) const override;
+    bool visible() const override { return true; }
+
+private:
+    const World *m_world{nullptr};
+    ui::Text *m_text{nullptr};
+};
+
+class ShipLabel : public MapLabel
+{
+public:
+    explicit ShipLabel(const Ship *ship);
+
+    const Ship *ship() const override { return m_ship; }
+    glm::vec3 clipSpacePosition(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix) const override;
+    bool visible() const override { return m_ship->state() == Ship::State::InTransit; }
+
+private:
+    void updateStateText();
+
+    const Ship *m_ship{nullptr};
+    ui::Text *m_text{nullptr};
+    ui::MultiLineText *m_stateText{nullptr};
+    muslots::Connection m_stateChangedConnection;
+};
+
+MapLabel::MapLabel(ui::Gizmo *parent)
+    : ui::Column(parent)
+{
+    setMargins(8.0f);
+}
+
+void MapLabel::paintContents(Painter *painter, const glm::vec2 &pos, int depth) const
+{
+    constexpr auto kThickness = 1.0f;
+    const auto rect = RectF{pos + glm::vec2{0.5f * kThickness, 0.5f * kThickness},
+                            SizeF{m_size.width() - kThickness, m_size.height() - kThickness}};
+    painter->setColor(glm::vec4{1.0f});
+    painter->strokeRoundedRect(rect, 4.0f, kThickness, depth);
+    painter->setColor(glm::vec4{0.0f, 0.0f, 0.0f, 0.75f});
+    painter->fillRoundedRect(rect, 4.0f, depth);
+}
+
+WorldLabel::WorldLabel(const World *world)
+    : MapLabel()
+    , m_world(world)
+{
+    m_text = appendChild<ui::Text>();
+    m_text->setFont(g_styleSettings.smallFont);
+    m_text->color = g_styleSettings.accentColor;
+    m_text->setText(m_world->name);
+}
+
+glm::vec3 WorldLabel::clipSpacePosition(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix) const
+{
+    auto viewPosition = viewMatrix * glm::vec4{m_world->position(), 1.0f};
+    viewPosition.y += scaledRadius(m_world->radius); // move it to top of the planet
+    const auto clipSpacePosition = projectionMatrix * viewPosition;
+    return glm::vec3{clipSpacePosition} / clipSpacePosition.w;
+}
+
+ShipLabel::ShipLabel(const Ship *ship)
+    : MapLabel()
+    , m_ship(ship)
+    , m_stateChangedConnection(m_ship->stateChangedSignal.connect([this](Ship::State) { updateStateText(); }))
+{
+    m_text = appendChild<ui::Text>();
+    m_text->setFont(g_styleSettings.smallFont);
+    m_text->color = g_styleSettings.accentColor;
+    m_text->setText(ship->shipClass()->name);
+
+    auto *separator = appendChild<ui::Rectangle>(120.0f, 1.0f);
+    separator->setFillBackground(1);
+    separator->backgroundColor = glm::vec4{1.0f, 1.0f, 1.0f, 0.5f};
+
+    m_stateText = appendChild<ui::MultiLineText>();
+    m_stateText->setFont(g_styleSettings.smallFont);
+    m_stateText->color = g_styleSettings.baseColor;
+    m_stateText->setLineWidth(separator->width());
+
+    updateStateText();
+}
+
+void ShipLabel::updateStateText()
+{
+    switch (m_ship->state())
+    {
+    case Ship::State::InTransit: {
+        const auto &missionPlan = m_ship->missionPlan();
+        assert(missionPlan.has_value());
+        m_stateText->setText(std::format("En route to {}", missionPlan->destination->name));
+        break;
+    }
+    case Ship::State::Docked: {
+        const auto *world = m_ship->world();
+        assert(world);
+        m_stateText->setText(std::format("Docked on {}", world->name));
+        break;
+    }
+    }
+}
+
+glm::vec3 ShipLabel::clipSpacePosition(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix) const
+{
+    const auto viewProjectionMatrix = projectionMatrix * viewMatrix;
+    const auto clipSpacePosition = viewProjectionMatrix * glm::vec4{m_ship->position(), 1.0f};
+    return glm::vec3{clipSpacePosition} / clipSpacePosition.w;
+}
+
 // TODO: Painter singleton
-UniverseMap::UniverseMap(const Universe *universe, Painter *overlayPainter)
+UniverseMap::UniverseMap(Universe *universe, Painter *overlayPainter)
     : m_universe(universe)
     , m_overlayPainter(overlayPainter)
 {
     initializeMeshes();
+    initializeLabels();
+
+    m_connections.emplace_back(m_universe->shipAddedSignal.connect(
+        [this](const Ship *ship) { m_labels.emplace_back(std::make_unique<ShipLabel>(ship)); }));
+    m_connections.emplace_back(m_universe->shipAboutToBeRemovedSignal.connect([this](const Ship *ship) {
+        std::erase_if(m_labels, [ship](const auto &label) { return label->ship() == ship; });
+    }));
 }
 
-UniverseMap::~UniverseMap() = default;
+UniverseMap::~UniverseMap()
+{
+    for (auto &connection : m_connections)
+        connection.disconnect();
+}
 
 void UniverseMap::setViewportSize(const SizeI &size)
 {
@@ -335,7 +480,7 @@ void UniverseMap::render() const
         const float alpha = std::modf(t / world->rotationPeriod.count(), &dummy);
         const float roll = alpha * 2.0 * glm::pi<float>();
 
-        const auto radius = scaledRadius(world);
+        const auto radius = static_cast<float>(scaledRadius(world->radius));
 
         const auto *texture = textureCache->findOrCreateTexture(world->diffuseTexture);
         texture->bind();
@@ -370,7 +515,7 @@ void UniverseMap::render() const
     {
         if (const auto *orbit = ship->orbit())
         {
-            constexpr auto kRadius = 0.05f;
+            constexpr auto kRadius = 0.025f;
             const auto position = orbit->positionOnOrbitPlane(m_universe->date());
             const auto orbitRotation = glm::mat4{orbit->orbitRotationMatrix()};
             const auto translationMatrix = glm::translate(glm::mat4{1.0f}, glm::vec3{position, 0.0f});
@@ -390,37 +535,28 @@ void UniverseMap::render() const
 
     // draw labels
 
-    const auto &font = g_styleSettings.normalFont;
-    m_overlayPainter->setFont(font);
-
-    auto drawLabel = [&](const glm::vec3 &position, std::string_view name) {
-        const auto mvp = m_projectionMatrix * viewMatrix;
-        const auto positionProjected = mvp * glm::vec4(position, 1.0);
-        if (positionProjected.z > 0.0f)
-        {
-            glm::vec2 labelPosition;
-            labelPosition.x = 0.5f * ((positionProjected.x / positionProjected.w) + 1.0) * m_viewportSize.width() + 5.0;
-            labelPosition.y =
-                (1.0f - 0.5f * ((positionProjected.y / positionProjected.w) + 1.0)) * m_viewportSize.height() -
-                font.pixelHeight;
-
-            m_overlayPainter->setColor({1, 1, 1, 1});
-            m_overlayPainter->drawText(labelPosition, name);
-        }
-    };
-
-    // world labels
-    shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4(1.0, 1.0, 1.0, 1.0));
-    for (const auto *world : worlds)
+    auto labelPositions =
+        m_labels | std::views::filter([](const auto &item) { return item->visible(); }) |
+        std::views::transform([this, &viewMatrix](const auto &label) {
+            return std::make_tuple(label.get(), label->clipSpacePosition(m_projectionMatrix, viewMatrix));
+        }) |
+        std::views::filter([](const auto &item) {
+            const auto &[_, clipSpacePosition] = item;
+            return clipSpacePosition.z > -1.0f && clipSpacePosition.z < 1.0f;
+        }) |
+        std::ranges::to<std::vector>();
+    // back to front
+    std::ranges::stable_sort(labelPositions, [](const auto &lhs, const auto &rhs) {
+        auto z = [](auto &item) { return std::get<1>(item).z; };
+        return z(lhs) > z(rhs);
+    });
+    for (std::size_t index = 0; const auto &[label, positionProjected] : labelPositions)
     {
-        drawLabel(world->position(), world->name);
-    }
-
-    // ship labels
-    shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4(1.0, 0.0, 0.0, 1.0));
-    for (const auto *ship : ships)
-    {
-        drawLabel(ship->position(), ship->name);
+        glm::vec2 screenPosition = (glm::vec2{positionProjected} * glm::vec2{0.5f, -0.5f} + glm::vec2{0.5f}) *
+                                   glm::vec2{m_viewportSize.width(), m_viewportSize.height()};
+        screenPosition -= glm::vec2{0.5f * label->width(), label->height()};
+        label->paint(m_overlayPainter, screenPosition, index);
+        index += 10;
     }
 }
 
@@ -429,6 +565,15 @@ void UniverseMap::initializeMeshes()
     m_orbitMesh = createOrbitMesh();
     m_circleBillboardMesh = createBodyBillboardMesh();
     m_sphereMesh = createSphereMesh();
+}
+
+void UniverseMap::initializeLabels()
+{
+    for (const auto *world : m_universe->worlds())
+        m_labels.emplace_back(std::make_unique<WorldLabel>(world));
+
+    for (const auto *ship : m_universe->ships())
+        m_labels.emplace_back(std::make_unique<ShipLabel>(ship));
 }
 
 void UniverseMap::handleMouseButton(MouseButton button, MouseAction action, const glm::vec2 &pos, Modifier mods)
@@ -448,11 +593,6 @@ void UniverseMap::handleMouseButton(MouseButton button, MouseAction action, cons
 void UniverseMap::handleMouseWheel(const glm::vec2 &mousePos, const glm::vec2 &wheelOffset)
 {
     m_cameraController.handleMouseWheel(mousePos, wheelOffset);
-}
-
-float UniverseMap::scaledRadius(const World *world) const
-{
-    return 0.05 + 0.04 * std::log(std::max(0.001 * world->radius, 1.0));
 }
 
 const World *UniverseMap::pickWorld(const glm::vec2 &viewportPos)
@@ -475,7 +615,8 @@ const World *UniverseMap::pickWorld(const glm::vec2 &viewportPos)
     for (const auto *world : worlds)
     {
         const auto position = world->position();
-        const auto dist = raySphereIntersect(rayFrom, rayDir, position, scaledRadius(world));
+        const auto dist =
+            raySphereIntersect(rayFrom, rayDir, position, static_cast<float>(scaledRadius(world->radius)));
         if (dist > 0.0f && dist < closestDist)
         {
             closestDist = dist;

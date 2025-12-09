@@ -13,11 +13,12 @@
 class Universe;
 class Mesh;
 class Painter;
+class MapLabel;
 
 class UniverseMap
 {
 public:
-    explicit UniverseMap(const Universe *universe, Painter *overlayPainter);
+    explicit UniverseMap(Universe *universe, Painter *overlayPainter);
     ~UniverseMap();
 
     void setViewportSize(const SizeI &size);
@@ -31,10 +32,10 @@ public:
 
 private:
     void initializeMeshes();
-    float scaledRadius(const World *world) const;
+    void initializeLabels();
     const World *pickWorld(const glm::vec2 &viewportPos);
 
-    const Universe *m_universe{nullptr};
+    Universe *m_universe{nullptr};
     Painter *m_overlayPainter;
     SizeI m_viewportSize;
     std::unique_ptr<Mesh> m_circleBillboardMesh;
@@ -43,4 +44,6 @@ private:
     glm::mat4 m_projectionMatrix;
     CameraController m_cameraController;
     const World *m_cameraTarget{nullptr};
+    std::vector<std::unique_ptr<MapLabel>> m_labels;
+    std::vector<muslots::Connection> m_connections;
 };
