@@ -244,24 +244,29 @@ private:
     const Ship *m_ship{nullptr};
     ui::Text *m_text{nullptr};
     ui::MultiLineText *m_stateText{nullptr};
+    ui::MultiLineText *m_etaText{nullptr};
+    ui::MultiLineText *m_speedText{nullptr};
+    ui::Text *m_speed{nullptr};
     muslots::Connection m_stateChangedConnection;
 };
 
 MapLabel::MapLabel(ui::Gizmo *parent)
     : ui::Column(parent)
 {
-    setMargins(8.0f);
+    setMargins(8.0f, 8.0f, 8.0f, 14.0f);
 }
 
 void MapLabel::paintContents(Painter *painter, const glm::vec2 &pos, int depth) const
 {
     constexpr auto kThickness = 1.0f;
-    const auto rect = RectF{pos + glm::vec2{0.5f * kThickness, 0.5f * kThickness},
-                            SizeF{m_size.width() - kThickness, m_size.height() - kThickness}};
-    painter->setColor(glm::vec4{1.0f});
-    painter->strokeRoundedRect(rect, 4.0f, kThickness, depth);
+    constexpr auto kArrowHeight = 6.0f;
+    const auto rect = RectF{pos, SizeF{m_size.width(), m_size.height() - kArrowHeight}};
     painter->setColor(glm::vec4{0.0f, 0.0f, 0.0f, 0.75f});
     painter->fillRoundedRect(rect, 4.0f, depth);
+    const std::array<glm::vec2, 3> arrow{glm::vec2{rect.left() + 0.5f * rect.width() - kArrowHeight, rect.bottom()},
+                                         glm::vec2{rect.left() + 0.5f * rect.width(), rect.bottom() + kArrowHeight},
+                                         glm::vec2{rect.left() + 0.5f * rect.width() + kArrowHeight, rect.bottom()}};
+    painter->fillConvexPolygon(arrow, depth);
 }
 
 WorldLabel::WorldLabel(const World *world)
@@ -301,6 +306,16 @@ ShipLabel::ShipLabel(const Ship *ship)
     m_stateText->color = g_styleSettings.baseColor;
     m_stateText->setLineWidth(separator->width());
 
+    m_etaText = appendChild<ui::MultiLineText>();
+    m_etaText->setFont(g_styleSettings.smallFont);
+    m_etaText->color = g_styleSettings.baseColor;
+    m_etaText->setLineWidth(separator->width());
+
+    m_speedText = appendChild<ui::MultiLineText>();
+    m_speedText->setFont(g_styleSettings.smallFont);
+    m_speedText->color = g_styleSettings.baseColor;
+    m_speedText->setLineWidth(separator->width());
+
     updateStateText();
 }
 
@@ -311,7 +326,15 @@ void ShipLabel::updateStateText()
     case Ship::State::InTransit: {
         const auto &missionPlan = m_ship->missionPlan();
         assert(missionPlan.has_value());
-        m_stateText->setText(std::format("En route to {}", missionPlan->destination->name));
+        m_stateText->setText(std::format("{} > {}", missionPlan->origin->name, missionPlan->destination->name));
+        const auto eta = missionPlan->arrivalTime;
+        m_etaText->setText(std::format("ETA {:D}", eta));
+
+        const auto *orbit = m_ship->orbit();
+        assert(orbit != nullptr);
+        const auto speed = glm::length(orbit->velocity(m_ship->universe()->date())) * 1.496e+8 / (24 * 60 * 60);
+        m_speedText->setText(std::format("{:.2f} km/s", speed));
+
         break;
     }
     case Ship::State::Docked: {
@@ -535,28 +558,30 @@ void UniverseMap::render() const
 
     // draw labels
 
+    // clang-format off
     auto labelPositions =
-        m_labels | std::views::filter([](const auto &item) { return item->visible(); }) |
-        std::views::transform([this, &viewMatrix](const auto &label) {
-            return std::make_tuple(label.get(), label->clipSpacePosition(m_projectionMatrix, viewMatrix));
-        }) |
-        std::views::filter([](const auto &item) {
-            const auto &[_, clipSpacePosition] = item;
-            return clipSpacePosition.z > -1.0f && clipSpacePosition.z < 1.0f;
-        }) |
-        std::ranges::to<std::vector>();
+        m_labels
+        | std::views::filter(&MapLabel::visible)
+        | std::views::transform([this, &viewMatrix](const auto &label) {
+              return std::make_pair(label.get(), label->clipSpacePosition(m_projectionMatrix, viewMatrix));
+          })
+        | std::views::filter([](const auto &item) {
+              const auto &[_, clipSpacePosition] = item;
+              return clipSpacePosition.z > -1.0f && clipSpacePosition.z < 1.0f;
+          })
+        | std::ranges::to<std::vector>();
+    // clang-format on
+
     // back to front
-    std::ranges::stable_sort(labelPositions, [](const auto &lhs, const auto &rhs) {
-        auto z = [](auto &item) { return std::get<1>(item).z; };
-        return z(lhs) > z(rhs);
-    });
-    for (std::size_t index = 0; const auto &[label, positionProjected] : labelPositions)
+    std::ranges::stable_sort(labelPositions, std::greater{}, [](const auto &item) { return item.second.z; });
+
+    for (std::size_t depth = 0; const auto &[label, positionProjected] : labelPositions)
     {
         glm::vec2 screenPosition = (glm::vec2{positionProjected} * glm::vec2{0.5f, -0.5f} + glm::vec2{0.5f}) *
                                    glm::vec2{m_viewportSize.width(), m_viewportSize.height()};
         screenPosition -= glm::vec2{0.5f * label->width(), label->height()};
-        label->paint(m_overlayPainter, screenPosition, index);
-        index += 10;
+        label->paint(m_overlayPainter, screenPosition, depth);
+        depth += 10;
     }
 }
 

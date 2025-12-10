@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <format>
 
 struct JulianClock
 {
@@ -37,6 +38,68 @@ constexpr JulianDate toJulianDate(std::chrono::year_month_day yearMonthDay)
 {
     return toJulianDate(std::chrono::sys_days{yearMonthDay});
 }
+
+template<>
+struct std::formatter<JulianDate>
+{
+    enum class FormatType
+    {
+        Raw,
+        Date,
+        Time
+    };
+    FormatType m_formatType{FormatType::Raw};
+
+    template<typename ParseContext>
+    constexpr auto parse(ParseContext &ctx)
+    {
+        auto it = ctx.begin();
+        if (it == ctx.end())
+            return it;
+        switch (*it)
+        {
+        case 'D':
+            m_formatType = FormatType::Date;
+            ++it;
+            break;
+        case 'T':
+            m_formatType = FormatType::Time;
+            ++it;
+            break;
+        default:
+            break;
+        }
+        if (it != ctx.end() && *it != '}')
+            throw std::format_error("Invalid format for JulianDate");
+        return it;
+    }
+
+    auto format(JulianDate date, std::format_context &ctx) const
+    {
+        switch (m_formatType)
+        {
+        case FormatType::Date: {
+            const auto kMonths =
+                std::array{"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+            const auto yearMonthDay = toYearMonthDay(date);
+            return std::format_to(ctx.out(), "{:02d} {} {}", static_cast<unsigned>(yearMonthDay.day()),
+                                  kMonths[static_cast<unsigned>(yearMonthDay.month()) - 1],
+                                  static_cast<int>(yearMonthDay.year()));
+        }
+        case FormatType::Time: {
+            double dummy{};
+            const auto dayFraction = std::modf(date.time_since_epoch().count() - 0.5, &dummy);
+            const auto seconds = std::chrono::duration_cast<std::chrono::seconds>(JulianDate::duration{dayFraction});
+            const auto hour = seconds.count() / (60 * 60);
+            const auto minute = (seconds.count() / 60) % 60;
+            const auto second = seconds.count() % 60;
+            return std::format_to(ctx.out(), "{:02}:{:02}:{:02d}", hour, minute, second);
+        }
+        default:
+            return std::format_to(ctx.out(), "{}", date.time_since_epoch().count());
+        }
+    }
+};
 
 // tests
 static_assert([] {

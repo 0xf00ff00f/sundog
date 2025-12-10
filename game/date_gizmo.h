@@ -14,6 +14,8 @@ public:
     explicit DateGizmo(Universe *universe, ui::Gizmo *parent = nullptr);
     ~DateGizmo() override;
 
+    void paintContents(Painter *painter, const glm::vec2 &pos, int depth) const override;
+
 private:
     void setDate(JulianDate date);
 

@@ -8,6 +8,8 @@ DateGizmo::DateGizmo(Universe *universe, ui::Gizmo *parent)
     : ui::Column(parent)
     , m_dateChangedConnection(universe->dateChangedSignal.connect([this](JulianDate date) { setDate(date); }))
 {
+    setMargins(12.0f);
+
     constexpr auto kFont = "DejaVuSans.ttf";
 
     m_timeText = appendChild<ui::Text>();
@@ -30,20 +32,13 @@ DateGizmo::~DateGizmo()
 
 void DateGizmo::setDate(JulianDate date)
 {
-    constexpr auto kMonths =
-        std::array{"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-    const auto yearMonthDay = toYearMonthDay(date);
-    const auto dateText =
-        std::format("{} {} {}", static_cast<unsigned>(yearMonthDay.day()),
-                    kMonths[static_cast<unsigned>(yearMonthDay.month()) - 1], static_cast<int>(yearMonthDay.year()));
-    m_dateText->setText(dateText);
+    m_dateText->setText(std::format("{:D}", date));
+    m_timeText->setText(std::format("{:T}", date));
+}
 
-    double dummy{};
-    const auto dayFraction = std::modf(date.time_since_epoch().count() - 0.5, &dummy);
-    const auto seconds = std::chrono::duration_cast<std::chrono::seconds>(JulianDate::duration{dayFraction});
-    const auto hour = seconds.count() / (60 * 60);
-    const auto minute = (seconds.count() / 60) % 60;
-    const auto second = seconds.count() % 60;
-    const auto timeText = std::format("{:02}:{:02}:{:02d}", hour, minute, second);
-    m_timeText->setText(timeText);
+void DateGizmo::paintContents(Painter *painter, const glm::vec2 &pos, int depth) const
+{
+    const auto rect = RectF{pos, size()};
+    painter->setColor(glm::vec4{0.0f, 0.0f, 0.0f, 0.75f});
+    painter->fillRoundedRect(rect, 8.0f, depth);
 }
