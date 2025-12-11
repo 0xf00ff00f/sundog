@@ -617,7 +617,8 @@ void Painter::strokeRoundedRect(const RectF &rect, const CornerRadii &radii, flo
     strokePolyline(roundedRectVerts(rect, radii), thickness, true, depth);
 }
 
-void Painter::drawText(const glm::vec2 &pos, const std::string_view text, int depth)
+template<typename CharT>
+void Painter::drawText(const glm::vec2 &pos, std::basic_string_view<CharT> text, int depth)
 {
     if (!m_glyphCache)
         return;
@@ -663,3 +664,6 @@ void Painter::drawIcon(const glm::vec2 &pos, std::string_view name, int depth)
         m_commands.push_back(std::move(command));
     }
 }
+
+template void Painter::drawText(const glm::vec2 &pos, std::string_view text, int depth);
+template void Painter::drawText(const glm::vec2 &pos, std::u32string_view text, int depth);

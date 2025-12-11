@@ -50,7 +50,13 @@ public:
     void fillRoundedRect(const RectF &rect, const CornerRadii &radii, int depth = 0);
     void strokeRoundedRect(const RectF &rect, float radius, float thickness, int depth = 0);
     void strokeRoundedRect(const RectF &rect, const CornerRadii &radii, float thickness, int depth = 0);
-    void drawText(const glm::vec2 &pos, const std::string_view text, int depth = 0);
+    template<typename CharT>
+    void drawText(const glm::vec2 &pos, std::basic_string_view<CharT> text, int depth = 0);
+    template<typename CharT>
+    void drawText(const glm::vec2 &pos, const std::basic_string<CharT> &text, int depth = 0)
+    {
+        drawText(pos, std::basic_string_view<CharT>{text}, depth);
+    }
     void drawIcon(const glm::vec2 &pos, std::string_view name, int depth = 0);
 
 private:
