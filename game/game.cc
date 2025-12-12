@@ -27,25 +27,23 @@ std::optional<MissionPlan> findMissionPlan(const World *origin, const World *des
 
     for (JulianDate timeDeparture = start; timeDeparture < start + kMaxWait; timeDeparture += kStep)
     {
-        const auto posDeparture = origin->orbit().position(timeDeparture);
-        const auto velWorldDeparture = origin->orbit().velocity(timeDeparture);
+        const auto [posDeparture, velWorldDeparture] = origin->orbit().stateVector(timeDeparture);
 
         for (JulianClock::duration transitInterval = kMinTransitInterval; transitInterval < kMaxTransitInterval;
              transitInterval += kStep)
         {
             const auto timeArrival = timeDeparture + transitInterval;
-            const auto posArrival = destination->orbit().position(timeArrival);
-            const auto velWorldArrival = destination->orbit().velocity(timeArrival);
+            const auto [posArrival, velWorldArrival] = destination->orbit().stateVector(timeArrival);
 
             auto result = lambert_battin(kGMSun, posDeparture, posArrival, transitInterval.count());
             if (result.has_value())
             {
                 const auto [velDeparture, velArrival] = *result;
-                const auto orbitalElements = orbitalElementsFromStateVector(posArrival, velArrival, timeArrival);
-                const auto deltaV = glm::length(glm::vec3{velDeparture} - origin->orbit().velocity(timeDeparture)) +
-                                    glm::length(glm::vec3{velArrival} - destination->orbit().velocity(timeArrival));
+                const auto deltaV =
+                    glm::length(velDeparture - velWorldDeparture) + glm::length(velArrival - velWorldArrival);
                 if (!bestPlan.has_value() || bestPlan->deltaV > deltaV)
                 {
+                    const auto orbitalElements = orbitalElementsFromStateVector(posArrival, velArrival, timeArrival);
                     bestPlan = MissionPlan{.origin = origin,
                                            .destination = destination,
                                            .departureTime = timeDeparture,

@@ -37,6 +37,15 @@ struct ShipClass
 class Orbit
 {
 public:
+    template<glm::length_t N>
+    struct StateVector
+    {
+        glm::vec<N, double> position;
+        glm::vec<N, double> velocity;
+    };
+    using StateVector2 = StateVector<2>;
+    using StateVector3 = StateVector<3>;
+
     Orbit();
     explicit Orbit(const OrbitalElements &elems);
 
@@ -47,10 +56,12 @@ public:
     double period() const { return m_period; }      // Earth days
     double meanAnomaly(JulianDate when) const;      // radians
     double eccentricAnomaly(JulianDate when) const; // radians
+
     glm::vec2 positionOnOrbitPlane(JulianDate when) const; // AU
-    glm::vec2 velocityOnOrbitPlane(JulianDate when) const; // AU/day
-    glm::vec3 position(JulianDate when) const;      // AU
-    glm::vec3 velocity(JulianDate when) const;      // AU/day
+    glm::vec3 position(JulianDate when) const;             // AU
+
+    StateVector2 stateVectorOnOrbitPlane(JulianDate when) const; // {AU, AU/day}
+    StateVector3 stateVector(JulianDate when) const;             // {AU, AU/day}
 
 private:
     void updatePeriod();
@@ -80,8 +91,8 @@ public:
     std::span<const MarketItemPrice> marketItemPrices() const { return m_marketItemPrices; }
     const MarketItemPrice *findMarketItemPrice(const MarketItem *item) const;
 
-    glm::vec3 position() const;
     glm::vec2 positionOnOrbitPlane() const;
+    glm::vec3 position() const;
 
     std::string name;
     double radius; // km

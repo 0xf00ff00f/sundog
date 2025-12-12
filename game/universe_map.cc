@@ -332,9 +332,9 @@ void ShipLabel::updateStateText()
 
         const auto *orbit = m_ship->orbit();
         assert(orbit != nullptr);
-        const auto speed = glm::length(orbit->velocity(m_ship->universe()->date())) * 1.496e+8 / (24 * 60 * 60);
+        const auto [_, velocity] = orbit->stateVector(m_ship->universe()->date());
+        const auto speed = glm::length(velocity) * 1.496e+8 / (24 * 60 * 60);
         m_speedText->setText(std::format("{:.2f} km/s", speed));
-
         break;
     }
     case Ship::State::Docked: {

@@ -80,7 +80,12 @@ glm::vec2 Orbit::positionOnOrbitPlane(JulianDate when) const
     return {x, y};
 }
 
-glm::vec2 Orbit::velocityOnOrbitPlane(JulianDate when) const
+glm::vec3 Orbit::position(JulianDate when) const
+{
+    return m_orbitRotationMatrix * glm::vec3(positionOnOrbitPlane(when), 0.0);
+}
+
+Orbit::StateVector2 Orbit::stateVectorOnOrbitPlane(JulianDate when) const
 {
     const auto e = m_elems.eccentricity;
     const auto a = m_elems.semiMajorAxis;
@@ -91,22 +96,23 @@ glm::vec2 Orbit::velocityOnOrbitPlane(JulianDate when) const
     const auto nu =
         2.0f * std::atan2(std::sqrt(1.0f + e) * std::sin(0.5f * E), std::sqrt(1.0f - e) * std::cos(0.5f * E));
 
+    // distance
+    const auto r = a * (1.0f - e * std::cos(E));
+
+    // position
+    const auto p = glm::dvec2{r * std::cos(nu), r * std::sin(nu)};
+
+    // velocity
     const auto h = std::sqrt(kGMSun * a * (1 - e * e));
+    const auto v = glm::dvec2{-kGMSun / h * std::sin(nu), kGMSun / h * (e + std::cos(nu))};
 
-    const auto x = -kGMSun / h * std::sin(nu);
-    const auto y = kGMSun / h * (e + std::cos(nu));
-
-    return {x, y};
+    return {p, v};
 }
 
-glm::vec3 Orbit::position(JulianDate when) const
+Orbit::StateVector3 Orbit::stateVector(JulianDate when) const
 {
-    return m_orbitRotationMatrix * glm::vec3(positionOnOrbitPlane(when), 0.0);
-}
-
-glm::vec3 Orbit::velocity(JulianDate when) const
-{
-    return m_orbitRotationMatrix * glm::vec3(velocityOnOrbitPlane(when), 0.0);
+    const auto [position, velocity] = stateVectorOnOrbitPlane(when);
+    return {m_orbitRotationMatrix * glm::vec3(position, 0.0), m_orbitRotationMatrix * glm::vec3(velocity, 0.0)};
 }
 
 void Orbit::updatePeriod()
