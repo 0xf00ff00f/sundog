@@ -81,10 +81,7 @@ public:
     const MarketItemPrice *findMarketItemPrice(const MarketItem *item) const;
 
     glm::vec3 position() const;
-    glm::vec3 position(JulianDate date) const;
-
     glm::vec2 positionOnOrbitPlane() const;
-    glm::vec2 positionOnOrbitPlane(JulianDate date) const;
 
     std::string name;
     double radius; // km

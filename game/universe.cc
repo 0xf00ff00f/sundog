@@ -151,22 +151,12 @@ World::World(Universe *universe, const OrbitalElements &elems)
 
 glm::vec3 World::position() const
 {
-    return position(m_universe->date());
-}
-
-glm::vec3 World::position(JulianDate date) const
-{
-    return m_orbit.position(date);
+    return m_orbit.position(m_universe->date());
 }
 
 glm::vec2 World::positionOnOrbitPlane() const
 {
-    return positionOnOrbitPlane(m_universe->date());
-}
-
-glm::vec2 World::positionOnOrbitPlane(JulianDate date) const
-{
-    return m_orbit.positionOnOrbitPlane(date);
+    return m_orbit.positionOnOrbitPlane(m_universe->date());
 }
 
 const MarketItemPrice *World::findMarketItemPrice(const MarketItem *item) const
