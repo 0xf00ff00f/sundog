@@ -2,10 +2,11 @@
 
 #include "universe.h"
 #include "universe_map.h"
-#include "lambert.h"
+#include "mission_table.h"
 
 #include "date_gizmo.h"
 #include "trading_window.h"
+#include "mission_plan_gizmo.h"
 
 #include <base/asset_path.h>
 #include <base/shader_manager.h>
@@ -13,43 +14,41 @@
 
 #include <glm/gtx/string_cast.hpp>
 
+#include <mdspan>
+
 namespace
 {
 
-std::optional<MissionPlan> findMissionPlan(const World *origin, const World *destination, JulianDate start)
+std::optional<MissionPlan> findMissionPlan(const MissionTable *missionTable)
 {
     std::optional<MissionPlan> bestPlan;
 
-    constexpr JulianClock::duration kMinTransitInterval{90.0};
-    constexpr JulianClock::duration kMaxTransitInterval{4.0 * 365.0};
-    constexpr JulianClock::duration kMaxWait{3.0 * 365.0};
-    constexpr JulianClock::duration kStep{5.0};
+    std::println("{}x{}", missionTable->arrivals.size(), missionTable->departures.size());
 
-    for (JulianDate timeDeparture = start; timeDeparture < start + kMaxWait; timeDeparture += kStep)
+    auto orbits = std::mdspan(missionTable->transferOrbits.data(), missionTable->arrivals.size(),
+                              missionTable->departures.size());
+    for (std::size_t i = 0; i != orbits.extent(0); ++i)
     {
-        const auto [posDeparture, velWorldDeparture] = origin->orbit().stateVector(timeDeparture);
-
-        for (JulianClock::duration transitInterval = kMinTransitInterval; transitInterval < kMaxTransitInterval;
-             transitInterval += kStep)
+        assert(i < missionTable->arrivals.size());
+        const auto [timeArrival, posArrival, velWorldArrival] = missionTable->arrivals[i];
+        for (std::size_t j = 0; j < orbits.extent(1); ++j)
         {
-            const auto timeArrival = timeDeparture + transitInterval;
-            const auto [posArrival, velWorldArrival] = destination->orbit().stateVector(timeArrival);
-
-            auto result = lambert_battin(kGMSun, posDeparture, posArrival, transitInterval.count());
-            if (result.has_value())
+            assert(j < missionTable->departures.size());
+            const auto [timeDeparture, posDeparture, velWorldDeparture] = missionTable->departures[j];
+            if (const auto &orbit = orbits[i, j])
             {
-                const auto [velDeparture, velArrival] = *result;
-                const auto deltaV =
-                    glm::length(velDeparture - velWorldDeparture) + glm::length(velArrival - velWorldArrival);
-                if (!bestPlan.has_value() || bestPlan->deltaV > deltaV)
+                if (!bestPlan ||
+                    orbit->deltaVDeparture + orbit->deltaVArrival < bestPlan->deltaVDeparture + bestPlan->deltaVArrival)
                 {
-                    const auto orbitalElements = orbitalElementsFromStateVector(posArrival, velArrival, timeArrival);
-                    bestPlan = MissionPlan{.origin = origin,
-                                           .destination = destination,
+                    const auto orbitalElements =
+                        orbitalElementsFromStateVector(posArrival, orbit->velArrival, timeArrival);
+                    bestPlan = MissionPlan{.origin = missionTable->origin(),
+                                           .destination = missionTable->destination(),
                                            .departureTime = timeDeparture,
                                            .arrivalTime = timeArrival};
                     bestPlan->orbit.setElements(orbitalElements);
-                    bestPlan->deltaV = deltaV;
+                    bestPlan->deltaVDeparture = orbit->deltaVDeparture;
+                    bestPlan->deltaVArrival = orbit->deltaVArrival;
                 }
             }
         }
@@ -80,17 +79,25 @@ bool Game::initialize()
     const auto &worlds = m_universe->worlds();
 
     const auto *origin = worlds[2];      // Earth
-    const auto *destination = worlds[8]; // Mars
-    const auto *shipClass = shipClasses[1];
+    const auto *destination = worlds[11]; // Mars
+    // const auto *destination = worlds[3]; // Mars
+    const auto *shipClass = shipClasses[0];
 
     auto ship = m_universe->addShip(shipClass, origin, "SIGBUS");
 #if 1
-    auto plan = findMissionPlan(origin, destination, JulianClock::now());
+    m_missionTable = std::make_unique<MissionTable>(origin, destination, m_universe->date());
+    auto plan = findMissionPlan(m_missionTable.get());
     if (plan.has_value())
     {
-        std::println("interval={} deltaV={} AU/days={} km/s", plan->transitTime().count(), plan->deltaV,
-                     plan->deltaV * 1.496e+8 / (24 * 60 * 60));
-        m_universe->setDate(plan->departureTime);
+        const auto transferDeparture = plan->orbit.stateVector(plan->departureTime);
+        const auto transferArrival = plan->orbit.stateVector(plan->arrivalTime);
+        std::println("departure: {} {}", glm::to_string(origin->orbit().position(plan->departureTime)),
+                     glm::to_string(transferDeparture.position));
+        std::println("arrival: {} {}", glm::to_string(destination->orbit().position(plan->arrivalTime)),
+                     glm::to_string(transferArrival.position));
+        const auto deltaV = plan->deltaVDeparture + plan->deltaVArrival;
+        std::println("interval={} deltaV={} AU/days={} km/s", plan->transitTime().count(), deltaV,
+                     deltaV * 1.496e+8 / (24 * 60 * 60));
         ship->setMissionPlan(std::move(plan.value()));
     }
 #endif
@@ -103,6 +110,14 @@ bool Game::initialize()
 #if 0
     m_tradingWindow = m_uiRoot->appendChild<TradingWindow>(origin, ship);
     m_tradingWindow->setAlign(ui::Align::HorizontalCenter | ui::Align::VerticalCenter);
+#else
+    m_missionPlanGizmo = m_uiRoot->appendChild<MissionPlanGizmo>(ship, m_missionTable.get());
+    m_missionPlanGizmo->setAlign(ui::Align::Left | ui::Align::VerticalCenter);
+
+    m_missionPlanGizmo->confirmClickedSignal.connect([this] {
+        m_uiRoot->removeChild(m_missionPlanGizmo);
+        m_timeStep = JulianDate::duration{30.0f};
+    });
 #endif
 
     m_uiEventManager = std::make_unique<ui::EventManager>();
@@ -113,6 +128,8 @@ bool Game::initialize()
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glDisable(GL_CULL_FACE);
 
     return true;
 }
@@ -129,7 +146,7 @@ void Game::setViewportSize(const SizeI &size)
 void Game::render() const
 {
     glViewport(0, 0, m_viewportSize.width(), m_viewportSize.height());
-    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClearColor(0.1, 0.12, 0.15, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     m_overlayPainter->begin();
@@ -142,9 +159,7 @@ void Game::render() const
 
 void Game::update(Seconds elapsed)
 {
-    // m_universe->update(elapsed);
-    m_universe->update(elapsed.count() * JulianClock::duration{30.0f});
-    // m_universe->update(elapsed.count() * JulianClock::duration{10.0f});
+    m_universe->update(elapsed.count() * m_timeStep);
     m_universeMap->update(elapsed);
 }
 

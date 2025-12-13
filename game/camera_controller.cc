@@ -8,6 +8,8 @@ namespace
 {
 constexpr auto kTargetAnimationMinDistance = 0.001f;
 constexpr auto kZoomAnimationMinDistance = 0.001f;
+constexpr auto kMinCameraDistance = 1.0f;
+constexpr auto kMaxCameraDistance = 20.0f;
 }
 
 VelocitySampler::VelocitySampler() = default;
@@ -84,22 +86,7 @@ void CameraController::handleMouseMove(const glm::vec2 &viewportPos)
 
 void CameraController::handleMouseWheel(const glm::vec2 &, const glm::vec2 &wheelOffset)
 {
-    constexpr auto kMinCameraDistance = 1.0f;
-    constexpr auto kMaxCameraDistance = 20.0f;
-
-    const auto curDistance = glm::distance(m_cameraCenter, m_cameraEye);
-
-    auto distance = curDistance * std::powf(1.3f, -wheelOffset.y);
-    distance = std::clamp(distance, kMinCameraDistance, kMaxCameraDistance);
-
-    if (std::abs(distance - curDistance) < kZoomAnimationMinDistance)
-    {
-        setCameraDistance(distance);
-    }
-    else
-    {
-        m_targetCameraDistance = distance;
-    }
+    moveCameraDistance(cameraDistance() * std::powf(1.3f, -wheelOffset.y), true);
 }
 
 void CameraController::setCameraDistance(float distance)
@@ -201,6 +188,24 @@ void CameraController::moveCameraCenter(const glm::vec3 &cameraCenter, bool anim
     else
     {
         moveCameraCenter(cameraCenter);
+    }
+}
+
+float CameraController::cameraDistance() const
+{
+    return glm::distance(m_cameraCenter, m_cameraEye);
+}
+
+void CameraController::moveCameraDistance(float distance, bool animate)
+{
+    auto clampedDistance = std::clamp(distance, kMinCameraDistance, kMaxCameraDistance);
+    if (animate && std::abs(cameraDistance() - clampedDistance) >= kZoomAnimationMinDistance)
+    {
+        m_targetCameraDistance = clampedDistance;
+    }
+    else
+    {
+        setCameraDistance(clampedDistance);
     }
 }
 

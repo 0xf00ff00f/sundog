@@ -665,5 +665,13 @@ void Painter::drawIcon(const glm::vec2 &pos, std::string_view name, int depth)
     }
 }
 
+void Painter::drawSprite(const gl::AbstractTexture *texture, const glm::vec2 &topLeft, const glm::vec2 &texCoordTopLeft,
+                         const glm::vec2 &bottomRight, const glm::vec2 &texCoordBottomRight, int depth)
+{
+    auto command = std::make_unique<DrawSpriteBatch>(texture, m_color, depth);
+    command->addSprite({topLeft, texCoordTopLeft}, {bottomRight, texCoordBottomRight});
+    m_commands.push_back(std::move(command));
+}
+
 template void Painter::drawText(const glm::vec2 &pos, std::string_view text, int depth);
 template void Painter::drawText(const glm::vec2 &pos, std::u32string_view text, int depth);

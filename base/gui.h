@@ -164,7 +164,8 @@ public:
         return static_cast<ChildT *>(it->m_gizmo.get());
     }
 
-    void removeChild(std::size_t index);
+    void removeChild(const Gizmo *gizmo);
+    void removeChildAt(std::size_t index);
     const Gizmo *childAt(std::size_t index) const;
     Gizmo *childAt(std::size_t index);
     std::size_t childCount() const { return m_children.size(); }
@@ -236,6 +237,7 @@ public:
     bool hasMouseTracking() const { return (m_options & Option::MouseTracking) != Option::None; }
     void setMouseTracking(bool mouseTracking);
 
+    muslots::Signal<> aboutToBeDestroyedSignal;
     muslots::Signal<SizeF> resizedSignal;
     muslots::Signal<> anchorChangedSignal;
 
@@ -474,9 +476,13 @@ public:
     bool handleMouseWheel(const glm::vec2 &mousePos, const glm::vec2 &wheelOffset);
 
 private:
+    void setMouseEventTarget(Gizmo *gizmo);
+    void setUnderCursor(Gizmo *gizmo);
+
     Gizmo *m_root{nullptr};
     Gizmo *m_mouseEventTarget{nullptr};
     Gizmo *m_underCursor{nullptr};
+    muslots::Connection m_aboutToBeDestroyedConnection;
 };
 
 } // namespace ui

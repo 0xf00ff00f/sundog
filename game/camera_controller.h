@@ -35,6 +35,8 @@ public:
     void moveCameraCenter(const glm::vec3 &center, bool animate);
 
     glm::vec3 cameraEye() const { return m_cameraEye; }
+    float cameraDistance() const;
+    void moveCameraDistance(float distance, bool animate);
 
     glm::vec3 upDir() const { return m_upDir; };
     void setUpDir(const glm::vec3 &upDir);

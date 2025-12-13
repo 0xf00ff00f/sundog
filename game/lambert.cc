@@ -146,8 +146,8 @@ double xi_battin(double x)
 // Battin, R. An Introduction to the Mathematics and Methods of Astrodynamics,
 // Chapter 7: Solving Lambert's Problem, AIAA Education Series,
 // 1801 Alexander Bell Drive, Reston, VA, Revised Edition edition, 1999
-std::optional<std::tuple<glm::dvec3, glm::dvec3>> lambert_battin(double mu, const glm::dvec3 &r1, const glm::dvec3 &r2,
-                                                                 double dt, OrbitType ot)
+std::optional<TransferVelocities> lambert_battin(double mu, const glm::dvec3 &r1, const glm::dvec3 &r2, double dt,
+                                                 OrbitType ot)
 {
     // convergence tolerance
     double tol = 1.0e-8;
@@ -231,5 +231,5 @@ std::optional<std::tuple<glm::dvec3, glm::dvec3>> lambert_battin(double mu, cons
     auto [f, g, gdot] = fg_battin(mu, a, s, c, nu, dt, r1mag, r2mag);
     auto v1 = (r2 - f * r1) / g;
     auto v2 = (gdot * r2 - r1) / g;
-    return std::make_tuple(v1, v2);
+    return TransferVelocities{v1, v2};
 }

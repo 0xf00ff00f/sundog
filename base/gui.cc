@@ -28,7 +28,10 @@ Gizmo::Gizmo(Gizmo *parent)
 {
 }
 
-Gizmo::~Gizmo() = default;
+Gizmo::~Gizmo()
+{
+    aboutToBeDestroyedSignal();
+}
 
 void Gizmo::setOptions(Option options)
 {
@@ -43,11 +46,20 @@ void Gizmo::clear()
     updateLayout();
 }
 
-void Gizmo::removeChild(std::size_t index)
+void Gizmo::removeChildAt(std::size_t index)
 {
     if (index >= m_children.size())
         return;
     m_children.erase(std::next(m_children.begin(), index));
+    updateLayout();
+}
+
+void Gizmo::removeChild(const Gizmo *gizmo)
+{
+    auto it = std::ranges::find_if(m_children, [gizmo](const auto &child) { return child.m_gizmo.get() == gizmo; });
+    if (it == m_children.end())
+        return;
+    m_children.erase(it);
     updateLayout();
 }
 
@@ -892,7 +904,7 @@ bool EventManager::handleMouseButton(MouseButton button, MouseAction action, con
         if (target)
         {
             // found a gizmo that accepts the mouse press, will get mouse move and the mouse release event
-            m_mouseEventTarget = target;
+            setMouseEventTarget(target);
             accepted = true;
         }
         break;
@@ -901,7 +913,7 @@ bool EventManager::handleMouseButton(MouseButton button, MouseAction action, con
         if (m_mouseEventTarget)
         {
             m_mouseEventTarget->handleMouseRelease(pos - m_mouseEventTarget->globalPosition());
-            m_mouseEventTarget = nullptr;
+            setMouseEventTarget(nullptr);
             accepted = true;
         }
         break;
@@ -910,9 +922,24 @@ bool EventManager::handleMouseButton(MouseButton button, MouseAction action, con
     return accepted;
 }
 
+void EventManager::setMouseEventTarget(Gizmo *target)
+{
+    if (m_mouseEventTarget)
+    {
+        m_aboutToBeDestroyedConnection.disconnect();
+    }
+    m_mouseEventTarget = target;
+    if (m_mouseEventTarget)
+    {
+        m_aboutToBeDestroyedConnection =
+            m_mouseEventTarget->aboutToBeDestroyedSignal.connect([this] { setMouseEventTarget(nullptr); });
+    }
+}
+
 bool EventManager::handleMouseMove(const glm::vec2 &pos)
 {
     bool accepted = false;
+#if 0
     auto *underCursor = m_root->findChildAt(pos, [](Gizmo *gizmo, const glm::vec2 &) { return gizmo->hoverable(); });
     if (m_underCursor != underCursor)
     {
@@ -922,6 +949,7 @@ bool EventManager::handleMouseMove(const glm::vec2 &pos)
         if (m_underCursor)
             m_underCursor->handleHoverEnter();
     }
+#endif
 
     m_root->findChildAt(pos, [this](Gizmo *gizmo, const glm::vec2 &pos) {
         if (gizmo->hasMouseTracking() && gizmo != m_mouseEventTarget)

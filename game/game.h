@@ -1,5 +1,7 @@
 #pragma once
 
+#include "julian_clock.h"
+
 #include <base/window_base.h>
 
 #include <glm/glm.hpp>
@@ -10,6 +12,8 @@ class Universe;
 class UniverseMap;
 class DateGizmo;
 class TradingWindow;
+class MissionTable;
+class MissionPlanGizmo;
 
 namespace ui
 {
@@ -51,4 +55,7 @@ private:
     std::unique_ptr<ui::EventManager> m_uiEventManager;
     DateGizmo *m_dateGizmo{nullptr};
     TradingWindow *m_tradingWindow{nullptr};
+    std::unique_ptr<MissionTable> m_missionTable;
+    MissionPlanGizmo *m_missionPlanGizmo{nullptr};
+    JulianClock::duration m_timeStep{0.0}; // days/second
 };

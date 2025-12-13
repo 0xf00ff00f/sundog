@@ -121,7 +121,8 @@ struct MissionPlan
     JulianDate departureTime;
     JulianDate arrivalTime;
     Orbit orbit;
-    float deltaV{0.0f}; // AU/day
+    double deltaVDeparture{0.0f}; // AU/day
+    double deltaVArrival{0.0f};   // AU/day
 
     JulianClock::duration transitTime() const { return arrivalTime - departureTime; }
 };

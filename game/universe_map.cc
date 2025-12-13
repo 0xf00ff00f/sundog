@@ -452,23 +452,23 @@ void UniverseMap::render() const
     const auto ships = m_universe->ships();
     for (const auto *ship : ships)
     {
-        if (auto *orbit = ship->orbit())
+        const auto &plan = ship->missionPlan();
+        if (plan.has_value())
         {
-            const auto &plan = ship->missionPlan();
-            assert(plan.has_value());
+            const auto &orbit = plan->orbit;
 
-            const auto startAngle = orbit->eccentricAnomaly(plan->departureTime);
-            const auto currentAngle = orbit->eccentricAnomaly(m_universe->date());
-            const auto endAngle = orbit->eccentricAnomaly(plan->arrivalTime);
+            const auto startAngle = orbit.eccentricAnomaly(plan->departureTime);
+            const auto currentAngle = orbit.eccentricAnomaly(m_universe->date());
+            const auto endAngle = orbit.eccentricAnomaly(plan->arrivalTime);
 
             shaderManager->setUniform(ShaderManager::Uniform::Thickness,
                                       3.0f / static_cast<float>(m_viewportSize.height()));
 
-            const auto elems = orbit->elements();
+            const auto elems = orbit.elements();
             const auto semiMajorAxis = elems.semiMajorAxis;
             const auto eccentricity = elems.eccentricity;
 
-            const auto orbitRotation = glm::mat4{orbit->orbitRotationMatrix()};
+            const auto orbitRotation = glm::mat4{orbit.orbitRotationMatrix()};
             const auto mvp = m_projectionMatrix * viewMatrix * orbitRotation;
 
             shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
@@ -594,13 +594,13 @@ void UniverseMap::render() const
     // back to front
     std::ranges::stable_sort(labelPositions, std::greater{}, [](const auto &item) { return item.second.z; });
 
-    for (std::size_t depth = 0; const auto &[label, positionProjected] : labelPositions)
+    for (int depth = std::numeric_limits<int>::lowest(); const auto &[label, positionProjected] : labelPositions)
     {
         glm::vec2 screenPosition = (glm::vec2{positionProjected} * glm::vec2{0.5f, -0.5f} + glm::vec2{0.5f}) *
                                    glm::vec2{m_viewportSize.width(), m_viewportSize.height()};
         screenPosition -= glm::vec2{0.5f * label->width(), label->height()};
         label->paint(m_overlayPainter, screenPosition, depth);
-        depth += 10;
+        depth += 5;
     }
 }
 
@@ -629,6 +629,7 @@ void UniverseMap::handleMouseButton(MouseButton button, MouseAction action, cons
             std::println("picked {}", world->name);
             m_cameraTarget = world;
             m_cameraController.moveCameraCenter(m_cameraTarget->currentPosition(), true);
+            m_cameraController.moveCameraDistance(1.0f, true);
         }
     }
     m_cameraController.handleMouseButton(button, action, pos, mods);

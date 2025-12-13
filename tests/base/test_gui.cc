@@ -27,7 +27,7 @@ TEST_CASE("column", "[column]")
     REQUIRE(column.spacing() == 20.0f);
     REQUIRE(column.size() == SizeF{120.0f, 120.0f});
 
-    column.removeChild(0);
+    column.removeChildAt(0);
     REQUIRE(column.childCount() == 1);
     REQUIRE(column.size() == SizeF{120.0f, 20.0f});
 
@@ -64,7 +64,7 @@ TEST_CASE("row", "[row]")
     rc2->setSize(30.0f, 20.0f);
     REQUIRE(row.size() == SizeF{70.0f, 50.0f});
 
-    row.removeChild(1);
+    row.removeChildAt(1);
     REQUIRE(row.childCount() == 1);
     REQUIRE(row.size() == SizeF{30.0f, 50.0f});
 
@@ -119,7 +119,7 @@ TEST_CASE("gizmo positions", "[gizmo-positions]")
     auto *rc2 = row.appendChild<Rectangle>(10.0f, 10.0f);
     REQUIRE(rc2->globalPosition() == glm::vec2{24.0f, 20.0f});
 
-    row.removeChild(0);
+    row.removeChildAt(0);
     REQUIRE(rc2->globalPosition() == glm::vec2{10.0f, 20.0f});
 }
 

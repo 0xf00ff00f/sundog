@@ -14,6 +14,11 @@ class SpriteTextureBook;
 class IconCache;
 class DrawCommand;
 
+namespace gl
+{
+class AbstractTexture;
+};
+
 class Painter
 {
 public:
@@ -58,6 +63,8 @@ public:
         drawText(pos, std::basic_string_view<CharT>{text}, depth);
     }
     void drawIcon(const glm::vec2 &pos, std::string_view name, int depth = 0);
+    void drawSprite(const gl::AbstractTexture *texture, const glm::vec2 &topLeft, const glm::vec2 &texCoordTopLeft,
+                    const glm::vec2 &bottomRight, const glm::vec2 &texCoordBottomRight, int depth = 0);
 
 private:
     void flushCommandQueue();
