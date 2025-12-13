@@ -112,7 +112,7 @@ Orbit::StateVector2 Orbit::stateVectorOnOrbitPlane(JulianDate when) const
 Orbit::StateVector3 Orbit::stateVector(JulianDate when) const
 {
     const auto [position, velocity] = stateVectorOnOrbitPlane(when);
-    return {m_orbitRotationMatrix * glm::vec3(position, 0.0), m_orbitRotationMatrix * glm::vec3(velocity, 0.0)};
+    return {m_orbitRotationMatrix * glm::dvec3(position, 0.0), m_orbitRotationMatrix * glm::dvec3(velocity, 0.0)};
 }
 
 void Orbit::updatePeriod()
@@ -123,19 +123,19 @@ void Orbit::updatePeriod()
 
 void Orbit::updateOrbitRotationMatrix()
 {
-    const float w = m_elems.longitudePerihelion - m_elems.longitudeAscendingNode;
-    const auto rw = glm::mat3(glm::rotate(glm::mat4(1.0), w, glm::vec3(0.0, 0.0, 1.0)));
+    const auto w = m_elems.longitudePerihelion - m_elems.longitudeAscendingNode;
+    const auto rw = glm::dmat3{glm::rotate(glm::dmat4(1.0), w, glm::dvec3(0.0, 0.0, 1.0))};
 
-    const float i = m_elems.inclination;
-    const auto ri = glm::mat3(glm::rotate(glm::mat4(1.0), i, glm::vec3(1.0, 0.0, 0.0)));
+    const auto i = m_elems.inclination;
+    const auto ri = glm::dmat3{glm::rotate(glm::dmat4(1.0), i, glm::dvec3(1.0, 0.0, 0.0))};
 
-    const float N = m_elems.longitudeAscendingNode;
-    const auto rN = glm::mat3(glm::rotate(glm::mat4(1.0), N, glm::vec3(0.0, 0.0, 1.0)));
+    const auto N = m_elems.longitudeAscendingNode;
+    const auto rN = glm::dmat3{glm::rotate(glm::dmat4(1.0), N, glm::dvec3(0.0, 0.0, 1.0))};
 
     m_orbitRotationMatrix = rN * ri * rw;
 }
 
-World::World(Universe *universe, const OrbitalElements &elems)
+World::World(const Universe *universe, const OrbitalElements &elems)
     : m_universe(universe)
     , m_orbit(elems)
 {
@@ -155,14 +155,10 @@ World::World(Universe *universe, const OrbitalElements &elems)
     }
 }
 
-glm::vec3 World::position() const
+void World::update()
 {
-    return m_orbit.position(m_universe->date());
-}
-
-glm::vec2 World::positionOnOrbitPlane() const
-{
-    return m_orbit.positionOnOrbitPlane(m_universe->date());
+    m_currentPositionOnOrbitPlane = m_orbit.positionOnOrbitPlane(m_universe->date());
+    m_currentPosition = m_orbit.orbitRotationMatrix() * glm::dvec3(m_currentPositionOnOrbitPlane, 0.0);
 }
 
 const MarketItemPrice *World::findMarketItemPrice(const MarketItem *item) const
@@ -171,18 +167,14 @@ const MarketItemPrice *World::findMarketItemPrice(const MarketItem *item) const
     return it != m_marketItemPrices.end() ? &*it : nullptr;
 }
 
-Ship::Ship(Universe *universe, const ShipClass *shipClass, const World *world)
+Ship::Ship(const Universe *universe, const ShipClass *shipClass, const World *world)
     : m_universe(universe)
     , m_shipClass(shipClass)
     , m_world(world)
-    , m_dateChangedConnection(m_universe->dateChangedSignal.connect([this](JulianDate date) { updateState(date); }))
 {
 }
 
-Ship::~Ship()
-{
-    m_dateChangedConnection.disconnect();
-}
+Ship::~Ship() = default;
 
 void Ship::setMissionPlan(std::optional<MissionPlan> missionPlan)
 {
@@ -232,8 +224,12 @@ void Ship::changeCargo(const MarketItem *item, int count)
     cargoChangedSignal(item);
 }
 
-void Ship::updateState(JulianDate date)
+void Ship::update()
 {
+    const auto date = m_universe->date();
+
+    // update state
+
     switch (m_state)
     {
     case State::Docked: {
@@ -244,7 +240,6 @@ void Ship::updateState(JulianDate date)
             // started mission
             m_world = nullptr;
             m_state = State::InTransit;
-            stateChangedSignal(m_state);
         }
         break;
     }
@@ -256,24 +251,24 @@ void Ship::updateState(JulianDate date)
             m_world = m_missionPlan->destination;
             m_missionPlan.reset();
             m_state = State::Docked;
-            stateChangedSignal(m_state);
         }
         break;
     }
     }
-}
 
-glm::vec3 Ship::position() const
-{
+    // update position
+
     switch (m_state)
     {
     case State::Docked: {
         assert(m_world != nullptr);
-        return m_world->position();
+        m_currentPosition = m_world->currentPosition();
+        break;
     }
     case State::InTransit: {
         assert(m_missionPlan.has_value());
-        return m_missionPlan->orbit.position(m_universe->date());
+        m_currentPosition = m_missionPlan->orbit.position(date);
+        break;
     }
     }
 }
@@ -307,6 +302,12 @@ void Universe::setDate(JulianDate date)
 void Universe::update(Seconds elapsed)
 {
     setDate(m_date + elapsed);
+
+    for (auto &world : m_worlds)
+        world->update();
+
+    for (auto &ship : m_ships)
+        ship->update();
 }
 
 Ship *Universe::addShip(const ShipClass *shipClass, const World *world, std::string_view name)

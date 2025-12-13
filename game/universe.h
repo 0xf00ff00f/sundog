@@ -52,7 +52,7 @@ public:
     void setElements(const OrbitalElements &elems);
     OrbitalElements elements() const { return m_elems; }
 
-    glm::mat3 orbitRotationMatrix() const { return m_orbitRotationMatrix; }
+    glm::dmat3 orbitRotationMatrix() const { return m_orbitRotationMatrix; }
     double period() const { return m_period; }      // Earth days
     double meanAnomaly(JulianDate when) const;      // radians
     double eccentricAnomaly(JulianDate when) const; // radians
@@ -69,7 +69,7 @@ private:
 
     OrbitalElements m_elems;
     double m_period{0.0};
-    glm::mat3 m_orbitRotationMatrix;
+    glm::dmat3 m_orbitRotationMatrix;
 };
 
 struct MarketItemPrice
@@ -84,15 +84,17 @@ class Universe;
 class World
 {
 public:
-    explicit World(Universe *universe, const OrbitalElements &elems);
+    explicit World(const Universe *universe, const OrbitalElements &elems);
 
     const Universe *universe() const { return m_universe; }
     const Orbit &orbit() const { return m_orbit; }
     std::span<const MarketItemPrice> marketItemPrices() const { return m_marketItemPrices; }
     const MarketItemPrice *findMarketItemPrice(const MarketItem *item) const;
 
-    glm::vec2 positionOnOrbitPlane() const;
-    glm::vec3 position() const;
+    void update();
+
+    glm::dvec2 currentPositionOnOrbitPlane() const { return m_currentPositionOnOrbitPlane; }
+    glm::dvec3 currentPosition() const { return m_currentPosition; }
 
     std::string name;
     double radius; // km
@@ -102,12 +104,14 @@ public:
     std::string diffuseTexture;
 
 private:
-    Universe *m_universe{nullptr};
+    const Universe *m_universe{nullptr};
     // TODO: replace this with std::unordered_map<const MarketItem *, Price>?
     // TODO: change API to something like `std::optional<Price> price(const MarketItem *item) const`
     // to make it easier to build the market snapshot table from World/Ship?
     std::vector<MarketItemPrice> m_marketItemPrices;
     Orbit m_orbit;
+    glm::dvec2 m_currentPositionOnOrbitPlane;
+    glm::dvec3 m_currentPosition;
 };
 
 struct MissionPlan
@@ -131,18 +135,19 @@ public:
         InTransit
     };
 
-    explicit Ship(Universe *universe, const ShipClass *shipClass, const World *initialWorld);
+    explicit Ship(const Universe *universe, const ShipClass *shipClass, const World *initialWorld);
     ~Ship();
 
     const Universe *universe() const { return m_universe; }
     const ShipClass *shipClass() const { return m_shipClass; }
 
-    State state() const { return m_state; }
-
-    glm::vec3 position() const;
-
     const World *world() const; // if State == Docked
     const Orbit *orbit() const; // if State == InTransit
+
+    void update();
+
+    glm::dvec3 currentPosition() const { return m_currentPosition; }
+    State state() const { return m_state; }
 
     void setMissionPlan(std::optional<MissionPlan> missionPlan);
     const std::optional<MissionPlan> &missionPlan() const;
@@ -154,20 +159,17 @@ public:
     void changeCargo(const MarketItem *item, int count);
 
     muslots::Signal<const MarketItem *> cargoChangedSignal;
-    mutable muslots::Signal<State> stateChangedSignal;
 
     std::string name;
 
 private:
-    void updateState(JulianDate date);
-
-    Universe *m_universe{nullptr};
+    const Universe *m_universe{nullptr};
     const ShipClass *m_shipClass{nullptr};
     const World *m_world{nullptr};
     State m_state{State::Docked};
     std::optional<MissionPlan> m_missionPlan;
     std::unordered_map<const MarketItem *, int> m_cargo;
-    muslots::Connection m_dateChangedConnection;
+    glm::dvec3 m_currentPosition;
 };
 
 struct Universe

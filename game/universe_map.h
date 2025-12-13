@@ -30,6 +30,9 @@ public:
 
     void update(Seconds elapsed);
 
+    glm::mat4 projectionMatrix() const { return m_projectionMatrix; }
+    glm::mat4 viewMatrix() const;
+
 private:
     void initializeMeshes();
     void initializeLabels();

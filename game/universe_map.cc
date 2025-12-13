@@ -205,40 +205,49 @@ std::unique_ptr<Mesh> createBodyBillboardMesh()
 class MapLabel : public ui::Column
 {
 public:
-    explicit MapLabel(ui::Gizmo *parent = nullptr);
+    explicit MapLabel(const UniverseMap *universeMap, ui::Gizmo *parent = nullptr);
 
     virtual const World *world() const { return nullptr; }
     virtual const Ship *ship() const { return nullptr; }
-    // TODO rename to clipSpacePosition
-    virtual glm::vec3 clipSpacePosition(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix) const = 0;
+    virtual bool isVisible() const = 0;
+    virtual void update() = 0;
+    virtual glm::vec3 clipSpacePosition() const = 0;
     void paintContents(Painter *painter, const glm::vec2 &pos, int depth) const override;
-    virtual bool visible() const = 0;
+
+protected:
+    const UniverseMap *m_universeMap{nullptr};
 };
 
 class WorldLabel : public MapLabel
 {
 public:
-    explicit WorldLabel(const World *world);
+    explicit WorldLabel(const UniverseMap *universeMap, const World *world);
 
     const World *world() const override { return m_world; }
-    glm::vec3 clipSpacePosition(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix) const override;
-    bool visible() const override { return true; }
+    bool isVisible() const override { return true; }
+    void update() override;
+    glm::vec3 clipSpacePosition() const override { return m_clipSpacePosition; }
 
 private:
+    void updatePosition();
+
     const World *m_world{nullptr};
     ui::Text *m_text{nullptr};
+    glm::vec3 m_clipSpacePosition{0.0f};
 };
 
 class ShipLabel : public MapLabel
 {
 public:
-    explicit ShipLabel(const Ship *ship);
+    explicit ShipLabel(const UniverseMap *map, const Ship *ship);
 
     const Ship *ship() const override { return m_ship; }
-    glm::vec3 clipSpacePosition(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix) const override;
-    bool visible() const override { return m_ship->state() == Ship::State::InTransit; }
+    bool isVisible() const override;
+    void update() override;
+    glm::vec3 clipSpacePosition() const override { return m_clipSpacePosition; }
 
 private:
+    void updatePosition();
     void updateStateText();
 
     const Ship *m_ship{nullptr};
@@ -247,11 +256,12 @@ private:
     ui::MultiLineText *m_etaText{nullptr};
     ui::MultiLineText *m_speedText{nullptr};
     ui::Text *m_speed{nullptr};
-    muslots::Connection m_stateChangedConnection;
+    glm::vec3 m_clipSpacePosition{0.0f};
 };
 
-MapLabel::MapLabel(ui::Gizmo *parent)
+MapLabel::MapLabel(const UniverseMap *universeMap, ui::Gizmo *parent)
     : ui::Column(parent)
+    , m_universeMap(universeMap)
 {
     setMargins(8.0f, 8.0f, 8.0f, 14.0f);
 }
@@ -269,8 +279,8 @@ void MapLabel::paintContents(Painter *painter, const glm::vec2 &pos, int depth) 
     painter->fillConvexPolygon(arrow, depth);
 }
 
-WorldLabel::WorldLabel(const World *world)
-    : MapLabel()
+WorldLabel::WorldLabel(const UniverseMap *map, const World *world)
+    : MapLabel(map)
     , m_world(world)
 {
     m_text = appendChild<ui::Text>();
@@ -279,18 +289,23 @@ WorldLabel::WorldLabel(const World *world)
     m_text->setText(m_world->name);
 }
 
-glm::vec3 WorldLabel::clipSpacePosition(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix) const
+void WorldLabel::update()
 {
-    auto viewPosition = viewMatrix * glm::vec4{m_world->position(), 1.0f};
-    viewPosition.y += scaledRadius(m_world->radius); // move it to top of the planet
-    const auto clipSpacePosition = projectionMatrix * viewPosition;
-    return glm::vec3{clipSpacePosition} / clipSpacePosition.w;
+    updatePosition();
 }
 
-ShipLabel::ShipLabel(const Ship *ship)
-    : MapLabel()
+void WorldLabel::updatePosition()
+{
+    // update position
+    auto viewPosition = m_universeMap->viewMatrix() * glm::vec4{m_world->currentPosition(), 1.0f};
+    viewPosition.y += scaledRadius(m_world->radius); // move it to top of the planet
+    const auto clipSpacePosition = m_universeMap->projectionMatrix() * viewPosition;
+    m_clipSpacePosition = glm::vec3{clipSpacePosition} / clipSpacePosition.w;
+}
+
+ShipLabel::ShipLabel(const UniverseMap *map, const Ship *ship)
+    : MapLabel(map)
     , m_ship(ship)
-    , m_stateChangedConnection(m_ship->stateChangedSignal.connect([this](Ship::State) { updateStateText(); }))
 {
     m_text = appendChild<ui::Text>();
     m_text->setFont(g_styleSettings.smallFont);
@@ -319,11 +334,24 @@ ShipLabel::ShipLabel(const Ship *ship)
     updateStateText();
 }
 
+bool ShipLabel::isVisible() const
+{
+    return m_ship->state() == Ship::State::InTransit;
+}
+
+void ShipLabel::update()
+{
+    if (m_ship->state() == Ship::State::InTransit)
+    {
+        updateStateText();
+        updatePosition();
+    }
+}
+
 void ShipLabel::updateStateText()
 {
-    switch (m_ship->state())
+    if (m_ship->state() == Ship::State::InTransit)
     {
-    case Ship::State::InTransit: {
         const auto &missionPlan = m_ship->missionPlan();
         assert(missionPlan.has_value());
         m_stateText->setText(std::format("{} > {}", missionPlan->origin->name, missionPlan->destination->name));
@@ -335,22 +363,14 @@ void ShipLabel::updateStateText()
         const auto [_, velocity] = orbit->stateVector(m_ship->universe()->date());
         const auto speed = glm::length(velocity) * 1.496e+8 / (24 * 60 * 60);
         m_speedText->setText(std::format("{:.2f} km/s", speed));
-        break;
-    }
-    case Ship::State::Docked: {
-        const auto *world = m_ship->world();
-        assert(world);
-        m_stateText->setText(std::format("Docked on {}", world->name));
-        break;
-    }
     }
 }
 
-glm::vec3 ShipLabel::clipSpacePosition(const glm::mat4 &projectionMatrix, const glm::mat4 &viewMatrix) const
+void ShipLabel::updatePosition()
 {
-    const auto viewProjectionMatrix = projectionMatrix * viewMatrix;
-    const auto clipSpacePosition = viewProjectionMatrix * glm::vec4{m_ship->position(), 1.0f};
-    return glm::vec3{clipSpacePosition} / clipSpacePosition.w;
+    const auto viewProjectionMatrix = m_universeMap->projectionMatrix() * m_universeMap->viewMatrix();
+    const auto clipSpacePosition = viewProjectionMatrix * glm::vec4{m_ship->currentPosition(), 1.0f};
+    m_clipSpacePosition = glm::vec3{clipSpacePosition} / clipSpacePosition.w;
 }
 
 // TODO: Painter singleton
@@ -362,7 +382,7 @@ UniverseMap::UniverseMap(Universe *universe, Painter *overlayPainter)
     initializeLabels();
 
     m_connections.emplace_back(m_universe->shipAddedSignal.connect(
-        [this](const Ship *ship) { m_labels.emplace_back(std::make_unique<ShipLabel>(ship)); }));
+        [this](const Ship *ship) { m_labels.emplace_back(std::make_unique<ShipLabel>(this, ship)); }));
     m_connections.emplace_back(m_universe->shipAboutToBeRemovedSignal.connect([this](const Ship *ship) {
         std::erase_if(m_labels, [ship](const auto &label) { return label->ship() == ship; });
     }));
@@ -508,9 +528,8 @@ void UniverseMap::render() const
         const auto *texture = textureCache->findOrCreateTexture(world->diffuseTexture);
         texture->bind();
 
-        const auto &orbit = world->orbit();
-        const auto position = orbit.positionOnOrbitPlane(m_universe->date());
-        const auto orbitRotation = glm::mat4{orbit.orbitRotationMatrix()};
+        const auto position = glm::vec2{world->currentPositionOnOrbitPlane()};
+        const auto orbitRotation = glm::mat4{world->orbit().orbitRotationMatrix()};
         const auto translationMatrix = glm::translate(glm::mat4{1.0f}, glm::vec3{position, 0.0f});
         const auto tiltRotationMatrix = glm::rotate(glm::mat4{1.0f}, tilt, kTiltAxis);
         const auto rollRotationMatrix = glm::rotate(glm::mat4{1.0f}, roll, kRollAxis);
@@ -561,9 +580,9 @@ void UniverseMap::render() const
     // clang-format off
     auto labelPositions =
         m_labels
-        | std::views::filter(&MapLabel::visible)
+        | std::views::filter(&MapLabel::isVisible)
         | std::views::transform([this, &viewMatrix](const auto &label) {
-              return std::make_pair(label.get(), label->clipSpacePosition(m_projectionMatrix, viewMatrix));
+              return std::make_pair(label.get(), label->clipSpacePosition());
           })
         | std::views::filter([](const auto &item) {
               const auto &[_, clipSpacePosition] = item;
@@ -595,10 +614,10 @@ void UniverseMap::initializeMeshes()
 void UniverseMap::initializeLabels()
 {
     for (const auto *world : m_universe->worlds())
-        m_labels.emplace_back(std::make_unique<WorldLabel>(world));
+        m_labels.emplace_back(std::make_unique<WorldLabel>(this, world));
 
     for (const auto *ship : m_universe->ships())
-        m_labels.emplace_back(std::make_unique<ShipLabel>(ship));
+        m_labels.emplace_back(std::make_unique<ShipLabel>(this, ship));
 }
 
 void UniverseMap::handleMouseButton(MouseButton button, MouseAction action, const glm::vec2 &pos, Modifier mods)
@@ -609,7 +628,7 @@ void UniverseMap::handleMouseButton(MouseButton button, MouseAction action, cons
         {
             std::println("picked {}", world->name);
             m_cameraTarget = world;
-            m_cameraController.moveCameraCenter(m_cameraTarget->position(), true);
+            m_cameraController.moveCameraCenter(m_cameraTarget->currentPosition(), true);
         }
     }
     m_cameraController.handleMouseButton(button, action, pos, mods);
@@ -639,7 +658,7 @@ const World *UniverseMap::pickWorld(const glm::vec2 &viewportPos)
     const World *closestWorld = nullptr;
     for (const auto *world : worlds)
     {
-        const auto position = world->position();
+        const auto position = glm::vec3{world->currentPosition()};
         const auto dist =
             raySphereIntersect(rayFrom, rayDir, position, static_cast<float>(scaledRadius(world->radius)));
         if (dist > 0.0f && dist < closestDist)
@@ -660,6 +679,14 @@ void UniverseMap::handleMouseMove(const glm::vec2 &pos)
 void UniverseMap::update(Seconds seconds)
 {
     if (m_cameraTarget)
-        m_cameraController.moveCameraCenter(m_cameraTarget->position(), true);
+        m_cameraController.moveCameraCenter(glm::vec3{m_cameraTarget->currentPosition()}, true);
     m_cameraController.update(seconds);
+
+    for (auto &label : m_labels)
+        label->update();
+}
+
+glm::mat4 UniverseMap::viewMatrix() const
+{
+    return m_cameraController.viewMatrix();
 }
