@@ -30,6 +30,14 @@ public:
         float bottomLeft;
     };
 
+    enum class Rotation
+    {
+        Rotate0,
+        Rotate90,
+        Rotate180,
+        Rotate270
+    };
+
     Painter();
     ~Painter();
 
@@ -56,7 +64,17 @@ public:
     void strokeRoundedRect(const RectF &rect, float radius, float thickness, int depth = 0);
     void strokeRoundedRect(const RectF &rect, const CornerRadii &radii, float thickness, int depth = 0);
     template<typename CharT>
-    void drawText(const glm::vec2 &pos, std::basic_string_view<CharT> text, int depth = 0);
+    void drawText(const glm::vec2 &pos, std::basic_string_view<CharT> text, Rotation rotation, int depth = 0);
+    template<typename CharT>
+    void drawText(const glm::vec2 &pos, std::basic_string_view<CharT> text, int depth = 0)
+    {
+        drawText(pos, text, Rotation::Rotate0, depth);
+    }
+    template<typename CharT>
+    void drawText(const glm::vec2 &pos, const std::basic_string<CharT> &text, Rotation rotation, int depth = 0)
+    {
+        drawText(pos, std::basic_string_view<CharT>{text}, rotation, depth);
+    }
     template<typename CharT>
     void drawText(const glm::vec2 &pos, const std::basic_string<CharT> &text, int depth = 0)
     {

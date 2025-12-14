@@ -6,6 +6,8 @@
 #include "icon_cache.h"
 #include "system.h"
 
+#include <glm/gtx/string_cast.hpp>
+
 #include <span>
 #include <tuple>
 #include <algorithm>
@@ -15,6 +17,14 @@ namespace
 {
 constexpr auto kSpriteSheetHeight = 1024;
 constexpr auto kSpriteSheetWidth = 1024;
+
+constexpr std::array<glm::vec2, 4> toQuad(const RectF &rect)
+{
+    const auto topLeft = rect.topLeft();
+    const auto bottomRight = rect.bottomRight();
+    return std::array{glm::vec2{topLeft.x, topLeft.y}, glm::vec2{bottomRight.x, topLeft.y},
+                      glm::vec2{bottomRight.x, bottomRight.y}, glm::vec2{topLeft.x, bottomRight.y}};
+}
 
 std::vector<glm::vec2> roundedRectVerts(const RectF &rect, const Painter::CornerRadii &radii)
 {
@@ -248,7 +258,7 @@ public:
         glm::vec2 position;
         glm::vec2 texCoords;
     };
-    void addSprite(const Vertex &topLeft, const Vertex &bottomRight);
+    void addSprite(const Vertex &topLeft, const Vertex &topRight, const Vertex &bottomRight, const Vertex &bottomLeft);
 
     VertexType vertexType() const override { return VertexType::PosTexColor; }
     const gl::AbstractTexture *texture() const override { return m_texture; }
@@ -256,11 +266,7 @@ public:
     void dumpVertices(VertexPosTexColorBuffer &buffer) const override;
 
 private:
-    struct Quad
-    {
-        Vertex topLeft;
-        Vertex bottomRight;
-    };
+    using Quad = std::array<Vertex, 4>;
 
     const gl::AbstractTexture *m_texture;
     glm::vec4 m_color;
@@ -388,9 +394,10 @@ DrawSpriteBatch::DrawSpriteBatch(const gl::AbstractTexture *texture, const glm::
 {
 }
 
-void DrawSpriteBatch::addSprite(const Vertex &topLeft, const Vertex &bottomRight)
+void DrawSpriteBatch::addSprite(const Vertex &topLeft, const Vertex &topRight, const Vertex &bottomRight,
+                                const Vertex &bottomLeft)
 {
-    m_quads.emplace_back(topLeft, bottomRight);
+    m_quads.emplace_back(std::array{topLeft, topRight, bottomRight, bottomLeft});
 }
 
 void DrawSpriteBatch::dumpVertices(VertexPosTexColorBuffer &buffer) const
@@ -402,16 +409,14 @@ void DrawSpriteBatch::dumpVertices(VertexPosTexColorBuffer &buffer) const
 
     for (const auto &quad : m_quads)
     {
-        const auto &topLeft = quad.topLeft;
-        const auto &bottomRight = quad.bottomRight;
-        vertices.emplace_back(glm::vec2{topLeft.position.x, topLeft.position.y},
-                              glm::vec2{topLeft.texCoords.x, topLeft.texCoords.y}, m_color);
-        vertices.emplace_back(glm::vec2{bottomRight.position.x, topLeft.position.y},
-                              glm::vec2{bottomRight.texCoords.x, topLeft.texCoords.y}, m_color);
-        vertices.emplace_back(glm::vec2{bottomRight.position.x, bottomRight.position.y},
-                              glm::vec2{bottomRight.texCoords.x, bottomRight.texCoords.y}, m_color);
-        vertices.emplace_back(glm::vec2{topLeft.position.x, bottomRight.position.y},
-                              glm::vec2{topLeft.texCoords.x, bottomRight.texCoords.y}, m_color);
+        const auto &v0 = quad[0];
+        const auto &v1 = quad[1];
+        const auto &v2 = quad[2];
+        const auto &v3 = quad[3];
+        vertices.emplace_back(v0.position, v0.texCoords, m_color);
+        vertices.emplace_back(v1.position, v1.texCoords, m_color);
+        vertices.emplace_back(v2.position, v2.texCoords, m_color);
+        vertices.emplace_back(v3.position, v3.texCoords, m_color);
 
         indices.push_back(vertexIndex + 0);
         indices.push_back(vertexIndex + 1);
@@ -618,12 +623,27 @@ void Painter::strokeRoundedRect(const RectF &rect, const CornerRadii &radii, flo
 }
 
 template<typename CharT>
-void Painter::drawText(const glm::vec2 &pos, std::basic_string_view<CharT> text, int depth)
+void Painter::drawText(const glm::vec2 &pos, std::basic_string_view<CharT> text, Rotation rotation, int depth)
 {
     if (!m_glyphCache)
         return;
 
     assert(m_fontMetrics.has_value());
+
+    auto rotate = [rotation](const glm::vec2 &v) -> glm::vec2 {
+        switch (rotation)
+        {
+        case Rotation::Rotate0:
+        default:
+            return v;
+        case Rotation::Rotate90:
+            return glm::vec2{v.y, -v.x};
+        case Rotation::Rotate180:
+            return glm::vec2{-v.x, -v.y};
+        case Rotation::Rotate270:
+            return glm::vec2{-v.y, v.x};
+        }
+    };
 
     std::unordered_map<const gl::AbstractTexture *, std::unique_ptr<DrawSpriteBatch>> commands;
 
@@ -640,11 +660,13 @@ void Painter::drawText(const glm::vec2 &pos, std::basic_string_view<CharT> text,
                         it, {glyph->texture, std::make_unique<DrawSpriteBatch>(glyph->texture, m_color, depth)});
                 return it->second.get();
             }();
-            command->addSprite({p + glyph->quad.topLeft(), glyph->texCoords.topLeft()},
-                               {p + glyph->quad.bottomRight(), glyph->texCoords.bottomRight()});
-            p += glm::vec2(glyph->advance, 0);
+            const auto offset = toQuad(glyph->quad);
+            const auto texCoord = toQuad(glyph->texCoords);
+            command->addSprite({p + rotate(offset[0]), texCoord[0]}, {p + rotate(offset[1]), texCoord[1]},
+                               {p + rotate(offset[2]), texCoord[2]}, {p + rotate(offset[3]), texCoord[3]});
+            p += rotate(glm::vec2(glyph->advance, 0));
             if (index < text.size() - 1)
-                p += glm::vec2(m_fontMetrics->kernAdvance(ch, text[index + 1]), 0.0f);
+                p += rotate(glm::vec2(m_fontMetrics->kernAdvance(ch, text[index + 1]), 0.0f));
         }
         ++index;
     }
@@ -659,8 +681,10 @@ void Painter::drawIcon(const glm::vec2 &pos, std::string_view name, int depth)
     if (icon.has_value())
     {
         auto command = std::make_unique<DrawSpriteBatch>(icon->texture, m_color, depth);
-        command->addSprite({pos, icon->texCoords.topLeft()},
-                           {pos + glm::vec2{icon->size.width(), icon->size.height()}, icon->texCoords.bottomRight()});
+        const auto offset = toQuad(RectF{glm::vec2{0.0}, SizeF{icon->size}});
+        const auto texCoord = toQuad(icon->texCoords);
+        command->addSprite({pos + offset[0], texCoord[0]}, {pos + offset[1], texCoord[1]},
+                           {pos + offset[2], texCoord[2]}, {pos + offset[3], texCoord[3]});
         m_commands.push_back(std::move(command));
     }
 }
@@ -669,9 +693,12 @@ void Painter::drawSprite(const gl::AbstractTexture *texture, const glm::vec2 &to
                          const glm::vec2 &bottomRight, const glm::vec2 &texCoordBottomRight, int depth)
 {
     auto command = std::make_unique<DrawSpriteBatch>(texture, m_color, depth);
-    command->addSprite({topLeft, texCoordTopLeft}, {bottomRight, texCoordBottomRight});
+    const auto position = toQuad(RectF{topLeft, bottomRight});
+    const auto texCoord = toQuad(RectF{texCoordTopLeft, texCoordBottomRight});
+    command->addSprite({position[0], texCoord[0]}, {position[1], texCoord[1]}, {position[2], texCoord[2]},
+                       {position[3], texCoord[3]});
     m_commands.push_back(std::move(command));
 }
 
-template void Painter::drawText(const glm::vec2 &pos, std::string_view text, int depth);
-template void Painter::drawText(const glm::vec2 &pos, std::u32string_view text, int depth);
+template void Painter::drawText(const glm::vec2 &pos, std::string_view text, Rotation rotation, int depth);
+template void Painter::drawText(const glm::vec2 &pos, std::u32string_view text, Rotation rotation, int depth);
