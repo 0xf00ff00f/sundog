@@ -904,7 +904,7 @@ bool EventManager::handleMouseButton(MouseButton button, MouseAction action, con
         if (target)
         {
             // found a gizmo that accepts the mouse press, will get mouse move and the mouse release event
-            setMouseEventTarget(target);
+            m_mouseEventTarget.reset(target);
             accepted = true;
         }
         break;
@@ -913,7 +913,7 @@ bool EventManager::handleMouseButton(MouseButton button, MouseAction action, con
         if (m_mouseEventTarget)
         {
             m_mouseEventTarget->handleMouseRelease(pos - m_mouseEventTarget->globalPosition());
-            setMouseEventTarget(nullptr);
+            m_mouseEventTarget.reset(nullptr);
             accepted = true;
         }
         break;
@@ -922,37 +922,21 @@ bool EventManager::handleMouseButton(MouseButton button, MouseAction action, con
     return accepted;
 }
 
-void EventManager::setMouseEventTarget(Gizmo *target)
-{
-    if (m_mouseEventTarget)
-    {
-        m_aboutToBeDestroyedConnection.disconnect();
-    }
-    m_mouseEventTarget = target;
-    if (m_mouseEventTarget)
-    {
-        m_aboutToBeDestroyedConnection =
-            m_mouseEventTarget->aboutToBeDestroyedSignal.connect([this] { setMouseEventTarget(nullptr); });
-    }
-}
-
 bool EventManager::handleMouseMove(const glm::vec2 &pos)
 {
     bool accepted = false;
-#if 0
     auto *underCursor = m_root->findChildAt(pos, [](Gizmo *gizmo, const glm::vec2 &) { return gizmo->hoverable(); });
-    if (m_underCursor != underCursor)
+    if (m_underCursor.get() != underCursor)
     {
         if (m_underCursor)
             m_underCursor->handleHoverLeave();
-        m_underCursor = underCursor;
+        m_underCursor.reset(underCursor);
         if (m_underCursor)
             m_underCursor->handleHoverEnter();
     }
-#endif
 
     m_root->findChildAt(pos, [this](Gizmo *gizmo, const glm::vec2 &pos) {
-        if (gizmo->hasMouseTracking() && gizmo != m_mouseEventTarget)
+        if (gizmo->hasMouseTracking() && gizmo != m_mouseEventTarget.get())
             gizmo->handleMouseMove(pos);
         return false;
     });

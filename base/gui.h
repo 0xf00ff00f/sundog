@@ -1,13 +1,13 @@
 #pragma once
 
-#include <ranges>
-#include <concepts>
-
-#include <muslots/muslots.h>
-
 #include "painter.h"
 #include "rect.h"
 #include "window_base.h"
+
+#include <muslots/muslots.h>
+
+#include <ranges>
+#include <concepts>
 
 namespace ui
 {
@@ -464,6 +464,41 @@ private:
     std::string m_source;
 };
 
+template<std::derived_from<Gizmo> GizmoT>
+class GizmoWeakPtr
+{
+public:
+    GizmoWeakPtr(GizmoT *gizmo = nullptr) { reset(gizmo); }
+    ~GizmoWeakPtr() { m_destroyedConnection.disconnect(); }
+
+    // TODO implement these
+    GizmoWeakPtr(GizmoWeakPtr &&) = delete;
+    GizmoWeakPtr &operator=(GizmoWeakPtr &&) = delete;
+
+    // TODO and these
+    GizmoWeakPtr(const GizmoWeakPtr &) = delete;
+    GizmoWeakPtr &operator=(const GizmoWeakPtr &) = delete;
+
+    void reset(GizmoT *gizmo)
+    {
+        if (gizmo == m_gizmo)
+            return;
+        if (m_gizmo)
+            m_destroyedConnection.disconnect();
+        m_gizmo = gizmo;
+        if (m_gizmo)
+            m_destroyedConnection = m_gizmo->aboutToBeDestroyedSignal.connect([this] { reset(nullptr); });
+    }
+
+    GizmoT *get() const { return m_gizmo; }
+    GizmoT *operator->() const { return get(); }
+    explicit operator bool() const { return m_gizmo != nullptr; }
+
+private:
+    GizmoT *m_gizmo;
+    muslots::Connection m_destroyedConnection;
+};
+
 class EventManager
 {
 public:
@@ -476,13 +511,9 @@ public:
     bool handleMouseWheel(const glm::vec2 &mousePos, const glm::vec2 &wheelOffset);
 
 private:
-    void setMouseEventTarget(Gizmo *gizmo);
-    void setUnderCursor(Gizmo *gizmo);
-
     Gizmo *m_root{nullptr};
-    Gizmo *m_mouseEventTarget{nullptr};
-    Gizmo *m_underCursor{nullptr};
-    muslots::Connection m_aboutToBeDestroyedConnection;
+    GizmoWeakPtr<Gizmo> m_mouseEventTarget;
+    GizmoWeakPtr<Gizmo> m_underCursor;
 };
 
 } // namespace ui
