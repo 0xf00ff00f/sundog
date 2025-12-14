@@ -1,46 +1,74 @@
 #include "mission_plot_gizmo.h"
 
 #include "mission_plot.h"
+#include "style_settings.h"
 
 #include <mdspan>
 
+using namespace ui;
+
 MissionPlotGizmo::MissionPlotGizmo(const MissionTable *missionTable, Gizmo *parent)
-    : ui::Gizmo(parent)
+    : Gizmo(parent)
+    , m_font(g_styleSettings.smallFont)
     , m_missionTable(missionTable)
     , m_plotImage(createMissionPlot(*missionTable))
     , m_plotTexture(m_plotImage)
 {
-    m_size = SizeF{m_plotImage.size()};
+    m_margins = Margins{.left = m_font.pixelHeight, .right = 0, .top = 0, .bottom = m_font.pixelHeight};
+
+    m_size = SizeF{Size{m_plotImage.width() + m_margins.left + m_margins.right,
+                        m_plotImage.height() + m_margins.top + m_margins.bottom}};
 
     m_plotTexture.setMinificationFilter(gl::Texture::Filter::Linear);
     m_plotTexture.setMagnificationFilter(gl::Texture::Filter::Linear);
     m_plotTexture.setWrapModeS(gl::Texture::WrapMode::ClampToEdge);
     m_plotTexture.setWrapModeT(gl::Texture::WrapMode::ClampToEdge);
-
-    setFillBackground(true);
-    backgroundColor = glm::vec4{1.0};
 }
 
 void MissionPlotGizmo::paintContents(Painter *painter, const glm::vec2 &pos, int depth) const
 {
+    using namespace std::literals::string_view_literals;
+
+    const auto fm = FontMetrics{m_font};
+
+    const auto fontHeight = m_font.pixelHeight;
+
     painter->setColor(glm::vec4{1.0f});
-    painter->drawSprite(&m_plotTexture, pos, glm::vec2{0.0f, 1.0f}, pos + glm::vec2{m_size.width(), m_size.height()},
+    painter->drawSprite(&m_plotTexture, pos + glm::vec2{m_margins.left, m_margins.top}, glm::vec2{0.0f, 1.0f},
+                        pos + glm::vec2{m_margins.left + m_plotImage.width(), m_margins.top + m_plotImage.height()},
                         glm::vec2{1.0f, 0.0f}, depth);
+
+    painter->setFont(m_font);
+    painter->setColor(glm::vec4{1.0f});
+    constexpr auto kArrivalText = "Arrival Date"sv;
+    const auto leftTextHeight = fm.horizontalAdvance(kArrivalText);
+    painter->drawText(pos + glm::vec2{m_margins.left - m_font.pixelHeight,
+                                      m_margins.top + 0.5f * (m_plotImage.height() + leftTextHeight)},
+                      kArrivalText, Painter::Rotation::Rotate90, depth);
+
+    constexpr auto kDepartureText = "Departure Date"sv;
+    const auto bottomTextWidth = fm.horizontalAdvance(kDepartureText);
+    painter->drawText(pos + glm::vec2{m_margins.left + 0.5f * (m_plotImage.width() - bottomTextWidth),
+                                      m_margins.top + m_plotImage.height()},
+                      kDepartureText, depth);
+
     if (m_selectedPoint)
     {
         painter->setColor(glm::vec4{0.0f, 0.0f, 0.0f, 1.0f});
-        const auto x = pos.x + m_selectedPoint->x;
-        const auto y = pos.y + m_selectedPoint->y;
-        painter->strokePolyline(std::array{glm::vec2{x, pos.y}, glm::vec2{x, pos.y + m_size.height()}}, 1.0f, false,
-                                depth + 1);
-        painter->strokePolyline(std::array{glm::vec2{pos.x, y}, glm::vec2{pos.x + m_size.width(), y}}, 1.0f, false,
-                                depth + 1);
+        const auto x = pos.x + m_selectedPoint->x + m_margins.left;
+        const auto y = pos.y + m_selectedPoint->y + m_margins.top;
+        painter->strokePolyline(
+            std::array{glm::vec2{x, pos.y + m_margins.top}, glm::vec2{x, pos.y + m_margins.top + m_plotImage.height()}},
+            1.0f, false, depth + 1);
+        painter->strokePolyline(std::array{glm::vec2{pos.x + m_margins.left, y},
+                                           glm::vec2{pos.x + m_margins.left + m_plotImage.width(), y}},
+                                1.0f, false, depth + 1);
     }
 }
 
 bool MissionPlotGizmo::handleMousePress(const glm::vec2 &pos)
 {
-    updateMissionPlan(pos);
+    updateMissionPlan(pos - glm::vec2{m_margins.left, m_margins.top});
     return true;
 }
 
@@ -48,7 +76,7 @@ void MissionPlotGizmo::handleMouseRelease(const glm::vec2 &pos) {}
 
 void MissionPlotGizmo::handleMouseMove(const glm::vec2 &pos)
 {
-    updateMissionPlan(pos);
+    updateMissionPlan(pos - glm::vec2{m_margins.left, m_margins.top});
 }
 
 void MissionPlotGizmo::updateMissionPlan(const glm::vec2 &pos)

@@ -26,8 +26,10 @@ private:
     void updateMissionPlan(const glm::vec2 &pos);
 
     const MissionTable *m_missionTable{nullptr};
+    Font m_font;
     Image32 m_plotImage;
     gl::Texture m_plotTexture;
     std::optional<MissionPlan> m_missionPlan;
     std::optional<glm::vec2> m_selectedPoint;
+    ui::Margins m_margins;
 };
