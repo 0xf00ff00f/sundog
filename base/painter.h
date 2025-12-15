@@ -56,6 +56,7 @@ public:
     RectF clipRect() const { return m_clipRect; }
 
     void strokePolyline(std::span<const glm::vec2> verts, float thickness, bool closed, int depth = 0);
+    void strokeLine(const glm::vec2 &from, const glm::vec2 &to, float thickness, bool closed, int depth = 0);
     void fillConvexPolygon(std::span<const glm::vec2> verts, int depth = 0);
     void fillRect(const RectF &rect, int depth = 0);
     void strokeRect(const RectF &rect, float thickness, int depth = 0);

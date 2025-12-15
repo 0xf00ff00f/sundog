@@ -57,12 +57,10 @@ void MissionPlotGizmo::paintContents(Painter *painter, const glm::vec2 &pos, int
         painter->setColor(glm::vec4{0.0f, 0.0f, 0.0f, 1.0f});
         const auto x = pos.x + m_selectedPoint->x + m_margins.left;
         const auto y = pos.y + m_selectedPoint->y + m_margins.top;
-        painter->strokePolyline(
-            std::array{glm::vec2{x, pos.y + m_margins.top}, glm::vec2{x, pos.y + m_margins.top + m_plotImage.height()}},
-            1.0f, false, depth + 1);
-        painter->strokePolyline(std::array{glm::vec2{pos.x + m_margins.left, y},
-                                           glm::vec2{pos.x + m_margins.left + m_plotImage.width(), y}},
-                                1.0f, false, depth + 1);
+        painter->strokeLine(glm::vec2{x, pos.y + m_margins.top},
+                            glm::vec2{x, pos.y + m_margins.top + m_plotImage.height()}, 1.0f, false, depth + 1);
+        painter->strokeLine(glm::vec2{pos.x + m_margins.left, y},
+                            glm::vec2{pos.x + m_margins.left + m_plotImage.width(), y}, 1.0f, false, depth + 1);
     }
 }
 

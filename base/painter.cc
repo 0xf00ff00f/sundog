@@ -18,12 +18,9 @@ namespace
 constexpr auto kSpriteSheetHeight = 1024;
 constexpr auto kSpriteSheetWidth = 1024;
 
-constexpr std::array<glm::vec2, 4> toQuad(const RectF &rect)
+constexpr std::array<glm::vec2, 4> rectVerts(const RectF &rect)
 {
-    const auto topLeft = rect.topLeft();
-    const auto bottomRight = rect.bottomRight();
-    return std::array{glm::vec2{topLeft.x, topLeft.y}, glm::vec2{bottomRight.x, topLeft.y},
-                      glm::vec2{bottomRight.x, bottomRight.y}, glm::vec2{topLeft.x, bottomRight.y}};
+    return {rect.topLeft(), rect.topRight(), rect.bottomRight(), rect.bottomLeft()};
 }
 
 std::vector<glm::vec2> roundedRectVerts(const RectF &rect, const Painter::CornerRadii &radii)
@@ -407,12 +404,8 @@ void DrawSpriteBatch::dumpVertices(VertexPosTexColorBuffer &buffer) const
 
     auto vertexIndex = buffer.vertices.size();
 
-    for (const auto &quad : m_quads)
+    for (const auto &[v0, v1, v2, v3] : m_quads)
     {
-        const auto &v0 = quad[0];
-        const auto &v1 = quad[1];
-        const auto &v2 = quad[2];
-        const auto &v3 = quad[3];
         vertices.emplace_back(v0.position, v0.texCoords, m_color);
         vertices.emplace_back(v1.position, v1.texCoords, m_color);
         vertices.emplace_back(v2.position, v2.texCoords, m_color);
@@ -585,6 +578,11 @@ void Painter::strokePolyline(std::span<const glm::vec2> verts, float thickness, 
     m_commands.push_back(std::make_unique<StrokePolyline>(verts, m_color, thickness, closed, depth));
 }
 
+void Painter::strokeLine(const glm::vec2 &from, const glm::vec2 &to, float thickness, bool closed, int depth)
+{
+    m_commands.push_back(std::make_unique<StrokePolyline>(std::vector{from, to}, m_color, thickness, closed, depth));
+}
+
 void Painter::fillConvexPolygon(std::span<const glm::vec2> verts, int depth)
 {
     m_commands.push_back(std::make_unique<FillConvexPolygon>(verts, m_color, depth));
@@ -598,8 +596,8 @@ void Painter::fillRect(const RectF &rect, int depth)
 
 void Painter::strokeRect(const RectF &rect, float thickness, int depth)
 {
-    const std::array verts{rect.topLeft(), rect.topRight(), rect.bottomRight(), rect.bottomLeft()};
-    strokePolyline(verts, thickness, true, depth);
+    std::vector verts{rect.topLeft(), rect.topRight(), rect.bottomRight(), rect.bottomLeft()};
+    strokePolyline(std::move(verts), thickness, true, depth);
 }
 
 void Painter::fillRoundedRect(const RectF &rect, float radius, int depth)
@@ -660,8 +658,8 @@ void Painter::drawText(const glm::vec2 &pos, std::basic_string_view<CharT> text,
                         it, {glyph->texture, std::make_unique<DrawSpriteBatch>(glyph->texture, m_color, depth)});
                 return it->second.get();
             }();
-            const auto offset = toQuad(glyph->quad);
-            const auto texCoord = toQuad(glyph->texCoords);
+            const auto offset = rectVerts(glyph->quad);
+            const auto texCoord = rectVerts(glyph->texCoords);
             command->addSprite({p + rotate(offset[0]), texCoord[0]}, {p + rotate(offset[1]), texCoord[1]},
                                {p + rotate(offset[2]), texCoord[2]}, {p + rotate(offset[3]), texCoord[3]});
             p += rotate(glm::vec2(glyph->advance, 0));
@@ -681,8 +679,8 @@ void Painter::drawIcon(const glm::vec2 &pos, std::string_view name, int depth)
     if (icon.has_value())
     {
         auto command = std::make_unique<DrawSpriteBatch>(icon->texture, m_color, depth);
-        const auto offset = toQuad(RectF{glm::vec2{0.0}, SizeF{icon->size}});
-        const auto texCoord = toQuad(icon->texCoords);
+        const auto offset = rectVerts(RectF{glm::vec2{0.0}, SizeF{icon->size}});
+        const auto texCoord = rectVerts(icon->texCoords);
         command->addSprite({pos + offset[0], texCoord[0]}, {pos + offset[1], texCoord[1]},
                            {pos + offset[2], texCoord[2]}, {pos + offset[3], texCoord[3]});
         m_commands.push_back(std::move(command));
@@ -693,8 +691,8 @@ void Painter::drawSprite(const gl::AbstractTexture *texture, const glm::vec2 &to
                          const glm::vec2 &bottomRight, const glm::vec2 &texCoordBottomRight, int depth)
 {
     auto command = std::make_unique<DrawSpriteBatch>(texture, m_color, depth);
-    const auto position = toQuad(RectF{topLeft, bottomRight});
-    const auto texCoord = toQuad(RectF{texCoordTopLeft, texCoordBottomRight});
+    const auto position = rectVerts(RectF{topLeft, bottomRight});
+    const auto texCoord = rectVerts(RectF{texCoordTopLeft, texCoordBottomRight});
     command->addSprite({position[0], texCoord[0]}, {position[1], texCoord[1]}, {position[2], texCoord[2]},
                        {position[3], texCoord[3]});
     m_commands.push_back(std::move(command));
