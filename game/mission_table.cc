@@ -14,22 +14,41 @@ MissionTable::MissionTable(const World *origin, const World *destination, Julian
     : m_origin(origin)
     , m_destination(destination)
 {
-    constexpr JulianClock::duration kMinTransitInterval{90.0};
-    constexpr JulianClock::duration kMaxTransitInterval{1.0 * 365.0};
-    constexpr JulianClock::duration kMaxWait{2.0 * 365.0};
-    constexpr JulianClock::duration kStep{2.0};
+    const auto &originOrbit = origin->orbit();
+    const auto &destinationOrbit = destination->orbit();
 
-    for (JulianDate departure = start; departure <= start + kMaxWait; departure += kStep)
+    constexpr std::size_t kArrivalSamples = 400;
+    constexpr std::size_t kDepartureSamples = 400;
+
+    // TODO shouldn't Orbit::period be JulianClock::duration?
+    // const auto maxPeriod = JulianClock::duration{std::max(originOrbit.period(), destinationOrbit.period())};
+    const auto maxPeriod = JulianClock::duration{std::min(originOrbit.period(), destinationOrbit.period())};
+    const auto departureStep = maxPeriod / kDepartureSamples;
+    JulianDate departure = start;
+    for (std::size_t i = 0; i < kDepartureSamples; ++i)
     {
         const auto [position, velocity] = m_origin->orbit().stateVector(departure);
         departures.emplace_back(departure, position, velocity);
+        departure += departureStep;
     }
 
-    for (JulianDate arrival = start + kMinTransitInterval; arrival <= start + kMaxWait + kMaxTransitInterval;
-         arrival += kStep)
+    // assuming GM = 4 * pi^2
+    // Hohmann transfer: tH = pi * sqrt((r1 + r2)^3 / 8 * GM)
+    // assuming kGMSun = (4.0 * pi^2) AU^3/years^2
+    const JulianClock::duration transitHohmann{
+        0.5 *
+        std::pow(0.5 * (originOrbit.elements().semiMajorAxis + destinationOrbit.elements().semiMajorAxis), 3.0 / 2.0) *
+        kEarthYearInDays};
+    const auto minTransitInterval = 0.5 * transitHohmann;
+    const auto maxTransitInterval = 1.5 * transitHohmann;
+    const auto arrivalStep = (maxPeriod + maxTransitInterval - minTransitInterval) / kArrivalSamples;
+
+    JulianDate arrival = start + minTransitInterval;
+    for (std::size_t i = 0; i < kArrivalSamples; ++i)
     {
         const auto [position, velocity] = m_destination->orbit().stateVector(arrival);
         arrivals.emplace_back(arrival, position, velocity);
+        arrival += arrivalStep;
     }
 
     transferOrbits.resize(departures.size() * arrivals.size());
