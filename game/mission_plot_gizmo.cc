@@ -52,15 +52,29 @@ void MissionPlotGizmo::paintContents(Painter *painter, const glm::vec2 &pos, int
                                       m_margins.top + m_plotImage.height()},
                       kDepartureText, depth);
 
-    if (m_selectedPoint)
+    if (m_missionPlan)
     {
+        const auto arrivalIndex = [this] {
+            const auto &arrivals = m_missionTable->arrivals;
+            auto it =
+                std::ranges::lower_bound(arrivals, m_missionPlan->arrivalTime, {}, &MissionTable::DateState::date);
+            assert(it != arrivals.end());
+            return std::distance(arrivals.begin(), it);
+        }();
+        const auto departureIndex = [this] {
+            const auto &departures = m_missionTable->departures;
+            auto it =
+                std::ranges::lower_bound(departures, m_missionPlan->departureTime, {}, &MissionTable::DateState::date);
+            assert(it != departures.end());
+            return std::distance(departures.begin(), it);
+        }();
+        const auto left = pos.x + m_margins.left;
+        const auto top = pos.y + m_margins.top;
+        const auto x = left + departureIndex;
+        const auto y = top + m_plotImage.height() - arrivalIndex;
         painter->setColor(glm::vec4{0.0f, 0.0f, 0.0f, 1.0f});
-        const auto x = pos.x + m_selectedPoint->x + m_margins.left;
-        const auto y = pos.y + m_selectedPoint->y + m_margins.top;
-        painter->strokeLine(glm::vec2{x, pos.y + m_margins.top},
-                            glm::vec2{x, pos.y + m_margins.top + m_plotImage.height()}, 1.0f, false, depth + 1);
-        painter->strokeLine(glm::vec2{pos.x + m_margins.left, y},
-                            glm::vec2{pos.x + m_margins.left + m_plotImage.width(), y}, 1.0f, false, depth + 1);
+        painter->strokeLine(glm::vec2{x, top}, glm::vec2{x, top + m_plotImage.height()}, 1.0f, false, depth + 1);
+        painter->strokeLine(glm::vec2{left, y}, glm::vec2{left + m_plotImage.width(), y}, 1.0f, false, depth + 1);
     }
 }
 
@@ -111,9 +125,10 @@ void MissionPlotGizmo::updateMissionPlan(const glm::vec2 &pos)
     }();
 
     m_missionPlan = missionPlan;
-    if (m_missionPlan)
-        m_selectedPoint = pos;
-    else
-        m_selectedPoint = {};
     missionPlanChangedSignal();
+}
+
+void MissionPlotGizmo::setMissionPlan(std::optional<MissionPlan> missionPlan)
+{
+    m_missionPlan = std::move(missionPlan);
 }

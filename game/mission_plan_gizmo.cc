@@ -119,7 +119,10 @@ MissionPlanGizmo::MissionPlanGizmo(Ship *ship, const MissionTable *missionTable,
     confirmButton->setSize(80, 30);
     confirmButton->setAlign(Align::Right);
 
+    m_missionPlotGizmo->setMissionPlan(m_ship->missionPlan());
+
     updateTrajectoryValues();
+
     m_missionPlotGizmo->missionPlanChangedSignal.connect([this]() {
         updateTrajectoryValues();
         m_ship->setMissionPlan(m_missionPlotGizmo->missionPlan());

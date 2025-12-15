@@ -18,6 +18,7 @@ public:
     void handleMouseRelease(const glm::vec2 &pos) override;
     void handleMouseMove(const glm::vec2 &pos) override;
 
+    void setMissionPlan(std::optional<MissionPlan> missionPlan);
     std::optional<MissionPlan> missionPlan() const { return m_missionPlan; }
 
     muslots::Signal<> missionPlanChangedSignal;
@@ -30,6 +31,5 @@ private:
     Image32 m_plotImage;
     gl::Texture m_plotTexture;
     std::optional<MissionPlan> m_missionPlan;
-    std::optional<glm::vec2> m_selectedPoint;
     ui::Margins m_margins;
 };
