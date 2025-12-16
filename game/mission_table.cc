@@ -20,7 +20,7 @@ MissionTable::MissionTable(const World *origin, const World *destination, Julian
     constexpr std::size_t kArrivalSamples = 400;
     constexpr std::size_t kDepartureSamples = 400;
 
-    // const auto maxPeriod = JulianClock::duration{std::max(originOrbit.period(), destinationOrbit.period())};
+    // const auto maxPeriod = JulianDays{std::max(originOrbit.period(), destinationOrbit.period())};
     const auto maxPeriod = 2.0 * std::min(originOrbit.period(), destinationOrbit.period());
     const auto departureStep = maxPeriod / kDepartureSamples;
     JulianDate departure = start;
@@ -34,10 +34,9 @@ MissionTable::MissionTable(const World *origin, const World *destination, Julian
     // assuming GM = 4 * pi^2
     // Hohmann transfer: tH = pi * sqrt((r1 + r2)^3 / 8 * GM)
     // assuming kGMSun = (4.0 * pi^2) AU^3/years^2
-    const JulianClock::duration transitHohmann{
+    const JulianDays transitHohmann = JulianYears{
         0.5 *
-        std::pow(0.5 * (originOrbit.elements().semiMajorAxis + destinationOrbit.elements().semiMajorAxis), 3.0 / 2.0) *
-        kEarthYearInDays};
+        std::pow(0.5 * (originOrbit.elements().semiMajorAxis + destinationOrbit.elements().semiMajorAxis), 3.0 / 2.0)};
     const auto minTransitInterval = 0.5 * transitHohmann;
     const auto maxTransitInterval = 1.5 * transitHohmann;
     const auto arrivalStep = (maxPeriod + maxTransitInterval - minTransitInterval) / kArrivalSamples;

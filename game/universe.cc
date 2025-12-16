@@ -118,7 +118,7 @@ Orbit::StateVector3 Orbit::stateVector(JulianDate when) const
 void Orbit::updatePeriod()
 {
     // assuming kGMSun = (4.0 * pi^2) AU^3/years^2
-    m_period = JulianClock::duration{std::pow(m_elems.semiMajorAxis, 3.0 / 2.0) * kEarthYearInDays};
+    m_period = JulianYears{std::pow(m_elems.semiMajorAxis, 3.0 / 2.0)};
 }
 
 void Orbit::updateOrbitRotationMatrix()
@@ -234,7 +234,7 @@ void Ship::update()
     {
     case State::Docked: {
         assert(m_world != nullptr);
-        if (m_missionPlan.has_value() && m_missionPlan->departureTime < date && date < m_missionPlan->arrivalTime)
+        if (m_missionPlan.has_value() && m_missionPlan->departureDate < date && date < m_missionPlan->arrivalDate)
         {
             assert(m_world == m_missionPlan->origin); // sanity check
             // started mission
@@ -245,7 +245,7 @@ void Ship::update()
     }
     case State::InTransit: {
         assert(m_missionPlan.has_value());
-        if (m_missionPlan->arrivalTime < date)
+        if (m_missionPlan->arrivalDate < date)
         {
             // arrived at destination
             m_world = m_missionPlan->destination;
@@ -358,7 +358,7 @@ bool Universe::load(const std::string &path)
     {
         auto name = worldJson.at("name").get<std::string>();
         const auto radius = worldJson.at("radius").get<double>();
-        const auto rotationPeriod = JulianClock::duration{worldJson.at("rotation_period").get<double>()};
+        const auto rotationPeriod = JulianDays{worldJson.at("rotation_period").get<double>()};
         const auto axialTilt = glm::radians(worldJson.at("axial_tilt").get<double>());
         auto marketName = worldJson.at("market").get<std::string>();
         auto orbit = worldJson.at("orbit").get<OrbitalElements>();

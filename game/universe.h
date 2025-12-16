@@ -53,7 +53,7 @@ public:
     OrbitalElements elements() const { return m_elems; }
 
     glm::dmat3 orbitRotationMatrix() const { return m_orbitRotationMatrix; }
-    JulianClock::duration period() const { return m_period; }
+    JulianDays period() const { return m_period; }
     double meanAnomaly(JulianDate when) const;      // radians
     double eccentricAnomaly(JulianDate when) const; // radians
 
@@ -68,7 +68,7 @@ private:
     void updateOrbitRotationMatrix();
 
     OrbitalElements m_elems;
-    JulianClock::duration m_period{0.0};
+    JulianDays m_period{0.0};
     glm::dmat3 m_orbitRotationMatrix;
 };
 
@@ -98,7 +98,7 @@ public:
 
     std::string name;
     double radius; // km
-    JulianClock::duration rotationPeriod;
+    JulianDays rotationPeriod;
     double axialTilt; // radians
     std::string marketName;
     std::string diffuseTexture;
@@ -118,13 +118,13 @@ struct MissionPlan
 {
     const World *origin{nullptr};
     const World *destination{nullptr};
-    JulianDate departureTime;
-    JulianDate arrivalTime;
+    JulianDate departureDate;
+    JulianDate arrivalDate;
     Orbit orbit;
     double deltaVDeparture{0.0f}; // AU/day
     double deltaVArrival{0.0f};   // AU/day
 
-    JulianClock::duration transitTime() const { return arrivalTime - departureTime; }
+    JulianDays transitTime() const { return arrivalDate - departureDate; }
 };
 
 class Ship

@@ -57,14 +57,14 @@ void MissionPlotGizmo::paintContents(Painter *painter, const glm::vec2 &pos, int
         const auto arrivalIndex = [this] {
             const auto &arrivals = m_missionTable->arrivals;
             auto it =
-                std::ranges::lower_bound(arrivals, m_missionPlan->arrivalTime, {}, &MissionTable::DateState::date);
+                std::ranges::lower_bound(arrivals, m_missionPlan->arrivalDate, {}, &MissionTable::DateState::date);
             assert(it != arrivals.end());
             return std::distance(arrivals.begin(), it);
         }();
         const auto departureIndex = [this] {
             const auto &departures = m_missionTable->departures;
             auto it =
-                std::ranges::lower_bound(departures, m_missionPlan->departureTime, {}, &MissionTable::DateState::date);
+                std::ranges::lower_bound(departures, m_missionPlan->departureDate, {}, &MissionTable::DateState::date);
             assert(it != departures.end());
             return std::distance(departures.begin(), it);
         }();
@@ -116,8 +116,8 @@ void MissionPlotGizmo::updateMissionPlan(const glm::vec2 &pos)
 
         MissionPlan missionPlan{.origin = m_missionTable->origin(),
                                 .destination = m_missionTable->destination(),
-                                .departureTime = timeDeparture,
-                                .arrivalTime = timeArrival};
+                                .departureDate = timeDeparture,
+                                .arrivalDate = timeArrival};
         missionPlan.orbit.setElements(orbitalElements);
         missionPlan.deltaVDeparture = orbit->deltaVDeparture;
         missionPlan.deltaVArrival = orbit->deltaVArrival;

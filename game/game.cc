@@ -44,8 +44,8 @@ std::optional<MissionPlan> findMissionPlan(const MissionTable *missionTable)
                         orbitalElementsFromStateVector(posArrival, orbit->velArrival, timeArrival);
                     bestPlan = MissionPlan{.origin = missionTable->origin(),
                                            .destination = missionTable->destination(),
-                                           .departureTime = timeDeparture,
-                                           .arrivalTime = timeArrival};
+                                           .departureDate = timeDeparture,
+                                           .arrivalDate = timeArrival};
                     bestPlan->orbit.setElements(orbitalElements);
                     bestPlan->deltaVDeparture = orbit->deltaVDeparture;
                     bestPlan->deltaVArrival = orbit->deltaVArrival;
@@ -89,11 +89,11 @@ bool Game::initialize()
     auto plan = findMissionPlan(m_missionTable.get());
     if (plan.has_value())
     {
-        const auto transferDeparture = plan->orbit.stateVector(plan->departureTime);
-        const auto transferArrival = plan->orbit.stateVector(plan->arrivalTime);
-        std::println("departure: {} {}", glm::to_string(origin->orbit().position(plan->departureTime)),
+        const auto transferDeparture = plan->orbit.stateVector(plan->departureDate);
+        const auto transferArrival = plan->orbit.stateVector(plan->arrivalDate);
+        std::println("departure: {} {}", glm::to_string(origin->orbit().position(plan->departureDate)),
                      glm::to_string(transferDeparture.position));
-        std::println("arrival: {} {}", glm::to_string(destination->orbit().position(plan->arrivalTime)),
+        std::println("arrival: {} {}", glm::to_string(destination->orbit().position(plan->arrivalDate)),
                      glm::to_string(transferArrival.position));
         const auto deltaV = plan->deltaVDeparture + plan->deltaVArrival;
         std::println("interval={} deltaV={} AU/days={} km/s", plan->transitTime().count(), deltaV,

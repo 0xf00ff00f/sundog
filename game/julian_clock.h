@@ -15,12 +15,14 @@ struct JulianClock
     static time_point now() { return kUnixEpoch + duration{std::chrono::system_clock::now().time_since_epoch()}; }
 };
 
+using JulianDays = JulianClock::duration;
+using JulianYears = std::chrono::duration<double, std::ratio<31557600>>; // 365.25 * 60 * 60 * 24
 using JulianDate = std::chrono::time_point<JulianClock>;
 
 template<typename Duration>
 constexpr JulianDate toJulianDate(std::chrono::sys_time<Duration> time)
 {
-    return JulianClock::kUnixEpoch + JulianClock::duration{time.time_since_epoch()};
+    return JulianClock::kUnixEpoch + JulianDays{time.time_since_epoch()};
 }
 
 template<typename Duration>
@@ -104,11 +106,13 @@ struct std::formatter<JulianDate>
 // tests
 static_assert([] {
     using namespace std::chrono;
+    static_assert(JulianYears{1} == JulianDays{365.25});
+    static_assert(JulianDays{JulianYears{1}}.count() == 365.25);
     static_assert(toSystemTime<days>(toJulianDate(sys_days{})) == sys_days{});
     static_assert(toYearMonthDay(toJulianDate(sys_days{})) == year_month_day(1970y, January, 1d));
-    static_assert(toYearMonthDay(JulianDate{JulianClock::duration{2451544.5}}) == year_month_day(2000y, January, 1d));
-    static_assert(toJulianDate(year_month_day(2000y, January, 1d)) == JulianDate{JulianClock::duration{2451544.5}});
-    static_assert(toYearMonthDay(JulianDate{JulianClock::duration{2461000.5}}) == year_month_day(2025y, November, 21d));
-    static_assert(toJulianDate(year_month_day(2025y, November, 21d)) == JulianDate{JulianClock::duration{2461000.5}});
+    static_assert(toYearMonthDay(JulianDate{JulianDays{2451544.5}}) == year_month_day(2000y, January, 1d));
+    static_assert(toJulianDate(year_month_day(2000y, January, 1d)) == JulianDate{JulianDays{2451544.5}});
+    static_assert(toYearMonthDay(JulianDate{JulianDays{2461000.5}}) == year_month_day(2025y, November, 21d));
+    static_assert(toJulianDate(year_month_day(2025y, November, 21d)) == JulianDate{JulianDays{2461000.5}});
     return true;
 }());

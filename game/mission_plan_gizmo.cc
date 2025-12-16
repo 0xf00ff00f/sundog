@@ -137,10 +137,13 @@ void MissionPlanGizmo::updateTrajectoryValues()
 
     if (missionPlan)
     {
-        m_departureDateText->setText(std::format("{:D}", missionPlan->departureTime));
-        m_arrivalDateText->setText(std::format("{:D}", missionPlan->arrivalTime));
-        m_transitTimeText->setText(
-            std::format("{:.2f} days", (missionPlan->arrivalTime - missionPlan->departureTime).count()));
+        m_departureDateText->setText(std::format("{:D}", missionPlan->departureDate));
+        m_arrivalDateText->setText(std::format("{:D}", missionPlan->arrivalDate));
+        const auto transitTime = missionPlan->transitTime();
+        if (transitTime > JulianYears{1})
+            m_transitTimeText->setText(std::format("{:.2f} years", JulianYears{transitTime}.count()));
+        else
+            m_transitTimeText->setText(std::format("{:.2f} days", transitTime.count()));
         m_departureDeltaVText->setText(std::format("{:.2f} km/s", toKmS(missionPlan->deltaVDeparture)));
         m_arrivalDeltaVText->setText(std::format("{:.2f} km/s", toKmS(missionPlan->deltaVArrival)));
         m_totalDeltaVText->setText(

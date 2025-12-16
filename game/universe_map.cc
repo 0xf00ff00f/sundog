@@ -355,7 +355,7 @@ void ShipLabel::updateStateText()
         const auto &missionPlan = m_ship->missionPlan();
         assert(missionPlan.has_value());
         m_stateText->setText(std::format("{} > {}", missionPlan->origin->name, missionPlan->destination->name));
-        const auto eta = missionPlan->arrivalTime;
+        const auto eta = missionPlan->arrivalDate;
         m_etaText->setText(std::format("ETA {:D}", eta));
 
         const auto *orbit = m_ship->orbit();
@@ -457,9 +457,9 @@ void UniverseMap::render() const
         {
             const auto &orbit = plan->orbit;
 
-            const auto startAngle = orbit.eccentricAnomaly(plan->departureTime);
+            const auto startAngle = orbit.eccentricAnomaly(plan->departureDate);
             const auto currentAngle = orbit.eccentricAnomaly(m_universe->date());
-            const auto endAngle = orbit.eccentricAnomaly(plan->arrivalTime);
+            const auto endAngle = orbit.eccentricAnomaly(plan->arrivalDate);
 
             shaderManager->setUniform(ShaderManager::Uniform::Thickness,
                                       3.0f / static_cast<float>(m_viewportSize.height()));

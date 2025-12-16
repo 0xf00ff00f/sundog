@@ -57,5 +57,5 @@ private:
     TradingWindow *m_tradingWindow{nullptr};
     std::unique_ptr<MissionTable> m_missionTable;
     MissionPlanGizmo *m_missionPlanGizmo{nullptr};
-    JulianClock::duration m_timeStep{0.0}; // days/second
+    JulianDays m_timeStep{0.0}; // days/second
 };
