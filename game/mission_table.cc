@@ -20,9 +20,8 @@ MissionTable::MissionTable(const World *origin, const World *destination, Julian
     constexpr std::size_t kArrivalSamples = 400;
     constexpr std::size_t kDepartureSamples = 400;
 
-    // TODO shouldn't Orbit::period be JulianClock::duration?
     // const auto maxPeriod = JulianClock::duration{std::max(originOrbit.period(), destinationOrbit.period())};
-    const auto maxPeriod = JulianClock::duration{std::min(originOrbit.period(), destinationOrbit.period())};
+    const auto maxPeriod = 2.0 * std::min(originOrbit.period(), destinationOrbit.period());
     const auto departureStep = maxPeriod / kDepartureSamples;
     JulianDate departure = start;
     for (std::size_t i = 0; i < kDepartureSamples; ++i)

@@ -30,7 +30,7 @@ void Orbit::setElements(const OrbitalElements &elems)
 double Orbit::meanAnomaly(JulianDate when) const
 {
     const double Mepoch = m_elems.meanAnomalyAtEpoch;
-    return Mepoch + 2.0 * glm::pi<double>() * (when - m_elems.epoch).count() / m_period;
+    return Mepoch + 2.0 * glm::pi<double>() * (when - m_elems.epoch).count() / m_period.count();
 }
 
 double Orbit::eccentricAnomaly(JulianDate when) const
@@ -118,7 +118,7 @@ Orbit::StateVector3 Orbit::stateVector(JulianDate when) const
 void Orbit::updatePeriod()
 {
     // assuming kGMSun = (4.0 * pi^2) AU^3/years^2
-    m_period = std::pow(m_elems.semiMajorAxis, 3.0 / 2.0) * kEarthYearInDays;
+    m_period = JulianClock::duration{std::pow(m_elems.semiMajorAxis, 3.0 / 2.0) * kEarthYearInDays};
 }
 
 void Orbit::updateOrbitRotationMatrix()

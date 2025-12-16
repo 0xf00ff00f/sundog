@@ -53,7 +53,7 @@ public:
     OrbitalElements elements() const { return m_elems; }
 
     glm::dmat3 orbitRotationMatrix() const { return m_orbitRotationMatrix; }
-    double period() const { return m_period; }      // Earth days
+    JulianClock::duration period() const { return m_period; }
     double meanAnomaly(JulianDate when) const;      // radians
     double eccentricAnomaly(JulianDate when) const; // radians
 
@@ -68,7 +68,7 @@ private:
     void updateOrbitRotationMatrix();
 
     OrbitalElements m_elems;
-    double m_period{0.0};
+    JulianClock::duration m_period{0.0};
     glm::dmat3 m_orbitRotationMatrix;
 };
 
