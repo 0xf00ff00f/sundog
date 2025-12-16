@@ -9,7 +9,7 @@ namespace
 constexpr auto kTargetAnimationMinDistance = 0.001f;
 constexpr auto kZoomAnimationMinDistance = 0.001f;
 constexpr auto kMinCameraDistance = 1.0f;
-constexpr auto kMaxCameraDistance = 20.0f;
+constexpr auto kMaxCameraDistance = 60.0f;
 }
 
 VelocitySampler::VelocitySampler() = default;
