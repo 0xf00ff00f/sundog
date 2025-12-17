@@ -7,9 +7,10 @@
 
 #include <random>
 
-// https://farside.ph.utexas.edu/teaching/celestial/Celestial/node34.html
-// http://astro.if.ufrgs.br/trigesf/position.html
+// References:
+// https://stjarnhimlen.se/comp/tutorial.html
 // http://www.davidcolarusso.com/astro/
+// https://farside.ph.utexas.edu/teaching/celestial/Celestial/node34.html
 
 Orbit::Orbit() = default;
 
@@ -45,7 +46,7 @@ double Orbit::eccentricAnomaly(JulianDate when) const
     double E;
     for (std::size_t iteration = 0; iteration < kMaxIterations; ++iteration)
     {
-        E = Eprev - (Eprev - e * std::sin(Eprev) - M) / (1 - e * std::cos(Eprev));
+        E = Eprev - (Eprev - e * std::sin(Eprev) - M) / (1.0 - e * std::cos(Eprev));
         if (std::abs(E - Eprev) < kTolerance)
             break;
         Eprev = E;
@@ -67,11 +68,10 @@ glm::vec2 Orbit::positionOnOrbitPlane(JulianDate when) const
     const auto y = b * std::sin(E);
 #else
     // true anomaly
-    const auto nu =
-        2.0f * std::atan2(std::sqrt(1.0f + e) * std::sin(0.5f * E), std::sqrt(1.0f - e) * std::cos(0.5f * E));
+    const auto nu = 2.0 * std::atan2(std::sqrt(1.0 + e) * std::sin(0.5 * E), std::sqrt(1.0 - e) * std::cos(0.5 * E));
 
     // distance
-    const auto r = a * (1.0f - e * std::cos(E));
+    const auto r = a * (1.0 - e * std::cos(E));
 
     const auto x = r * std::cos(nu);
     const auto y = r * std::sin(nu);
@@ -93,17 +93,16 @@ Orbit::StateVector2 Orbit::stateVectorOnOrbitPlane(JulianDate when) const
     const auto E = eccentricAnomaly(when);
 
     // true anomaly
-    const auto nu =
-        2.0f * std::atan2(std::sqrt(1.0f + e) * std::sin(0.5f * E), std::sqrt(1.0f - e) * std::cos(0.5f * E));
+    const auto nu = 2.0 * std::atan2(std::sqrt(1.0 + e) * std::sin(0.5 * E), std::sqrt(1.0 - e) * std::cos(0.5 * E));
 
     // distance
-    const auto r = a * (1.0f - e * std::cos(E));
+    const auto r = a * (1.0 - e * std::cos(E));
 
     // position
     const auto p = glm::dvec2{r * std::cos(nu), r * std::sin(nu)};
 
     // velocity
-    const auto h = std::sqrt(kGMSun * a * (1 - e * e));
+    const auto h = std::sqrt(kGMSun * a * (1.0 - e * e));
     const auto v = glm::dvec2{-kGMSun / h * std::sin(nu), kGMSun / h * (e + std::cos(nu))};
 
     return {p, v};
