@@ -57,8 +57,8 @@ public:
     double meanAnomaly(JulianDate when) const;      // radians
     double eccentricAnomaly(JulianDate when) const; // radians
 
-    glm::vec2 positionOnOrbitPlane(JulianDate when) const; // AU
-    glm::vec3 position(JulianDate when) const;             // AU
+    glm::dvec2 positionOnOrbitPlane(JulianDate when) const; // AU
+    glm::dvec3 position(JulianDate when) const;             // AU
 
     StateVector2 stateVectorOnOrbitPlane(JulianDate when) const; // {AU, AU/day}
     StateVector3 stateVector(JulianDate when) const;             // {AU, AU/day}

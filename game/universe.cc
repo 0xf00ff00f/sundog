@@ -55,7 +55,7 @@ double Orbit::eccentricAnomaly(JulianDate when) const
     return E;
 }
 
-glm::vec2 Orbit::positionOnOrbitPlane(JulianDate when) const
+glm::dvec2 Orbit::positionOnOrbitPlane(JulianDate when) const
 {
     const auto e = m_elems.eccentricity;
     const auto a = m_elems.semiMajorAxis;
@@ -80,9 +80,9 @@ glm::vec2 Orbit::positionOnOrbitPlane(JulianDate when) const
     return {x, y};
 }
 
-glm::vec3 Orbit::position(JulianDate when) const
+glm::dvec3 Orbit::position(JulianDate when) const
 {
-    return m_orbitRotationMatrix * glm::vec3(positionOnOrbitPlane(when), 0.0);
+    return m_orbitRotationMatrix * glm::dvec3{positionOnOrbitPlane(when), 0.0};
 }
 
 Orbit::StateVector2 Orbit::stateVectorOnOrbitPlane(JulianDate when) const
