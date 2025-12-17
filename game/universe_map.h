@@ -18,6 +18,8 @@ class MapLabel;
 class UniverseMap
 {
 public:
+    using Selection = std::variant<std::monostate, const World *, const Ship *>;
+
     explicit UniverseMap(Universe *universe, Painter *overlayPainter);
     ~UniverseMap();
 
@@ -33,10 +35,17 @@ public:
     glm::mat4 projectionMatrix() const { return m_projectionMatrix; }
     glm::mat4 viewMatrix() const;
 
+    muslots::Signal<Selection> selectionChangedSignal;
+
 private:
     void initializeMeshes();
     void initializeLabels();
-    const World *pickWorld(const glm::vec2 &viewportPos);
+    Selection pickSelection(const glm::vec2 &viewportPos) const;
+    const World *pickWorld(const glm::vec2 &viewportPos) const;
+    const Ship *pickShip(const glm::vec2 &viewportPos) const;
+    const MapLabel *pickLabel(const glm::vec2 &viewportPos) const;
+    void moveCameraCenterToSelection();
+    std::vector<const MapLabel *> visibleLabels() const;
 
     Universe *m_universe{nullptr};
     Painter *m_overlayPainter;
@@ -46,7 +55,7 @@ private:
     std::unique_ptr<Mesh> m_orbitMesh;
     glm::mat4 m_projectionMatrix;
     CameraController m_cameraController;
-    const World *m_cameraTarget{nullptr};
+    Selection m_selection;
     std::vector<std::unique_ptr<MapLabel>> m_labels;
     std::vector<muslots::Connection> m_connections;
 };

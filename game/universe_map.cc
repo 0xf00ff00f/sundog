@@ -577,26 +577,15 @@ void UniverseMap::render() const
 
     // draw labels
 
-    // clang-format off
-    auto labelPositions =
-        m_labels
-        | std::views::filter(&MapLabel::isVisible)
-        | std::views::transform([this, &viewMatrix](const auto &label) {
-              return std::make_pair(label.get(), label->clipSpacePosition());
-          })
-        | std::views::filter([](const auto &item) {
-              const auto &[_, clipSpacePosition] = item;
-              return clipSpacePosition.z > -1.0f && clipSpacePosition.z < 1.0f;
-          })
-        | std::ranges::to<std::vector>();
-    // clang-format on
+    auto labels = visibleLabels();
 
     // back to front
-    std::ranges::stable_sort(labelPositions, std::greater{}, [](const auto &item) { return item.second.z; });
+    std::ranges::stable_sort(labels, std::greater{}, [](const auto *label) { return label->clipSpacePosition().z; });
 
-    for (int depth = std::numeric_limits<int>::lowest(); const auto &[label, positionProjected] : labelPositions)
+    for (int depth = std::numeric_limits<int>::lowest(); const auto *label : labels)
     {
-        glm::vec2 screenPosition = (glm::vec2{positionProjected} * glm::vec2{0.5f, -0.5f} + glm::vec2{0.5f}) *
+        const auto clipSpacePosition = label->clipSpacePosition();
+        glm::vec2 screenPosition = (glm::vec2{clipSpacePosition} * glm::vec2{0.5f, -0.5f} + glm::vec2{0.5f}) *
                                    glm::vec2{m_viewportSize.width(), m_viewportSize.height()};
         screenPosition -= glm::vec2{0.5f * label->width(), label->height()};
         label->paint(m_overlayPainter, screenPosition, depth);
@@ -624,12 +613,15 @@ void UniverseMap::handleMouseButton(MouseButton button, MouseAction action, cons
 {
     if (action == MouseAction::Press && button == MouseButton::Left)
     {
-        if (const auto *world = pickWorld(pos))
+        auto selection = pickSelection(pos);
+        if (selection != m_selection)
         {
-            std::println("picked {}", world->name);
-            m_cameraTarget = world;
-            m_cameraController.moveCameraCenter(m_cameraTarget->currentPosition(), true);
-            m_cameraController.moveCameraDistance(1.0f, true);
+            m_selection = std::move(selection);
+            if (!std::holds_alternative<std::monostate>(m_selection))
+            {
+                moveCameraCenterToSelection();
+                m_cameraController.moveCameraDistance(1.0f, true);
+            }
         }
     }
     m_cameraController.handleMouseButton(button, action, pos, mods);
@@ -640,7 +632,23 @@ void UniverseMap::handleMouseWheel(const glm::vec2 &mousePos, const glm::vec2 &w
     m_cameraController.handleMouseWheel(mousePos, wheelOffset);
 }
 
-const World *UniverseMap::pickWorld(const glm::vec2 &viewportPos)
+UniverseMap::Selection UniverseMap::pickSelection(const glm::vec2 &viewportPos) const
+{
+    if (auto *label = pickLabel(viewportPos))
+    {
+        if (auto *world = label->world())
+            return world;
+        if (auto *ship = label->ship())
+            return ship;
+    }
+    if (auto *world = pickWorld(viewportPos))
+        return world;
+    if (auto *ship = pickShip(viewportPos))
+        return ship;
+    return {};
+}
+
+const World *UniverseMap::pickWorld(const glm::vec2 &viewportPos) const
 {
     const auto viewMatrix = m_cameraController.viewMatrix();
     auto normalizedPos =
@@ -672,6 +680,34 @@ const World *UniverseMap::pickWorld(const glm::vec2 &viewportPos)
     return closestWorld;
 }
 
+const Ship *UniverseMap::pickShip(const glm::vec2 &viewportPops) const
+{
+    // TODO
+    return nullptr;
+}
+
+const MapLabel *UniverseMap::pickLabel(const glm::vec2 &viewportPos) const
+{
+    auto labels = visibleLabels();
+
+    // front to back
+    std::ranges::stable_sort(labels, std::less{}, [](const auto *label) { return label->clipSpacePosition().z; });
+
+    for (const auto *label : labels)
+    {
+        const auto clipSpacePosition = label->clipSpacePosition();
+        glm::vec2 screenPosition = (glm::vec2{clipSpacePosition} * glm::vec2{0.5f, -0.5f} + glm::vec2{0.5f}) *
+                                   glm::vec2{m_viewportSize.width(), m_viewportSize.height()};
+        screenPosition -= glm::vec2{0.5f * label->width(), label->height()};
+        if (RectF{screenPosition, label->size()}.contains(viewportPos))
+        {
+            return label;
+        }
+    }
+
+    return nullptr;
+}
+
 void UniverseMap::handleMouseMove(const glm::vec2 &pos)
 {
     m_cameraController.handleMouseMove(pos);
@@ -679,15 +715,43 @@ void UniverseMap::handleMouseMove(const glm::vec2 &pos)
 
 void UniverseMap::update(Seconds seconds)
 {
-    if (m_cameraTarget)
-        m_cameraController.moveCameraCenter(glm::vec3{m_cameraTarget->currentPosition()}, true);
+    moveCameraCenterToSelection();
     m_cameraController.update(seconds);
 
     for (auto &label : m_labels)
         label->update();
 }
 
+void UniverseMap::moveCameraCenterToSelection()
+{
+    std::visit(
+        [this](auto &&selection) {
+            if constexpr (requires(decltype(selection) x) {
+                              { x->currentPosition() } -> std::convertible_to<glm::vec3>;
+                          })
+            {
+                m_cameraController.moveCameraCenter(glm::vec3{selection->currentPosition()}, true);
+            }
+        },
+        m_selection);
+}
+
 glm::mat4 UniverseMap::viewMatrix() const
 {
     return m_cameraController.viewMatrix();
+}
+
+std::vector<const MapLabel *> UniverseMap::visibleLabels() const
+{
+    // clang-format off
+    return m_labels
+           | std::views::filter([](const auto &label) {
+                 if (!label->isVisible())
+                     return false;
+                 const auto clipSpaceZ = label->clipSpacePosition().z;
+                 return clipSpaceZ > -1.0f && clipSpaceZ < 1.0f;
+             })
+           | std::views::transform(&std::unique_ptr<MapLabel>::get)
+           | std::ranges::to<std::vector<const MapLabel *>>();
+    // clang-format on
 }
