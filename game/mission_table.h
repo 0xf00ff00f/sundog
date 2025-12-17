@@ -26,7 +26,7 @@ public:
     std::vector<DateState> arrivals;
     std::vector<std::optional<OrbitDeltaV>> transferOrbits;
 
-    explicit MissionTable(const World *origin, const World *destination, JulianDate start);
+    explicit MissionTable(const World *origin, const World *destination, JulianDate start, double maxDeltaV);
 
 private:
     const World *m_origin{nullptr};

@@ -113,6 +113,11 @@ void MissionPlotGizmo::updateMissionPlan(const glm::vec2 &pos)
         const auto [timeDeparture, posDeparture, velWorldDeparture] = m_missionTable->departures[departureIndex];
 
         const auto orbitalElements = orbitalElementsFromStateVector(posArrival, orbit->velArrival, timeArrival);
+        if (orbitalElements.eccentricity >= 1.0)
+        {
+            // TODO We'll handle hyperbolic trajectories one day. Today won't be that day.
+            return {};
+        }
 
         MissionPlan missionPlan{.origin = m_missionTable->origin(),
                                 .destination = m_missionTable->destination(),

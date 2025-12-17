@@ -10,7 +10,7 @@ bool isNormal(const glm::vec<3, T> &v)
     return std::isnormal(v.x) && std::isnormal(v.y) && std::isnormal(v.z);
 }
 
-MissionTable::MissionTable(const World *origin, const World *destination, JulianDate start)
+MissionTable::MissionTable(const World *origin, const World *destination, JulianDate start, double maxDeltaV)
     : m_origin(origin)
     , m_destination(destination)
 {
@@ -72,7 +72,7 @@ MissionTable::MissionTable(const World *origin, const World *destination, Julian
                         const auto deltaVDeparture = glm::length(velDeparture - departure.worldVelocity);
                         const auto deltaVArrival = glm::length(velArrival - arrival.worldVelocity);
                         const auto deltaV = deltaVDeparture + deltaVArrival;
-                        if (deltaV < 0.03)
+                        if (deltaV < maxDeltaV)
                         {
                             assert(!std::isnan(deltaV));
                             orbits[i, j] = OrbitDeltaV{velDeparture, velArrival, deltaVDeparture, deltaVArrival};

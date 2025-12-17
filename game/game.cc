@@ -85,7 +85,7 @@ bool Game::initialize()
 
     auto ship = m_universe->addShip(shipClass, origin, "SIGBUS");
 #if 1
-    m_missionTable = std::make_unique<MissionTable>(origin, destination, m_universe->date());
+    m_missionTable = std::make_unique<MissionTable>(origin, destination, m_universe->date(), 0.03);
     auto plan = findMissionPlan(m_missionTable.get());
     if (plan.has_value())
     {
