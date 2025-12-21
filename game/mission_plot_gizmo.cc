@@ -3,6 +3,9 @@
 #include "mission_plot.h"
 #include "style_settings.h"
 
+#include <glm/gtx/string_cast.hpp>
+
+#include <cassert>
 #include <mdspan>
 
 using namespace ui;
@@ -103,29 +106,39 @@ void MissionPlotGizmo::updateMissionPlan(const glm::vec2 &pos)
         if (departureIndex < 0 || departureIndex >= m_missionTable->departures.size())
             return {};
 
-        auto orbits = std::mdspan(m_missionTable->transferOrbits.data(), m_missionTable->arrivals.size(),
-                                  m_missionTable->departures.size());
-        const auto &orbit = orbits[arrivalIndex, departureIndex];
-        if (!orbit.has_value())
+        auto transfers = std::mdspan(m_missionTable->transferOrbits.data(), m_missionTable->arrivals.size(),
+                                     m_missionTable->departures.size());
+        const auto &transfer = transfers[arrivalIndex, departureIndex];
+        if (!transfer.has_value())
             return {};
 
-        const auto [timeArrival, posArrival, velWorldArrival] = m_missionTable->arrivals[arrivalIndex];
-        const auto [timeDeparture, posDeparture, velWorldDeparture] = m_missionTable->departures[departureIndex];
+        const auto [dateArrival, posArrival, velWorldArrival] = m_missionTable->arrivals[arrivalIndex];
+        const auto [dateDeparture, posDeparture, velWorldDeparture] = m_missionTable->departures[departureIndex];
 
-        const auto orbitalElements = orbitalElementsFromStateVector(posArrival, orbit->velArrival, timeArrival);
-        if (orbitalElements.eccentricity >= 1.0)
+        const auto orbitalElements = orbitalElementsFromStateVector(posArrival, transfer->velArrival, dateArrival);
+        const auto *origin = m_missionTable->origin();
+        const auto *destination = m_missionTable->destination();
+
+        MissionPlan missionPlan{
+            .origin = origin, .destination = destination, .departureDate = dateDeparture, .arrivalDate = dateArrival};
+        missionPlan.orbit.setElements(orbitalElements);
+        missionPlan.deltaVDeparture = transfer->deltaVDeparture;
+        missionPlan.deltaVArrival = transfer->deltaVArrival;
+
         {
-            // TODO We'll handle hyperbolic trajectories one day. Today won't be that day.
-            return {};
+            // TODO sanity check, remove this and add unit tests
+            const auto [orbitPosDeparture, orbitVelDeparture] = missionPlan.orbit.stateVector(dateDeparture);
+            const auto [orbitPosArrival, orbitVelArrival] = missionPlan.orbit.stateVector(dateArrival);
+            const auto closeEnough = [](const glm::dvec3 &a, const glm::dvec3 &b) {
+                constexpr auto kTolerance = 1e-6;
+                return glm::distance(a, b) < kTolerance;
+            };
+            assert(closeEnough(orbitPosDeparture, posDeparture));
+            assert(closeEnough(orbitVelDeparture, transfer->velDeparture));
+            assert(closeEnough(orbitPosArrival, posArrival));
+            assert(closeEnough(orbitVelArrival, transfer->velArrival));
         }
 
-        MissionPlan missionPlan{.origin = m_missionTable->origin(),
-                                .destination = m_missionTable->destination(),
-                                .departureDate = timeDeparture,
-                                .arrivalDate = timeArrival};
-        missionPlan.orbit.setElements(orbitalElements);
-        missionPlan.deltaVDeparture = orbit->deltaVDeparture;
-        missionPlan.deltaVArrival = orbit->deltaVArrival;
         return missionPlan;
     }();
 

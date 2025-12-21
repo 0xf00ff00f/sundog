@@ -12,6 +12,50 @@
 // http://www.davidcolarusso.com/astro/
 // https://farside.ph.utexas.edu/teaching/celestial/Celestial/node34.html
 
+namespace
+{
+
+constexpr auto kTolerance = 1e-10;
+constexpr auto kMaxIterations = 50;
+
+constexpr double eccentricAnomalyElliptic(double M, double e)
+{
+    auto E = M;
+    for (std::size_t iteration = 0; iteration < kMaxIterations; ++iteration)
+    {
+        const auto dE = (E - e * std::sin(E) - M) / (1.0 - e * std::cos(E));
+        E -= dE;
+        if (std::abs(dE) < kTolerance)
+            break;
+    }
+    return E;
+}
+
+constexpr double eccentricAnomalyHyperbolic(double M, double e)
+{
+    auto H = std::log(2.0 * M / e + 1.8);
+    for (std::size_t iteration = 0; iteration < kMaxIterations; ++iteration)
+    {
+        const auto dH = (e * std::sinh(H) - H - M) / (e * std::cosh(H) - 1.0);
+        H -= dH;
+        if (std::abs(dH) < kTolerance)
+            break;
+    }
+    return H;
+}
+
+constexpr double trueAnomalyElliptic(double E, double e)
+{
+    return 2.0 * std::atan2(std::sqrt(1.0 + e) * std::sin(0.5 * E), std::sqrt(1.0 - e) * std::cos(0.5 * E));
+}
+
+constexpr double trueAnomalyHyperbolic(double H, double e)
+{
+    return 2.0 * std::atan2(std::sqrt(e + 1.0) * std::sinh(0.5 * H), std::sqrt(e - 1.0) * std::cosh(0.5 * H));
+}
+
+} // namespace
+
 Orbit::Orbit() = default;
 
 Orbit::Orbit(const OrbitalElements &elems)
@@ -31,53 +75,83 @@ void Orbit::setElements(const OrbitalElements &elems)
 double Orbit::meanAnomaly(JulianDate when) const
 {
     const double Mepoch = m_elems.meanAnomalyAtEpoch;
-    return Mepoch + 2.0 * glm::pi<double>() * (when - m_elems.epoch).count() / m_period.count();
+    // assuming kGMSun = (4.0 * pi^2) AU^3/years^2
+    const auto n = 2.0 * glm::pi<double>() * std::pow(std::abs(m_elems.semiMajorAxis), -3.0 / 2.0);
+    return Mepoch + JulianYears{when - m_elems.epoch}.count() * n;
 }
 
 double Orbit::eccentricAnomaly(JulianDate when) const
 {
     const auto e = m_elems.eccentricity;
     const auto M = meanAnomaly(when);
-
-    constexpr auto kTolerance = glm::radians(0.01);
-    constexpr auto kMaxIterations = 200;
-
-    double Eprev = M + e * std::sin(M) * (1.0 - e * std::cos(M));
-    double E;
-    for (std::size_t iteration = 0; iteration < kMaxIterations; ++iteration)
+    if (e < 1.0)
     {
-        E = Eprev - (Eprev - e * std::sin(Eprev) - M) / (1.0 - e * std::cos(Eprev));
-        if (std::abs(E - Eprev) < kTolerance)
-            break;
-        Eprev = E;
+        return eccentricAnomalyElliptic(M, e);
     }
+    else
+    {
+        return eccentricAnomalyHyperbolic(M, e);
+    }
+}
 
-    return E;
+double Orbit::trueAnomaly(JulianDate when) const
+{
+    const auto e = m_elems.eccentricity;
+    const auto M = meanAnomaly(when);
+    if (e < 1.0)
+    {
+        const auto E = eccentricAnomalyElliptic(M, e);
+        return trueAnomalyElliptic(E, e);
+    }
+    else
+    {
+        const auto H = eccentricAnomalyHyperbolic(M, e);
+        return trueAnomalyHyperbolic(H, e);
+    }
 }
 
 glm::dvec2 Orbit::positionOnOrbitPlane(JulianDate when) const
 {
     const auto e = m_elems.eccentricity;
     const auto a = m_elems.semiMajorAxis;
+    const auto M = meanAnomaly(when);
 
-    const auto E = eccentricAnomaly(when);
+    const auto [nu, r] = [this, e, a, M]() -> std::tuple<double, double> {
+        if (e < 1.0)
+        {
+            // elliptical orbit
 
-#if 0
-    const auto b = a * std::sqrt(1.0 - e * e); // semi-minor axis
-    const auto x = a * (std::cos(E) - e);
-    const auto y = b * std::sin(E);
-#else
-    // true anomaly
-    const auto nu = 2.0 * std::atan2(std::sqrt(1.0 + e) * std::sin(0.5 * E), std::sqrt(1.0 - e) * std::cos(0.5 * E));
+            // eccentric anomaly
+            const auto E = eccentricAnomalyElliptic(M, e);
 
-    // distance
-    const auto r = a * (1.0 - e * std::cos(E));
+            // true anomaly
+            const auto nu = trueAnomalyElliptic(E, e);
+
+            // radius
+            const auto r = a * (1.0 - e * std::cos(E));
+
+            return std::make_tuple(nu, r);
+        }
+        else
+        {
+            // hyperbolic orbit
+
+            // eccentric anomaly
+            const auto H = eccentricAnomalyHyperbolic(M, e);
+
+            // true anomaly
+            const auto nu = trueAnomalyHyperbolic(H, e);
+
+            // radius
+            const auto r = a * (1.0 - e * std::cosh(H));
+
+            return std::make_tuple(nu, r);
+        }
+    }();
 
     const auto x = r * std::cos(nu);
     const auto y = r * std::sin(nu);
-#endif
-
-    return {x, y};
+    return glm::dvec2{x, y};
 }
 
 glm::dvec3 Orbit::position(JulianDate when) const
@@ -89,23 +163,59 @@ Orbit::StateVector2 Orbit::stateVectorOnOrbitPlane(JulianDate when) const
 {
     const auto e = m_elems.eccentricity;
     const auto a = m_elems.semiMajorAxis;
+    const auto M = meanAnomaly(when);
 
-    const auto E = eccentricAnomaly(when);
+    const auto [nu, r, p] = [this, e, a, M]() -> std::tuple<double, double, double> {
+        if (e < 1.0)
+        {
+            // elliptical orbit
 
-    // true anomaly
-    const auto nu = 2.0 * std::atan2(std::sqrt(1.0 + e) * std::sin(0.5 * E), std::sqrt(1.0 - e) * std::cos(0.5 * E));
+            // eccentric anomaly
+            const auto E = eccentricAnomalyElliptic(M, e);
 
-    // distance
-    const auto r = a * (1.0 - e * std::cos(E));
+            // true anomaly
+            const auto nu = trueAnomalyElliptic(E, e);
+
+            // radius
+            const auto r = a * (1.0 - e * std::cos(E));
+
+            const auto p = a * (1.0 - e * e);
+
+            return std::make_tuple(nu, r, p);
+        }
+        else
+        {
+            // hyperbolic orbit
+
+            // eccentric anomaly
+            const auto H = eccentricAnomalyHyperbolic(M, e);
+
+            // true anomaly
+            const auto nu = trueAnomalyHyperbolic(H, e);
+
+            // radius
+            const auto r = a * (1.0 - e * std::cosh(H));
+
+            const auto p = std::abs(a) * (e * e - 1.0);
+
+            return std::make_tuple(nu, r, p);
+        }
+    }();
 
     // position
-    const auto p = glm::dvec2{r * std::cos(nu), r * std::sin(nu)};
+    const auto x = r * std::cos(nu);
+    const auto y = r * std::sin(nu);
 
     // velocity
-    const auto h = std::sqrt(kGMSun * a * (1.0 - e * e));
-    const auto v = glm::dvec2{-kGMSun / h * std::sin(nu), kGMSun / h * (e + std::cos(nu))};
+    const auto h = std::sqrt(kGMSun * p);
 
-    return {p, v};
+    const auto vr = (kGMSun / h) * e * std::sin(nu);
+    const auto vTheta = (kGMSun / h) * (1.0 + e * std::cos(nu));
+
+    const auto vx = vr * std::cos(nu) - vTheta * std::sin(nu);
+    const auto vy = vr * std::sin(nu) + vTheta * std::cos(nu);
+
+    return {glm::dvec2{x, y}, glm::dvec2{vx, vy}};
 }
 
 Orbit::StateVector3 Orbit::stateVector(JulianDate when) const

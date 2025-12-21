@@ -19,7 +19,7 @@ struct OrbitalElements
 };
 // longitudePerihelion = longitudeAscendingNode + argumentPerihelion
 
-double meanAnomalyFromTrueAnomaly(const double nu, const double e);
+double meanAnomalyFromTrueAnomaly(double nu, double e);
 
 inline constexpr auto kEarthYearInDays = JulianDays{JulianYears{1}}.count();
 

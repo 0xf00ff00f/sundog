@@ -1,12 +1,28 @@
 #include "orbital_elements.h"
 
-double meanAnomalyFromTrueAnomaly(const double nu, const double e)
+double meanAnomalyFromTrueAnomaly(double nu, double e)
 {
-    // eccentric anomaly
-    const auto E = 2.0 * std::atan2(std::sqrt(1 - e) * std::sin(0.5 * nu), std::sqrt(1 + e) * std::cos(0.5 * nu));
+    if (e < 1.0)
+    {
+        // elliptical orbit
 
-    // mean anomaly
-    return E - e * std::sin(E);
+        // eccentric anomaly
+        const auto E = 2.0 * std::atan2(std::sqrt(1 - e) * std::sin(0.5 * nu), std::sqrt(1 + e) * std::cos(0.5 * nu));
+
+        // mean anomaly
+        return E - e * std::sin(E);
+    }
+    else
+    {
+        // hyperbolic orbit
+
+        // hyperbolic eccentric anomaly
+        const auto H =
+            2.0 * std::atanh((std::sqrt(e - 1) * std::sin(0.5 * nu)) / (std::sqrt(e + 1) * std::cos(0.5 * nu)));
+
+        // mean anomaly
+        return e * std::sinh(H) - H;
+    }
 }
 
 OrbitalElements orbitalElementsFromStateVector(const glm::dvec3 &r, const glm::dvec3 &v, JulianDate epoch, double mu)

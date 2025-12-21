@@ -14,24 +14,29 @@ out float vs_angle;
 out float vs_currentAngle;
 out float vs_endAngle;
 
-void main() {
-    float semiMinorAxis = semiMajorAxis * sqrt(1.0 - eccentricity * eccentricity);
-    float focus = sqrt(semiMajorAxis * semiMajorAxis - semiMinorAxis * semiMinorAxis);
+vec2 positionAt(float angle)
+{
+    // conic section with focus at origin
+    // works fine for hyperbolae because semiMajorAxis is negative!
+    float l = semiMajorAxis * (1.0 - eccentricity * eccentricity); // semi-latus rectum
+    float r = l / (1.0 + eccentricity * cos(angle));
+    return vec2(r * cos(angle), r * sin(angle));
+}
 
+void main() {
     float angle = startAngle + angleOffset;
 
     // point on the curve
-    vec2 current = vec2(semiMajorAxis * cos(angle) - focus, semiMinorAxis * sin(angle));
+    vec2 current = positionAt(angle);
 
-    // direction (tangent vector) of the curve
-    vec2 direction = vec2(-semiMajorAxis * sin(angle), semiMinorAxis * cos(angle));
+    vec2 next = positionAt(angle + radians(0.1));
 
     vec4 currentClip = mvp * vec4(current, 0.0, 1.0);
     vec2 currentScreen = currentClip.xy / currentClip.w;
     currentScreen.x *= aspectRatio;
 
     // TODO: project direction directly?
-    vec4 nextClip = mvp * vec4(current + direction, 0.0, 1.0);
+    vec4 nextClip = mvp * vec4(next, 0.0, 1.0);
     vec2 nextScreen = nextClip.xy / nextClip.w;
     nextScreen.x *= aspectRatio;
 

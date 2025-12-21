@@ -48,7 +48,7 @@ glm::vec3 latLonToCartesian(float lat, float lon)
 
 std::unique_ptr<Mesh> createOrbitMesh()
 {
-    static constexpr auto kVertexCount = 120;
+    static constexpr auto kVertexCount = 400;
 
     struct Vertex
     {
@@ -457,9 +457,10 @@ void UniverseMap::render() const
         {
             const auto &orbit = plan->orbit;
 
-            const auto startAngle = orbit.eccentricAnomaly(plan->departureDate);
-            const auto currentAngle = orbit.eccentricAnomaly(m_universe->date());
-            const auto endAngle = orbit.eccentricAnomaly(plan->arrivalDate);
+            const auto startAngle = orbit.trueAnomaly(plan->departureDate);
+            const auto currentAngle =
+                m_universe->date() > plan->departureDate ? orbit.trueAnomaly(m_universe->date()) : startAngle;
+            const auto endAngle = orbit.trueAnomaly(plan->arrivalDate);
 
             shaderManager->setUniform(ShaderManager::Uniform::Thickness,
                                       3.0f / static_cast<float>(m_viewportSize.height()));

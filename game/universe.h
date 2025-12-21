@@ -55,7 +55,8 @@ public:
     glm::dmat3 orbitRotationMatrix() const { return m_orbitRotationMatrix; }
     JulianDays period() const { return m_period; }
     double meanAnomaly(JulianDate when) const;      // radians
-    double eccentricAnomaly(JulianDate when) const; // radians
+    double eccentricAnomaly(JulianDate when) const;
+    double trueAnomaly(JulianDate when) const;
 
     glm::dvec2 positionOnOrbitPlane(JulianDate when) const; // AU
     glm::dvec3 position(JulianDate when) const;             // AU
