@@ -615,14 +615,11 @@ void UniverseMap::handleMouseButton(MouseButton button, MouseAction action, cons
     if (action == MouseAction::Press && button == MouseButton::Left)
     {
         auto selection = pickSelection(pos);
-        if (selection != m_selection)
+        if (!std::holds_alternative<std::monostate>(selection) && selection != m_selection)
         {
             m_selection = std::move(selection);
-            if (!std::holds_alternative<std::monostate>(m_selection))
-            {
-                moveCameraCenterToSelection();
-                m_cameraController.moveCameraDistance(1.0f, true);
-            }
+            moveCameraCenterToSelection();
+            m_cameraController.moveCameraDistance(1.0f, true);
         }
     }
     m_cameraController.handleMouseButton(button, action, pos, mods);
