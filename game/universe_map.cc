@@ -123,31 +123,6 @@ std::unique_ptr<Mesh> createSphereMesh()
     return mesh;
 }
 
-std::unique_ptr<Mesh> createBodyBillboardMesh()
-{
-    static constexpr auto kCircleMeshVertexCount = 20;
-    constexpr auto kRadius = 0.05;
-
-    // clang-format off
-    const std::vector<glm::vec2> verts = std::views::iota(0, kCircleMeshVertexCount)
-                                         | std::views::transform([](const std::size_t i) -> glm::vec2 {
-                                               const auto a = i * 2.0f * glm::pi<float>() / kCircleMeshVertexCount;
-                                               const auto x = kRadius * glm::cos(a);
-                                               const auto y = kRadius * glm::sin(a);
-                                               return {x, y};
-                                           })
-                                         | std::ranges::to<std::vector>();
-    // clang-format on
-
-    auto mesh = std::make_unique<Mesh>();
-    mesh->setVertexData(std::as_bytes(std::span{verts}), verts.size());
-
-    const std::array<Mesh::VertexAttribute, 1> attributes = {Mesh::VertexAttribute{2, Mesh::Type::Float, 0}};
-    mesh->setVertexAttributes(attributes, sizeof(glm::vec2));
-
-    return mesh;
-}
-
 } // namespace
 
 class MapLabel : public ui::Column
@@ -557,7 +532,6 @@ void UniverseMap::render() const
 
 void UniverseMap::initializeMeshes()
 {
-    m_circleBillboardMesh = createBodyBillboardMesh();
     m_sphereMesh = createSphereMesh();
     m_emptyVAO = std::make_unique<gl::VertexArray>();
 }

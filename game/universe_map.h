@@ -50,7 +50,6 @@ private:
     Universe *m_universe{nullptr};
     Painter *m_overlayPainter;
     SizeI m_viewportSize;
-    std::unique_ptr<Mesh> m_circleBillboardMesh;
     std::unique_ptr<Mesh> m_sphereMesh;
     std::unique_ptr<gl::VertexArray> m_emptyVAO;
     glm::mat4 m_projectionMatrix;
