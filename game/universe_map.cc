@@ -46,58 +46,6 @@ glm::vec3 latLonToCartesian(float lat, float lon)
     return {x, y, z};
 }
 
-std::unique_ptr<Mesh> createOrbitMesh()
-{
-    static constexpr auto kVertexCount = 400;
-
-    struct Vertex
-    {
-        float meanAnomaly;
-        float normalDirection;
-    };
-
-    auto mesh = std::make_unique<Mesh>();
-
-    std::vector<Vertex> verts;
-    verts.reserve(kVertexCount * 2);
-    for (std::size_t i = 0; i < kVertexCount; ++i)
-    {
-        const auto meanAnomaly = i * 2.0f * glm::pi<float>() / (kVertexCount - 1);
-        verts.emplace_back(meanAnomaly, -1.0f);
-        verts.emplace_back(meanAnomaly, 1.0f);
-    }
-    mesh->setVertexData(std::as_bytes(std::span{verts}), verts.size());
-
-#if defined(ORBIT_WIREFRAME)
-    std::vector<uint32_t> indices;
-    indices.reserve(kVertexCount * 8);
-    for (std::size_t i = 0; i < kVertexCount - 1; ++i)
-    {
-        const auto baseIndex = i * 2;
-
-        indices.push_back(baseIndex);
-        indices.push_back(baseIndex + 1);
-
-        indices.push_back(baseIndex);
-        indices.push_back(baseIndex + 2);
-
-        indices.push_back(baseIndex + 1);
-        indices.push_back(baseIndex + 2);
-
-        indices.push_back(baseIndex + 1);
-        indices.push_back(baseIndex + 3);
-    }
-    mesh->setIndexData(std::span{indices});
-#endif
-
-    const std::array<Mesh::VertexAttribute, 2> attributes = {
-        Mesh::VertexAttribute{1, Mesh::Type::Float, offsetof(Vertex, meanAnomaly)},
-        Mesh::VertexAttribute{1, Mesh::Type::Float, offsetof(Vertex, normalDirection)}};
-    mesh->setVertexAttributes(attributes, sizeof(Vertex));
-
-    return mesh;
-}
-
 std::unique_ptr<Mesh> createSphereMesh()
 {
     constexpr auto kRings = 30;
@@ -411,14 +359,22 @@ void UniverseMap::render() const
     auto *shaderManager = System::instance()->shaderManager();
     auto *textureCache = System::instance()->textureCache();
 
+    const auto worlds = m_universe->worlds();
+    const auto ships = m_universe->ships();
+
     // planet orbits
+    // TODO instancing
+
+    constexpr auto kOrbitVertexCount = 200;
 
     shaderManager->setCurrent(ShaderManager::Shader::Orbit);
     shaderManager->setUniform(ShaderManager::Uniform::AspectRatio,
                               static_cast<float>(m_viewportSize.width()) / static_cast<float>(m_viewportSize.height()));
-    shaderManager->setUniform(ShaderManager::Uniform::Thickness, 1.0f / static_cast<float>(m_viewportSize.height()));
+    shaderManager->setUniform(ShaderManager::Uniform::Thickness, 3.0f / static_cast<float>(m_viewportSize.height()));
     shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4{0.75, 0.75, 0.75, 1.0});
-    const auto worlds = m_universe->worlds();
+    shaderManager->setUniform(ShaderManager::Uniform::VertexCount, static_cast<float>(kOrbitVertexCount));
+    shaderManager->setUniform(ShaderManager::Uniform::StartAngle, 0.0f);
+    shaderManager->setUniform(ShaderManager::Uniform::EndAngle, 2.0f * glm::pi<float>());
     for (const auto *world : worlds)
     {
         const auto &orbit = world->orbit();
@@ -434,11 +390,8 @@ void UniverseMap::render() const
         shaderManager->setUniform(ShaderManager::Uniform::SemiMajorAxis, semiMajorAxis);
         shaderManager->setUniform(ShaderManager::Uniform::Eccentricity, eccentricity);
 
-#if !defined(ORBIT_WIREFRAME)
-        m_orbitMesh->draw(Mesh::Primitive::TriangleStrip);
-#else
-        m_orbitMesh->draw(Mesh::Primitive::Lines);
-#endif
+        m_emptyVAO->bind();
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 2 * kOrbitVertexCount);
     }
 
     // ship orbits
@@ -448,8 +401,8 @@ void UniverseMap::render() const
                               static_cast<float>(m_viewportSize.width()) / static_cast<float>(m_viewportSize.height()));
     shaderManager->setUniform(ShaderManager::Uniform::Thickness, 3.0f / static_cast<float>(m_viewportSize.height()));
     shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4{1.0, 0.0, 0.0, 1.0});
+    shaderManager->setUniform(ShaderManager::Uniform::VertexCount, static_cast<float>(kOrbitVertexCount));
 
-    const auto ships = m_universe->ships();
     for (const auto *ship : ships)
     {
         const auto &plan = ship->missionPlan();
@@ -479,11 +432,8 @@ void UniverseMap::render() const
             shaderManager->setUniform(ShaderManager::Uniform::CurrentAngle, currentAngle);
             shaderManager->setUniform(ShaderManager::Uniform::EndAngle, endAngle);
 
-#if !defined(ORBIT_WIREFRAME)
-            m_orbitMesh->draw(Mesh::Primitive::TriangleStrip);
-#else
-            m_orbitMesh->draw(Mesh::Primitive::Lines);
-#endif
+            m_emptyVAO->bind();
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 2 * kOrbitVertexCount);
         }
     }
 
@@ -596,9 +546,9 @@ void UniverseMap::render() const
 
 void UniverseMap::initializeMeshes()
 {
-    m_orbitMesh = createOrbitMesh();
     m_circleBillboardMesh = createBodyBillboardMesh();
     m_sphereMesh = createSphereMesh();
+    m_emptyVAO = std::make_unique<gl::VertexArray>();
 }
 
 void UniverseMap::initializeLabels()

@@ -1,13 +1,17 @@
-layout(location=0) in float angle;
-layout(location=1) in float normalDirection;
-
 uniform mat4 mvp;
 uniform float semiMajorAxis;
 uniform float eccentricity;
 uniform float aspectRatio;
 uniform float thickness;
+uniform float startAngle;
+uniform float endAngle;
+uniform float vertexCount;
 
 void main() {
+    int vertexIndex = gl_VertexID / 2;
+    float angle = startAngle + float(vertexIndex) * (endAngle - startAngle) / (float(vertexCount) - 1);
+    float normalDirection = 2.0 * float(gl_VertexID % 2) - 1.0;
+
     float semiMinorAxis = semiMajorAxis * sqrt(1.0 - eccentricity * eccentricity);
     float focus = sqrt(semiMajorAxis * semiMajorAxis - semiMinorAxis * semiMinorAxis);
 

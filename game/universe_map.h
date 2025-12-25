@@ -52,7 +52,7 @@ private:
     SizeI m_viewportSize;
     std::unique_ptr<Mesh> m_circleBillboardMesh;
     std::unique_ptr<Mesh> m_sphereMesh;
-    std::unique_ptr<Mesh> m_orbitMesh;
+    std::unique_ptr<gl::VertexArray> m_emptyVAO;
     glm::mat4 m_projectionMatrix;
     CameraController m_cameraController;
     Selection m_selection;

@@ -81,25 +81,12 @@ int ShaderManager::uniformLocation(Uniform uniform)
     const auto index = static_cast<size_t>(uniform);
     if (locations[index] == -1)
     {
-        static const std::array<std::string, static_cast<size_t>(Uniform::Count)> uniforms = {"projectionMatrix",
-                                                                                              "viewMatrix",
-                                                                                              "modelMatrix",
-                                                                                              "modelViewMatrix",
-                                                                                              "modelViewNormalMatrix",
-                                                                                              "mvp",
-                                                                                              "color",
-                                                                                              "semiMajorAxis",
-                                                                                              "eccentricity",
-                                                                                              "startAngle",
-                                                                                              "currentAngle",
-                                                                                              "endAngle",
-                                                                                              "aspectRatio",
-                                                                                              "thickness",
-                                                                                              "lightPosition",
-                                                                                              "lightIntensity",
-                                                                                              "ka",
-                                                                                              "ks",
-                                                                                              "shininess"};
+        static const std::array<std::string, static_cast<size_t>(Uniform::Count)> uniforms = {
+            "projectionMatrix",      "viewMatrix",  "modelMatrix",  "modelViewMatrix",
+            "modelViewNormalMatrix", "mvp",         "color",        "semiMajorAxis",
+            "eccentricity",          "startAngle",  "currentAngle", "endAngle",
+            "vertexCount",           "aspectRatio", "thickness",    "lightPosition",
+            "lightIntensity",        "ka",          "ks",           "shininess"};
         locations[index] = m_currentShader->program.uniformLocation(uniforms[index]);
     }
     return locations[index];

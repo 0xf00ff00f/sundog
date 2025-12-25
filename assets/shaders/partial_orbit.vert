@@ -1,6 +1,3 @@
-layout(location=0) in float angleOffset;
-layout(location=1) in float normalDirection;
-
 uniform mat4 mvp;
 uniform float semiMajorAxis;
 uniform float eccentricity;
@@ -9,6 +6,7 @@ uniform float thickness;
 uniform float startAngle;
 uniform float endAngle;
 uniform float currentAngle;
+uniform float vertexCount;
 
 out float vs_angle;
 out float vs_currentAngle;
@@ -24,7 +22,9 @@ vec2 positionAt(float angle)
 }
 
 void main() {
-    float angle = startAngle + angleOffset;
+    int vertexIndex = gl_VertexID / 2;
+    float angle = startAngle + float(vertexIndex) * (endAngle - startAngle) / (float(vertexCount) - 1);
+    float normalDirection = 2.0 * float(gl_VertexID % 2) - 1.0;
 
     // point on the curve
     vec2 current = positionAt(angle);

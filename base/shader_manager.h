@@ -33,6 +33,7 @@ public:
         StartAngle,
         CurrentAngle,
         EndAngle,
+        VertexCount,
         AspectRatio,
         Thickness,
         LightPosition,
