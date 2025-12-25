@@ -147,6 +147,9 @@ public:
     float height() const { return m_size.height(); }
     RectF rect() const { return RectF{glm::vec2{0.0f}, m_size}; }
 
+    bool isVisible() const { return m_visible; }
+    void setVisible(bool visible);
+
     void paint(Painter *painter, const glm::vec2 &pos, int depth) const;
 
     template<std::derived_from<Gizmo> ChildT, typename... Args>
@@ -214,6 +217,8 @@ public:
         }
     Gizmo *findChildAt(const glm::vec2 &pos, const Pred &pred)
     {
+        if (!m_visible)
+            return nullptr;
         if (pos.x < 0.0f || pos.x >= m_size.width() || pos.y < 0.0f || pos.y >= m_size.height())
             return nullptr;
         // try children
@@ -239,6 +244,7 @@ public:
 
     muslots::Signal<> aboutToBeDestroyedSignal;
     muslots::Signal<SizeF> resizedSignal;
+    muslots::Signal<bool> visibleChangedSignal;
     muslots::Signal<> anchorChangedSignal;
 
     glm::vec4 backgroundColor = glm::vec4{0.0f, 0.0f, 0.0f, 1.0f};
@@ -258,6 +264,7 @@ protected:
         std::unique_ptr<Gizmo> m_gizmo;
         glm::vec2 m_offset{0.0f};
         muslots::Connection m_resizedConnection;
+        muslots::Connection m_visibleChangedConnection;
         muslots::Connection m_anchorChangedConnection;
     };
 
@@ -269,6 +276,7 @@ protected:
     Option m_options{Option::None};
     Gizmo *m_parent{nullptr};
     SizeF m_size;
+    bool m_visible{true};
     std::vector<ChildGizmo> m_children;
     HorizontalAnchor m_horizontalAnchor;
     VerticalAnchor m_verticalAnchor;

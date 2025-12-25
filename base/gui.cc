@@ -13,6 +13,7 @@ namespace ui
 Gizmo::ChildGizmo::ChildGizmo(std::unique_ptr<Gizmo> gizmo, Gizmo *parent)
     : m_gizmo(std::move(gizmo))
     , m_resizedConnection(m_gizmo->resizedSignal.connect([parent](SizeF) { parent->updateLayout(); }))
+    , m_visibleChangedConnection(m_gizmo->visibleChangedSignal.connect([parent](bool) { parent->updateLayout(); }))
     , m_anchorChangedConnection(m_gizmo->anchorChangedSignal.connect([parent]() { parent->updateLayout(); }))
 {
 }
@@ -20,6 +21,7 @@ Gizmo::ChildGizmo::ChildGizmo(std::unique_ptr<Gizmo> gizmo, Gizmo *parent)
 Gizmo::ChildGizmo::~ChildGizmo()
 {
     m_resizedConnection.disconnect();
+    m_visibleChangedConnection.disconnect();
     m_anchorChangedConnection.disconnect();
 }
 
@@ -78,6 +80,8 @@ void Gizmo::updateLayout()
     for (auto &item : m_children)
     {
         const auto *child = item.m_gizmo.get();
+        if (!child->isVisible())
+            continue;
         const auto childSize = child->size();
         const auto x = [this, child, &childSize] {
             const auto anchor = child->horizontalAnchor();
@@ -130,6 +134,14 @@ void Gizmo::updateLayout()
     }
 }
 
+void Gizmo::setVisible(bool visible)
+{
+    if (visible == m_visible)
+        return;
+    m_visible = visible;
+    visibleChangedSignal(visible);
+}
+
 void Gizmo::paint(Painter *painter, const glm::vec2 &pos, int depth) const
 {
     auto clipRect = painter->clipRect();
@@ -156,7 +168,8 @@ void Gizmo::paintChildren(Painter *painter, const glm::vec2 &pos, int depth) con
     for (const auto &item : m_children)
     {
         const auto *child = item.m_gizmo.get();
-        child->paint(painter, pos + item.m_offset, depth + 1);
+        if (child->isVisible())
+            child->paint(painter, pos + item.m_offset, depth + 1);
     }
 }
 
@@ -367,6 +380,8 @@ void Row::updateLayout()
     float height = 0.0f;
     for (const auto *child : children())
     {
+        if (!child->isVisible())
+            continue;
         const auto size = child->size();
         width += size.width();
         height = std::max(height, size.height());
@@ -384,6 +399,8 @@ void Row::updateLayout()
     for (auto &item : m_children)
     {
         const auto *child = item.m_gizmo.get();
+        if (!child->isVisible())
+            continue;
         const auto childSize = child->size();
         auto y = [this, usableHeight, child, &childSize] {
             const auto anchor = child->verticalAnchor();
@@ -430,6 +447,8 @@ void Column::updateLayout()
     float height = 0.0f;
     for (const auto *child : children())
     {
+        if (!child->isVisible())
+            continue;
         const auto size = child->size();
         width = std::max(width, size.width());
         height += size.height();
@@ -447,6 +466,8 @@ void Column::updateLayout()
     for (auto &item : m_children)
     {
         const auto *child = item.m_gizmo.get();
+        if (!child->isVisible())
+            continue;
         const auto childSize = child->size();
         auto x = [this, usableWidth, child, &childSize] {
             const auto anchor = child->horizontalAnchor();

@@ -209,3 +209,44 @@ TEST_CASE("layout anchors", "[layout-anchors]")
     rc->setBottom(100.0_pct);
     REQUIRE(rc->globalPosition() == glm::vec2{20.0f, 130.0f});
 }
+
+TEST_CASE("visible", "[visible]")
+{
+    {
+        Column column;
+
+        REQUIRE(column.childCount() == 0);
+        REQUIRE(column.size() == SizeF{0.0f, 0.0f});
+
+        auto *rc1 = column.appendChild<Rectangle>(20.0f, 30.0f);
+        REQUIRE(column.childCount() == 1);
+        REQUIRE(column.size() == SizeF{20.0f, 30.0f});
+
+        rc1->setVisible(false);
+        REQUIRE(column.childCount() == 1);
+        REQUIRE(column.size() == SizeF{0.0f, 0.0f});
+
+        rc1->setVisible(true);
+        REQUIRE(column.childCount() == 1);
+        REQUIRE(column.size() == SizeF{20.0f, 30.0f});
+    }
+
+    {
+        Row row;
+
+        REQUIRE(row.childCount() == 0);
+        REQUIRE(row.size() == SizeF{0.0f, 0.0f});
+
+        auto *rc1 = row.appendChild<Rectangle>(20.0f, 30.0f);
+        REQUIRE(row.childCount() == 1);
+        REQUIRE(row.size() == SizeF{20.0f, 30.0f});
+
+        rc1->setVisible(false);
+        REQUIRE(row.childCount() == 1);
+        REQUIRE(row.size() == SizeF{0.0f, 0.0f});
+
+        rc1->setVisible(true);
+        REQUIRE(row.childCount() == 1);
+        REQUIRE(row.size() == SizeF{20.0f, 30.0f});
+    }
+}
