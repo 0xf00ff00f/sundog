@@ -69,7 +69,7 @@ bool Game::initialize()
     if (!m_universe->load(dataFilePath("universe.json")))
         return false;
 
-    m_universe->setDate(JulianClock::now());
+    m_universe->setDate(JulianClock::now() + JulianYears{150.0});
 
     m_overlayPainter = std::make_unique<Painter>();
 
@@ -84,7 +84,6 @@ bool Game::initialize()
     const auto *shipClass = shipClasses[0];
 
     auto ship = m_universe->addShip(shipClass, origin, "SIGBUS");
-#if 1
     m_missionTable = std::make_unique<MissionTable>(origin, destination, m_universe->date(), 0.03);
     auto plan = findMissionPlan(m_missionTable.get());
     if (plan.has_value())
@@ -100,7 +99,6 @@ bool Game::initialize()
                      deltaV * 1.496e+8 / (24 * 60 * 60));
         ship->setMissionPlan(std::move(plan.value()));
     }
-#endif
 
     m_uiRoot = std::make_unique<ui::Rectangle>(100, 100);
 
@@ -110,7 +108,8 @@ bool Game::initialize()
 #if 0
     m_tradingWindow = m_uiRoot->appendChild<TradingWindow>(origin, ship);
     m_tradingWindow->setAlign(ui::Align::HorizontalCenter | ui::Align::VerticalCenter);
-#else
+#endif
+#if 0
     m_missionPlanGizmo = m_uiRoot->appendChild<MissionPlanGizmo>(ship, m_missionTable.get());
     m_missionPlanGizmo->setAlign(ui::Align::Left | ui::Align::VerticalCenter);
 
@@ -118,6 +117,10 @@ bool Game::initialize()
         m_uiRoot->removeChild(m_missionPlanGizmo);
         m_timeStep = JulianDate::duration{30.0f};
     });
+#else
+    if (auto missionPlan = ship->missionPlan())
+        m_universe->setDate(missionPlan->departureDate + JulianDays{100.0});
+    m_timeStep = JulianDays{std::chrono::seconds{1}};
 #endif
 
     m_uiEventManager = std::make_unique<ui::EventManager>();
