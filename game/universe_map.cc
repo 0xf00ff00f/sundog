@@ -354,88 +354,17 @@ void UniverseMap::render() const
 {
     const auto viewMatrix = m_cameraController.viewMatrix();
 
-    glEnable(GL_DEPTH_TEST);
-
     auto *shaderManager = System::instance()->shaderManager();
     auto *textureCache = System::instance()->textureCache();
 
     const auto worlds = m_universe->worlds();
     const auto ships = m_universe->ships();
 
-    // planet orbits
-    // TODO instancing
+    // render meshes
 
-    constexpr auto kOrbitVertexCount = 200;
-
-    shaderManager->setCurrent(ShaderManager::Shader::Orbit);
-    shaderManager->setUniform(ShaderManager::Uniform::AspectRatio,
-                              static_cast<float>(m_viewportSize.width()) / static_cast<float>(m_viewportSize.height()));
-    shaderManager->setUniform(ShaderManager::Uniform::Thickness, 3.0f / static_cast<float>(m_viewportSize.height()));
-    shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4{0.75, 0.75, 0.75, 1.0});
-    shaderManager->setUniform(ShaderManager::Uniform::VertexCount, static_cast<float>(kOrbitVertexCount));
-    shaderManager->setUniform(ShaderManager::Uniform::StartAngle, 0.0f);
-    shaderManager->setUniform(ShaderManager::Uniform::EndAngle, 2.0f * glm::pi<float>());
-    for (const auto *world : worlds)
-    {
-        const auto &orbit = world->orbit();
-
-        const auto elems = orbit.elements();
-        const auto semiMajorAxis = elems.semiMajorAxis;
-        const auto eccentricity = elems.eccentricity;
-
-        const auto orbitRotation = glm::mat4{orbit.orbitRotationMatrix()};
-        const auto mvp = m_projectionMatrix * viewMatrix * orbitRotation;
-
-        shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
-        shaderManager->setUniform(ShaderManager::Uniform::SemiMajorAxis, semiMajorAxis);
-        shaderManager->setUniform(ShaderManager::Uniform::Eccentricity, eccentricity);
-
-        m_emptyVAO->bind();
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 2 * kOrbitVertexCount);
-    }
-
-    // ship orbits
-
-    shaderManager->setCurrent(ShaderManager::Shader::PartialOrbit);
-    shaderManager->setUniform(ShaderManager::Uniform::AspectRatio,
-                              static_cast<float>(m_viewportSize.width()) / static_cast<float>(m_viewportSize.height()));
-    shaderManager->setUniform(ShaderManager::Uniform::Thickness, 3.0f / static_cast<float>(m_viewportSize.height()));
-    shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4{1.0, 0.0, 0.0, 1.0});
-    shaderManager->setUniform(ShaderManager::Uniform::VertexCount, static_cast<float>(kOrbitVertexCount));
-
-    for (const auto *ship : ships)
-    {
-        const auto &plan = ship->missionPlan();
-        if (plan.has_value())
-        {
-            const auto &orbit = plan->orbit;
-
-            const auto startAngle = orbit.trueAnomaly(plan->departureDate);
-            const auto currentAngle =
-                m_universe->date() > plan->departureDate ? orbit.trueAnomaly(m_universe->date()) : startAngle;
-            const auto endAngle = orbit.trueAnomaly(plan->arrivalDate);
-
-            shaderManager->setUniform(ShaderManager::Uniform::Thickness,
-                                      3.0f / static_cast<float>(m_viewportSize.height()));
-
-            const auto elems = orbit.elements();
-            const auto semiMajorAxis = elems.semiMajorAxis;
-            const auto eccentricity = elems.eccentricity;
-
-            const auto orbitRotation = glm::mat4{orbit.orbitRotationMatrix()};
-            const auto mvp = m_projectionMatrix * viewMatrix * orbitRotation;
-
-            shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
-            shaderManager->setUniform(ShaderManager::Uniform::SemiMajorAxis, semiMajorAxis);
-            shaderManager->setUniform(ShaderManager::Uniform::Eccentricity, eccentricity);
-            shaderManager->setUniform(ShaderManager::Uniform::StartAngle, startAngle);
-            shaderManager->setUniform(ShaderManager::Uniform::CurrentAngle, currentAngle);
-            shaderManager->setUniform(ShaderManager::Uniform::EndAngle, endAngle);
-
-            m_emptyVAO->bind();
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, 2 * kOrbitVertexCount);
-        }
-    }
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+    glDisable(GL_BLEND);
 
     // sun mesh
 
@@ -524,9 +453,91 @@ void UniverseMap::render() const
         }
     }
 
-    glDisable(GL_DEPTH_TEST);
+    // render orbits
 
-    // draw labels
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
+
+    // planet orbits
+    // TODO instancing
+
+    constexpr auto kOrbitVertexCount = 200;
+
+    shaderManager->setCurrent(ShaderManager::Shader::Orbit);
+    shaderManager->setUniform(ShaderManager::Uniform::AspectRatio,
+                              static_cast<float>(m_viewportSize.width()) / static_cast<float>(m_viewportSize.height()));
+    shaderManager->setUniform(ShaderManager::Uniform::Thickness, 2.0f / static_cast<float>(m_viewportSize.height()));
+    shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4{0.5});
+    shaderManager->setUniform(ShaderManager::Uniform::VertexCount, static_cast<float>(kOrbitVertexCount));
+    for (const auto *world : worlds)
+    {
+        const auto &orbit = world->orbit();
+
+        const auto currentAngle = orbit.eccentricAnomaly(m_universe->date());
+
+        const auto elems = orbit.elements();
+        const auto semiMajorAxis = elems.semiMajorAxis;
+        const auto eccentricity = elems.eccentricity;
+
+        const auto orbitRotation = glm::mat4{orbit.orbitRotationMatrix()};
+        const auto mvp = m_projectionMatrix * viewMatrix * orbitRotation;
+
+        shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
+        shaderManager->setUniform(ShaderManager::Uniform::SemiMajorAxis, semiMajorAxis);
+        shaderManager->setUniform(ShaderManager::Uniform::Eccentricity, eccentricity);
+        shaderManager->setUniform(ShaderManager::Uniform::StartAngle, currentAngle);
+        shaderManager->setUniform(ShaderManager::Uniform::EndAngle, currentAngle + 2.0f * glm::pi<float>());
+
+        m_emptyVAO->bind();
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 2 * kOrbitVertexCount);
+    }
+
+    // ship orbits
+
+    shaderManager->setCurrent(ShaderManager::Shader::PartialOrbit);
+    shaderManager->setUniform(ShaderManager::Uniform::AspectRatio,
+                              static_cast<float>(m_viewportSize.width()) / static_cast<float>(m_viewportSize.height()));
+    shaderManager->setUniform(ShaderManager::Uniform::Thickness, 2.0f / static_cast<float>(m_viewportSize.height()));
+    shaderManager->setUniform(ShaderManager::Uniform::Color, glm::vec4{1.0, 0.0, 0.0, 1.0});
+    shaderManager->setUniform(ShaderManager::Uniform::VertexCount, static_cast<float>(kOrbitVertexCount));
+
+    for (const auto *ship : ships)
+    {
+        const auto &plan = ship->missionPlan();
+        if (plan.has_value())
+        {
+            const auto &orbit = plan->orbit;
+
+            const auto startAngle = orbit.trueAnomaly(plan->departureDate);
+            const auto currentAngle =
+                m_universe->date() > plan->departureDate ? orbit.trueAnomaly(m_universe->date()) : startAngle;
+            const auto endAngle = orbit.trueAnomaly(plan->arrivalDate);
+
+            shaderManager->setUniform(ShaderManager::Uniform::Thickness,
+                                      3.0f / static_cast<float>(m_viewportSize.height()));
+
+            const auto elems = orbit.elements();
+            const auto semiMajorAxis = elems.semiMajorAxis;
+            const auto eccentricity = elems.eccentricity;
+
+            const auto orbitRotation = glm::mat4{orbit.orbitRotationMatrix()};
+            const auto mvp = m_projectionMatrix * viewMatrix * orbitRotation;
+
+            shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
+            shaderManager->setUniform(ShaderManager::Uniform::SemiMajorAxis, semiMajorAxis);
+            shaderManager->setUniform(ShaderManager::Uniform::Eccentricity, eccentricity);
+            shaderManager->setUniform(ShaderManager::Uniform::StartAngle, startAngle);
+            shaderManager->setUniform(ShaderManager::Uniform::CurrentAngle, currentAngle);
+            shaderManager->setUniform(ShaderManager::Uniform::EndAngle, endAngle);
+
+            m_emptyVAO->bind();
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 2 * kOrbitVertexCount);
+        }
+    }
+
+    // labels
 
     auto labels = visibleLabels();
 

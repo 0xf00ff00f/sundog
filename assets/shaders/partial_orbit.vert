@@ -10,7 +10,6 @@ uniform float vertexCount;
 
 out float vs_angle;
 out float vs_currentAngle;
-out float vs_endAngle;
 
 vec2 positionAt(float angle)
 {
@@ -49,6 +48,5 @@ void main() {
 
     vs_angle = angle;
     vs_currentAngle = currentAngle;
-    vs_endAngle = endAngle;
     gl_Position = currentClip + vec4(normalDirection * normalClip * currentClip.w, 0.0, 0.0);
 }

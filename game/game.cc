@@ -123,12 +123,6 @@ bool Game::initialize()
     m_uiEventManager = std::make_unique<ui::EventManager>();
     m_uiEventManager->setRoot(m_uiRoot.get());
 
-    glEnable(GL_LINE_SMOOTH);
-    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
     glDisable(GL_CULL_FACE);
 
     return true;
@@ -147,11 +141,17 @@ void Game::render() const
 {
     glViewport(0, 0, m_viewportSize.width(), m_viewportSize.height());
     glClearColor(0.1, 0.12, 0.15, 1.0);
+    glDepthMask(GL_TRUE);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     m_overlayPainter->begin();
+
     m_universeMap->render();
 
+    glDisable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     m_uiRoot->paint(m_overlayPainter.get(), glm::vec2{0.0f, 0.0f}, 0);
 
     m_overlayPainter->end();

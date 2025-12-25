@@ -6,10 +6,14 @@ uniform float thickness;
 uniform float startAngle;
 uniform float endAngle;
 uniform float vertexCount;
+uniform vec4 color;
+
+out vec4 vs_color;
 
 void main() {
     int vertexIndex = gl_VertexID / 2;
-    float angle = startAngle + float(vertexIndex) * (endAngle - startAngle) / (float(vertexCount) - 1);
+    float t = float(vertexIndex) / (float(vertexCount) - 1);
+    float angle = startAngle + t * (endAngle - startAngle);;
     float normalDirection = 2.0 * float(gl_VertexID % 2) - 1.0;
 
     float semiMinorAxis = semiMajorAxis * sqrt(1.0 - eccentricity * eccentricity);
@@ -37,5 +41,6 @@ void main() {
     vec2 normalClip = normalScreen;
     normalClip.x /= aspectRatio;
 
+    vs_color = mix(0.2, 1.0, t) * color;
     gl_Position = currentClip + vec4(normalDirection * normalClip * currentClip.w, 0.0, 0.0);
 }
