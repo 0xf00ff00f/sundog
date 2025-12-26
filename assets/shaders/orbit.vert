@@ -13,7 +13,7 @@ out vec4 vs_color;
 void main() {
     int vertexIndex = gl_VertexID / 2;
     float t = float(vertexIndex) / (float(vertexCount) - 1);
-    float angle = startAngle + t * (endAngle - startAngle);;
+    float angle = startAngle + t * (endAngle - startAngle);
     float normalDirection = 2.0 * float(gl_VertexID % 2) - 1.0;
 
     float semiMinorAxis = semiMajorAxis * sqrt(1.0 - eccentricity * eccentricity);
