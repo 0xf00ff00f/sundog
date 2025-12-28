@@ -130,8 +130,8 @@ class MapLabel : public ui::Column
 public:
     explicit MapLabel(const UniverseMap *universeMap, ui::Gizmo *parent = nullptr);
 
-    virtual const World *world() const { return nullptr; }
-    virtual const Ship *ship() const { return nullptr; }
+    virtual World *world() const { return nullptr; }
+    virtual Ship *ship() const { return nullptr; }
     virtual bool isVisible() const = 0;
     virtual void update() = 0;
     virtual glm::vec3 clipSpacePosition() const = 0;
@@ -144,9 +144,9 @@ protected:
 class WorldLabel : public MapLabel
 {
 public:
-    explicit WorldLabel(const UniverseMap *universeMap, const World *world);
+    explicit WorldLabel(const UniverseMap *universeMap, World *world);
 
-    const World *world() const override { return m_world; }
+    World *world() const override { return m_world; }
     bool isVisible() const override { return true; }
     void update() override;
     glm::vec3 clipSpacePosition() const override { return m_clipSpacePosition; }
@@ -154,7 +154,7 @@ public:
 private:
     void updatePosition();
 
-    const World *m_world{nullptr};
+    World *m_world{nullptr};
     ui::Text *m_text{nullptr};
     glm::vec3 m_clipSpacePosition{0.0f};
 };
@@ -162,9 +162,9 @@ private:
 class ShipLabel : public MapLabel
 {
 public:
-    explicit ShipLabel(const UniverseMap *map, const Ship *ship);
+    explicit ShipLabel(const UniverseMap *map, Ship *ship);
 
-    const Ship *ship() const override { return m_ship; }
+    Ship *ship() const override { return m_ship; }
     bool isVisible() const override;
     void update() override;
     glm::vec3 clipSpacePosition() const override { return m_clipSpacePosition; }
@@ -173,7 +173,7 @@ private:
     void updatePosition();
     void updateStateText();
 
-    const Ship *m_ship{nullptr};
+    Ship *m_ship{nullptr};
     ui::Text *m_text{nullptr};
     ui::MultiLineText *m_stateText{nullptr};
     ui::MultiLineText *m_etaText{nullptr};
@@ -202,7 +202,7 @@ void MapLabel::paintContents(Painter *painter, const glm::vec2 &pos, int depth) 
     painter->fillConvexPolygon(arrow, depth);
 }
 
-WorldLabel::WorldLabel(const UniverseMap *map, const World *world)
+WorldLabel::WorldLabel(const UniverseMap *map, World *world)
     : MapLabel(map)
     , m_world(world)
 {
@@ -226,7 +226,7 @@ void WorldLabel::updatePosition()
     m_clipSpacePosition = glm::vec3{clipSpacePosition} / clipSpacePosition.w;
 }
 
-ShipLabel::ShipLabel(const UniverseMap *map, const Ship *ship)
+ShipLabel::ShipLabel(const UniverseMap *map, Ship *ship)
     : MapLabel(map)
     , m_ship(ship)
 {
@@ -305,7 +305,7 @@ UniverseMap::UniverseMap(Universe *universe, Painter *overlayPainter)
     initializeLabels();
 
     m_connections.emplace_back(m_universe->shipAddedSignal.connect(
-        [this](const Ship *ship) { m_labels.emplace_back(std::make_unique<ShipLabel>(this, ship)); }));
+        [this](Ship *ship) { m_labels.emplace_back(std::make_unique<ShipLabel>(this, ship)); }));
     m_connections.emplace_back(m_universe->shipAboutToBeRemovedSignal.connect([this](const Ship *ship) {
         std::erase_if(m_labels, [ship](const auto &label) { return label->ship() == ship; });
     }));
@@ -538,10 +538,10 @@ void UniverseMap::initializeMeshes()
 
 void UniverseMap::initializeLabels()
 {
-    for (const auto *world : m_universe->worlds())
+    for (auto *world : m_universe->worlds())
         m_labels.emplace_back(std::make_unique<WorldLabel>(this, world));
 
-    for (const auto *ship : m_universe->ships())
+    for (auto *ship : m_universe->ships())
         m_labels.emplace_back(std::make_unique<ShipLabel>(this, ship));
 }
 
@@ -555,6 +555,7 @@ void UniverseMap::handleMouseButton(MouseButton button, MouseAction action, cons
             m_selection = std::move(selection);
             moveCameraCenterToSelection();
             m_cameraController.moveCameraDistance(1.0f, true);
+            selectionChangedSignal(m_selection);
         }
     }
     m_cameraController.handleMouseButton(button, action, pos, mods);
@@ -581,7 +582,7 @@ UniverseMap::Selection UniverseMap::pickSelection(const glm::vec2 &viewportPos) 
     return {};
 }
 
-const World *UniverseMap::pickWorld(const glm::vec2 &viewportPos) const
+World *UniverseMap::pickWorld(const glm::vec2 &viewportPos) const
 {
     const auto viewMatrix = m_cameraController.viewMatrix();
     auto normalizedPos =
@@ -597,8 +598,8 @@ const World *UniverseMap::pickWorld(const glm::vec2 &viewportPos) const
 
     const auto worlds = m_universe->worlds();
     float closestDist = std::numeric_limits<float>::max();
-    const World *closestWorld = nullptr;
-    for (const auto *world : worlds)
+    World *closestWorld = nullptr;
+    for (auto *world : worlds)
     {
         const auto position = glm::vec3{world->currentPosition()};
         const auto dist =
@@ -613,7 +614,7 @@ const World *UniverseMap::pickWorld(const glm::vec2 &viewportPos) const
     return closestWorld;
 }
 
-const Ship *UniverseMap::pickShip(const glm::vec2 &viewportPops) const
+Ship *UniverseMap::pickShip(const glm::vec2 &viewportPos) const
 {
     // TODO
     return nullptr;

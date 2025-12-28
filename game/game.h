@@ -14,6 +14,10 @@ class DateGizmo;
 class TradingWindow;
 class MissionTable;
 class MissionPlanGizmo;
+class WorldInfoGizmo;
+class ShipInfoGizmo;
+class World;
+class Ship;
 
 namespace ui
 {
@@ -46,6 +50,10 @@ public:
     void handleMouseWheel(const glm::vec2 &mousePos, const glm::vec2 &wheelOffset);
 
 private:
+    void handleMapSelection(World *world);
+    void handleMapSelection(Ship *ship);
+    void handleMapSelection(std::monostate);
+
     bool m_playing = false;
     SizeI m_viewportSize;
     std::unique_ptr<Universe> m_universe;
@@ -57,5 +65,7 @@ private:
     TradingWindow *m_tradingWindow{nullptr};
     std::unique_ptr<MissionTable> m_missionTable;
     MissionPlanGizmo *m_missionPlanGizmo{nullptr};
+    WorldInfoGizmo *m_worldInfoGizmo{nullptr};
+    ShipInfoGizmo *m_shipInfoGizmo{nullptr};
     JulianDays m_timeStep{0.0}; // days/second
 };

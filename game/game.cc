@@ -7,6 +7,8 @@
 #include "date_gizmo.h"
 #include "trading_window.h"
 #include "mission_plan_gizmo.h"
+#include "world_info_gizmo.h"
+#include "ship_info_gizmo.h"
 
 #include <base/asset_path.h>
 #include <base/shader_manager.h>
@@ -81,7 +83,7 @@ bool Game::initialize()
     const auto *origin = worlds[2];      // Earth
     const auto *destination = worlds[11]; // Mars
     // const auto *destination = worlds[3]; // Mars
-    const auto *shipClass = shipClasses[0];
+    const auto *shipClass = shipClasses[1];
 
     auto ship = m_universe->addShip(shipClass, origin, "SIGBUS");
     m_missionTable = std::make_unique<MissionTable>(origin, destination, m_universe->date(), 0.03);
@@ -109,6 +111,7 @@ bool Game::initialize()
     m_tradingWindow = m_uiRoot->appendChild<TradingWindow>(origin, ship);
     m_tradingWindow->setAlign(ui::Align::HorizontalCenter | ui::Align::VerticalCenter);
 #endif
+
 #if 0
     m_missionPlanGizmo = m_uiRoot->appendChild<MissionPlanGizmo>(ship, m_missionTable.get());
     m_missionPlanGizmo->setAlign(ui::Align::Left | ui::Align::VerticalCenter);
@@ -122,6 +125,18 @@ bool Game::initialize()
         m_universe->setDate(missionPlan->departureDate + JulianDays{100.0});
     m_timeStep = JulianDays{std::chrono::seconds{1}};
 #endif
+
+    m_worldInfoGizmo = m_uiRoot->appendChild<WorldInfoGizmo>();
+    m_worldInfoGizmo->setAlign(ui::Align::Right | ui::Align::VerticalCenter);
+    m_worldInfoGizmo->setVisible(false);
+
+    m_shipInfoGizmo = m_uiRoot->appendChild<ShipInfoGizmo>();
+    m_shipInfoGizmo->setAlign(ui::Align::Right | ui::Align::VerticalCenter);
+    m_shipInfoGizmo->setVisible(false);
+
+    m_universeMap->selectionChangedSignal.connect([this](UniverseMap::Selection selection) {
+        std::visit([this](auto &&selection) { handleMapSelection(selection); }, selection);
+    });
 
     m_uiEventManager = std::make_unique<ui::EventManager>();
     m_uiEventManager->setRoot(m_uiRoot.get());
@@ -184,4 +199,26 @@ void Game::handleMouseWheel(const glm::vec2 &mousePos, const glm::vec2 &wheelOff
 {
     if (!m_uiEventManager->handleMouseWheel(mousePos, wheelOffset))
         m_universeMap->handleMouseWheel(mousePos, wheelOffset);
+}
+
+void Game::handleMapSelection(World *world)
+{
+    m_shipInfoGizmo->setVisible(false);
+
+    m_worldInfoGizmo->setVisible(true);
+    m_worldInfoGizmo->setWorld(world);
+}
+
+void Game::handleMapSelection(Ship *ship)
+{
+    m_worldInfoGizmo->setVisible(false);
+
+    m_shipInfoGizmo->setVisible(true);
+    m_shipInfoGizmo->setShip(ship);
+}
+
+void Game::handleMapSelection(std::monostate)
+{
+    m_worldInfoGizmo->setVisible(false);
+    m_shipInfoGizmo->setVisible(false);
 }

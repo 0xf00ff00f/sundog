@@ -281,6 +281,15 @@ Ship::Ship(const Universe *universe, const ShipClass *shipClass, const World *wo
     , m_shipClass(shipClass)
     , m_world(world)
 {
+    std::random_device rnd;
+    for (const auto *sector : m_universe->marketSectors())
+    {
+        for (const auto &item : sector->items)
+        {
+            if ((rnd() % 2) == 0)
+                changeCargo(item.get(), rnd() % 10);
+        }
+    }
 }
 
 Ship::~Ship() = default;
@@ -348,7 +357,7 @@ void Ship::update()
             assert(m_world == m_missionPlan->origin); // sanity check
             // started mission
             m_world = nullptr;
-            m_state = State::InTransit;
+            setState(State::InTransit);
         }
         break;
     }
@@ -359,7 +368,7 @@ void Ship::update()
             // arrived at destination
             m_world = m_missionPlan->destination;
             m_missionPlan.reset();
-            m_state = State::Docked;
+            setState(State::Docked);
         }
         break;
     }
@@ -396,6 +405,14 @@ const Orbit *Ship::orbit() const
         return nullptr;
     assert(m_missionPlan.has_value());
     return &m_missionPlan->orbit;
+}
+
+void Ship::setState(State state)
+{
+    if (state == m_state)
+        return;
+    m_state = state;
+    stateChangedSignal(m_state);
 }
 
 Universe::Universe() = default;

@@ -18,7 +18,7 @@ class MapLabel;
 class UniverseMap
 {
 public:
-    using Selection = std::variant<std::monostate, const World *, const Ship *>;
+    using Selection = std::variant<std::monostate, World *, Ship *>;
 
     explicit UniverseMap(Universe *universe, Painter *overlayPainter);
     ~UniverseMap();
@@ -41,8 +41,8 @@ private:
     void initializeMeshes();
     void initializeLabels();
     Selection pickSelection(const glm::vec2 &viewportPos) const;
-    const World *pickWorld(const glm::vec2 &viewportPos) const;
-    const Ship *pickShip(const glm::vec2 &viewportPos) const;
+    World *pickWorld(const glm::vec2 &viewportPos) const;
+    Ship *pickShip(const glm::vec2 &viewportPos) const;
     const MapLabel *pickLabel(const glm::vec2 &viewportPos) const;
     void moveCameraCenterToSelection();
     std::vector<const MapLabel *> visibleLabels() const;

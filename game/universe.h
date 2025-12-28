@@ -157,14 +157,30 @@ public:
     int totalCargo() const;
     int cargoCapacity() const;
 
+    struct ItemCargo
+    {
+        const MarketItem *item;
+        int cargo;
+    };
+
+    const auto cargo() const
+    {
+        return m_cargo | std::views::transform([](const auto &item) -> ItemCargo {
+                   return ItemCargo{item.first, item.second};
+               });
+    }
+
     int cargo(const MarketItem *item) const;
     void changeCargo(const MarketItem *item, int count);
 
+    muslots::Signal<State> stateChangedSignal;
     muslots::Signal<const MarketItem *> cargoChangedSignal;
 
     std::string name;
 
 private:
+    void setState(State state);
+
     const Universe *m_universe{nullptr};
     const ShipClass *m_shipClass{nullptr};
     const World *m_world{nullptr};
@@ -186,15 +202,9 @@ public:
 
     void update(Seconds elapsed);
 
-    auto worlds() const
-    {
-        return m_worlds | std::views::transform([](const auto &world) -> const World * { return world.get(); });
-    }
+    auto worlds() const { return m_worlds | std::views::transform(&std::unique_ptr<World>::get); }
 
-    auto ships() const
-    {
-        return m_ships | std::views::transform([](const auto &ship) -> const Ship * { return ship.get(); });
-    }
+    auto ships() const { return m_ships | std::views::transform(&std::unique_ptr<Ship>::get); }
 
     auto marketSectors() const
     {
@@ -206,13 +216,13 @@ public:
     {
         return m_shipClasses |
                std::views::transform([](const auto &shipClass) -> const ShipClass * { return shipClass.get(); });
-    };
+    }
 
     Ship *addShip(const ShipClass *shipClass, const World *world, std::string_view name);
 
     muslots::Signal<JulianDate> dateChangedSignal;
-    muslots::Signal<const Ship *> shipAddedSignal;
-    muslots::Signal<const Ship *> shipAboutToBeRemovedSignal;
+    muslots::Signal<Ship *> shipAddedSignal;
+    muslots::Signal<Ship *> shipAboutToBeRemovedSignal;
 
 private:
     JulianDate m_date{};
