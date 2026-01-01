@@ -168,6 +168,26 @@ TEST_CASE("anchors", "[anchors]")
     REQUIRE(rc->globalPosition() == glm::vec2{30.0f, 0.0f});
 }
 
+TEST_CASE("margins", "[margins]")
+{
+    Rectangle container{200.0f, 200.0f};
+
+    auto *rc = container.appendChild<Rectangle>(50.0f, 50.0f);
+    REQUIRE(rc->globalPosition() == glm::vec2{0.0f, 0.0f});
+
+    container.setMargins(10.0f, 20.0f, 30.0f, 40.0f);
+    REQUIRE(rc->globalPosition() == glm::vec2{10.0f, 30.0f});
+
+    rc->setRight(100.0_pct);
+    REQUIRE(rc->globalPosition() == glm::vec2{130.0f, 30.0f});
+
+    rc->setBottom(100.0_pct);
+    REQUIRE(rc->globalPosition() == glm::vec2{130.0f, 110.0f});
+
+    rc->setLeft(0.0_pct);
+    REQUIRE(rc->globalPosition() == glm::vec2{10.0f, 110.0f});
+}
+
 TEST_CASE("layout anchors", "[layout-anchors]")
 {
     Row row;

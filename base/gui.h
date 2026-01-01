@@ -150,6 +150,11 @@ public:
     bool isVisible() const { return m_visible; }
     void setVisible(bool visible);
 
+    Margins margins() const { return m_margins; }
+    void setMargins(const Margins &margins);
+    void setMargins(float left, float right, float top, float bottom);
+    void setMargins(float margins);
+
     void paint(Painter *painter, const glm::vec2 &pos, int depth) const;
 
     template<std::derived_from<Gizmo> ChildT, typename... Args>
@@ -277,6 +282,7 @@ protected:
     Gizmo *m_parent{nullptr};
     SizeF m_size;
     bool m_visible{true};
+    Margins m_margins;
     std::vector<ChildGizmo> m_children;
     HorizontalAnchor m_horizontalAnchor;
     VerticalAnchor m_verticalAnchor;
@@ -301,14 +307,8 @@ public:
     float spacing() const { return m_spacing; }
     void setSpacing(float spacing);
 
-    Margins margins() const { return m_margins; }
-    void setMargins(const Margins &margins);
-    void setMargins(float left, float right, float top, float bottom);
-    void setMargins(float margins);
-
 protected:
     float m_spacing{4.0f};
-    Margins m_margins;
 };
 
 class Row : public Layout

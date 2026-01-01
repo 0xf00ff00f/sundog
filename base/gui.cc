@@ -77,22 +77,25 @@ Gizmo *Gizmo::childAt(std::size_t index)
 
 void Gizmo::updateLayout()
 {
+    const auto usableWidth = std::max(m_size.width() - (m_margins.left + m_margins.right), 0.0f);
+    const auto usableHeight = std::max(m_size.height() - (m_margins.top + m_margins.bottom), 0.0f);
+
     for (auto &item : m_children)
     {
         const auto *child = item.m_gizmo.get();
         if (!child->isVisible())
             continue;
         const auto childSize = child->size();
-        const auto x = [this, child, &childSize] {
+        const auto x = [this, child, &childSize, usableWidth] {
             const auto anchor = child->horizontalAnchor();
-            const auto anchorX = [this, position = anchor.position]() -> float {
+            const auto anchorX = [this, position = anchor.position, usableWidth]() -> float {
                 switch (position.type)
                 {
                 case Length::Type::Pixels:
                 default:
                     return position.value;
                 case Length::Type::Percent:
-                    return (position.value / 100.0f) * m_size.width();
+                    return (position.value / 100.0f) * usableWidth;
                 }
             }();
             switch (anchor.type)
@@ -106,16 +109,16 @@ void Gizmo::updateLayout()
                 return anchorX - childSize.width();
             }
         }();
-        const auto y = [this, child, &childSize] {
+        const auto y = [this, child, &childSize, usableHeight] {
             const auto anchor = child->verticalAnchor();
-            const auto anchorY = [this, position = anchor.position]() -> float {
+            const auto anchorY = [this, position = anchor.position, usableHeight]() -> float {
                 switch (position.type)
                 {
                 case Length::Type::Pixels:
                 default:
                     return position.value;
                 case Length::Type::Percent:
-                    return (position.value / 100.0f) * m_size.height();
+                    return (position.value / 100.0f) * usableHeight;
                 }
             }();
             switch (anchor.type)
@@ -130,7 +133,7 @@ void Gizmo::updateLayout()
             }
             return 0.0f;
         }();
-        item.m_offset = glm::vec2{x, y};
+        item.m_offset = glm::vec2{x, y} + glm::vec2{m_margins.left, m_margins.top};
     }
 }
 
@@ -140,6 +143,24 @@ void Gizmo::setVisible(bool visible)
         return;
     m_visible = visible;
     visibleChangedSignal(visible);
+}
+
+void Gizmo::setMargins(const Margins &margins)
+{
+    if (margins == m_margins)
+        return;
+    m_margins = margins;
+    updateLayout();
+}
+
+void Gizmo::setMargins(float left, float right, float top, float bottom)
+{
+    setMargins(Margins{.left = left, .right = right, .top = top, .bottom = bottom});
+}
+
+void Gizmo::setMargins(float margins)
+{
+    setMargins(Margins{.left = margins, .right = margins, .top = margins, .bottom = margins});
 }
 
 void Gizmo::paint(Painter *painter, const glm::vec2 &pos, int depth) const
@@ -345,24 +366,6 @@ void Layout::setSpacing(float spacing)
         return;
     m_spacing = spacing;
     updateLayout();
-}
-
-void Layout::setMargins(const Margins &margins)
-{
-    if (margins == m_margins)
-        return;
-    m_margins = margins;
-    updateLayout();
-}
-
-void Layout::setMargins(float left, float right, float top, float bottom)
-{
-    setMargins(Margins{.left = left, .right = right, .top = top, .bottom = bottom});
-}
-
-void Layout::setMargins(float margins)
-{
-    setMargins(Margins{.left = margins, .right = margins, .top = margins, .bottom = margins});
 }
 
 void Row::setMinimumHeight(float height)
