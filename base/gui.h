@@ -179,12 +179,6 @@ public:
         return m_children | std::views::transform([](const auto &child) { return child.m_gizmo.get(); });
     }
 
-    // called when:
-    //   * children added/removed
-    //   * child size changes
-    //   * child layout alignment changes
-    virtual void updateLayout();
-
     void setAlign(Align align);
     void setLeft(const Length &position);
     void setHorizontalCenter(const Length &position);
@@ -267,6 +261,12 @@ protected:
         muslots::Connection m_visibleChangedConnection;
         muslots::Connection m_anchorChangedConnection;
     };
+
+    // called when:
+    //   * children added/removed
+    //   * child size changes
+    //   * child layout alignment changes
+    virtual void updateLayout();
 
     virtual void paintContents(Painter *painter, const glm::vec2 &pos, int depth) const;
     virtual void paintChildren(Painter *painter, const glm::vec2 &pos, int depth) const;
