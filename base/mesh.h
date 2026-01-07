@@ -36,7 +36,8 @@ public:
         TriangleStrip = GL_TRIANGLE_STRIP,
         TriangleFan = GL_TRIANGLE_FAN,
         Lines = GL_LINES,
-        LineLoop = GL_LINE_LOOP
+        LineLoop = GL_LINE_LOOP,
+        Points = GL_POINTS
     };
     void draw(Primitive primitive) const;
 

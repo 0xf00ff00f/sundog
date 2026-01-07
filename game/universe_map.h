@@ -14,6 +14,7 @@ class Universe;
 class Mesh;
 class Painter;
 class MapLabel;
+class Starfield;
 
 class UniverseMap
 {
@@ -38,6 +39,7 @@ public:
     muslots::Signal<Selection> selectionChangedSignal;
 
 private:
+    void initializeStarfield();
     void initializeMeshes();
     void initializeLabels();
     Selection pickSelection(const glm::vec2 &viewportPos) const;
@@ -50,6 +52,7 @@ private:
     Universe *m_universe{nullptr};
     Painter *m_overlayPainter;
     SizeI m_viewportSize;
+    std::unique_ptr<Mesh> m_starfieldMesh;
     std::unique_ptr<Mesh> m_sphereMesh;
     std::unique_ptr<gl::VertexArray> m_emptyVAO;
     glm::mat4 m_projectionMatrix;
@@ -57,4 +60,5 @@ private:
     Selection m_selection;
     std::vector<std::unique_ptr<MapLabel>> m_labels;
     std::vector<muslots::Connection> m_connections;
+    std::unique_ptr<Starfield> m_starfield;
 };

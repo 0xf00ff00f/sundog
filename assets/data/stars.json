@@ -1,0 +1,2402 @@
+[
+  {
+    "bayer_name": "Alpha Canis Majoris",
+    "proper_name": "Sirius",
+    "right_ascension": 101.25,
+    "declination": -16.7,
+    "spectral_type": "A1V",
+    "apparent_magnitude": -1.46
+  },
+  {
+    "bayer_name": "Alpha Carinae",
+    "proper_name": "Canopus",
+    "right_ascension": 96.0,
+    "declination": -52.7,
+    "spectral_type": "F0Ib",
+    "apparent_magnitude": -0.73
+  },
+  {
+    "bayer_name": "Alpha Centauri",
+    "proper_name": "Rigil Kentaurus",
+    "right_ascension": 220.0,
+    "declination": -60.8,
+    "spectral_type": "G2V+K1V",
+    "apparent_magnitude": -0.29
+  },
+  {
+    "bayer_name": "Alpha Bo\u00f6tis",
+    "proper_name": "Arcturus",
+    "right_ascension": 214.0,
+    "declination": 19.2,
+    "spectral_type": "K2III",
+    "apparent_magnitude": -0.05
+  },
+  {
+    "bayer_name": "Alpha Lyrae",
+    "proper_name": "Vega",
+    "right_ascension": 279.25,
+    "declination": 38.8,
+    "spectral_type": "A0V",
+    "apparent_magnitude": 0.03
+  },
+  {
+    "bayer_name": "Alpha Aurigae",
+    "proper_name": "Capella",
+    "right_ascension": 79.25,
+    "declination": 46.0,
+    "spectral_type": "G5III+G0III",
+    "apparent_magnitude": 0.07
+  },
+  {
+    "bayer_name": "Beta Orionis",
+    "proper_name": "Rigel",
+    "right_ascension": 78.75,
+    "declination": -8.2,
+    "spectral_type": "B8Ia",
+    "apparent_magnitude": 0.15
+  },
+  {
+    "bayer_name": "Alpha Canis Minoris",
+    "proper_name": "Procyon",
+    "right_ascension": 114.75,
+    "declination": 5.2,
+    "spectral_type": "F5IV-V",
+    "apparent_magnitude": 0.36
+  },
+  {
+    "bayer_name": "Alpha Eridani",
+    "proper_name": "Achernar",
+    "right_ascension": 24.5,
+    "declination": -57.2,
+    "spectral_type": "B3V",
+    "apparent_magnitude": 0.45
+  },
+  {
+    "bayer_name": "Alpha Orionis",
+    "proper_name": "Betelgeuse",
+    "right_ascension": 88.75,
+    "declination": 7.4,
+    "spectral_type": "M2Ib",
+    "apparent_magnitude": 0.55
+  },
+  {
+    "bayer_name": "Beta Centauri",
+    "proper_name": "Hadar",
+    "right_ascension": 211.0,
+    "declination": -60.4,
+    "spectral_type": "B1III",
+    "apparent_magnitude": 0.61
+  },
+  {
+    "bayer_name": "Alpha Aquilae",
+    "proper_name": "Altair",
+    "right_ascension": 297.75,
+    "declination": 8.9,
+    "spectral_type": "A7V",
+    "apparent_magnitude": 0.77
+  },
+  {
+    "bayer_name": "Alpha Crucis",
+    "proper_name": "Acrux",
+    "right_ascension": 186.75,
+    "declination": -63.1,
+    "spectral_type": "B0.5IV+B1V",
+    "apparent_magnitude": 0.79
+  },
+  {
+    "bayer_name": "Alpha Tauri",
+    "proper_name": "Aldebaran",
+    "right_ascension": 69.0,
+    "declination": 16.5,
+    "spectral_type": "K5III",
+    "apparent_magnitude": 0.86
+  },
+  {
+    "bayer_name": "Alpha Scorpii",
+    "proper_name": "Antares",
+    "right_ascension": 247.25,
+    "declination": -26.4,
+    "spectral_type": "M1Ib+B4V",
+    "apparent_magnitude": 0.95
+  },
+  {
+    "bayer_name": "Alpha Virginis",
+    "proper_name": "Spica",
+    "right_ascension": 201.25,
+    "declination": -11.2,
+    "spectral_type": "B1V+B2V",
+    "apparent_magnitude": 0.97
+  },
+  {
+    "bayer_name": "Beta Geminorum",
+    "proper_name": "Pollux",
+    "right_ascension": 116.25,
+    "declination": 28.0,
+    "spectral_type": "K0III",
+    "apparent_magnitude": 1.14
+  },
+  {
+    "bayer_name": "Alpha Piscis Austrini",
+    "proper_name": "Fomalhaut",
+    "right_ascension": 344.5,
+    "declination": -29.6,
+    "spectral_type": "A3V",
+    "apparent_magnitude": 1.15
+  },
+  {
+    "bayer_name": "Alpha Cygni",
+    "proper_name": "Deneb",
+    "right_ascension": 310.25,
+    "declination": 45.3,
+    "spectral_type": "A2Ia",
+    "apparent_magnitude": 1.24
+  },
+  {
+    "bayer_name": "Beta Crucis",
+    "proper_name": "Mimosa",
+    "right_ascension": 192.0,
+    "declination": -59.7,
+    "spectral_type": "B0.5III",
+    "apparent_magnitude": 1.26
+  },
+  {
+    "bayer_name": "Alpha Leonis",
+    "proper_name": "Regulus",
+    "right_ascension": 152.0,
+    "declination": 12.0,
+    "spectral_type": "B7V",
+    "apparent_magnitude": 1.36
+  },
+  {
+    "bayer_name": "Epsilon Canis Majoris",
+    "proper_name": "Adhara",
+    "right_ascension": 104.75,
+    "declination": -29.0,
+    "spectral_type": "B2II",
+    "apparent_magnitude": 1.5
+  },
+  {
+    "bayer_name": "Alpha Geminorum",
+    "proper_name": "Castor",
+    "right_ascension": 113.75,
+    "declination": 31.9,
+    "spectral_type": "A1V+A2V",
+    "apparent_magnitude": 1.58
+  },
+  {
+    "bayer_name": "Lambda Scorpii",
+    "proper_name": "Shaula",
+    "right_ascension": 263.5,
+    "declination": -37.1,
+    "spectral_type": "B2IV",
+    "apparent_magnitude": 1.62
+  },
+  {
+    "bayer_name": "Gamma Crucis",
+    "proper_name": "Gacrux",
+    "right_ascension": 187.75,
+    "declination": -57.1,
+    "spectral_type": "M3.5III",
+    "apparent_magnitude": 1.63
+  },
+  {
+    "bayer_name": "Gamma Orionis",
+    "proper_name": "Bellatrix",
+    "right_ascension": 81.25,
+    "declination": 6.3,
+    "spectral_type": "B2III",
+    "apparent_magnitude": 1.64
+  },
+  {
+    "bayer_name": "Beta Tauri",
+    "proper_name": "Elnath",
+    "right_ascension": 81.5,
+    "declination": 28.6,
+    "spectral_type": "B7III",
+    "apparent_magnitude": 1.66
+  },
+  {
+    "bayer_name": "Beta Carinae",
+    "proper_name": "Miaplacidus",
+    "right_ascension": 138.25,
+    "declination": -69.7,
+    "spectral_type": "A2III",
+    "apparent_magnitude": 1.67
+  },
+  {
+    "bayer_name": "Epsilon Orionis",
+    "proper_name": "Alnilam",
+    "right_ascension": 84.0,
+    "declination": -1.2,
+    "spectral_type": "B0Ia",
+    "apparent_magnitude": 1.69
+  },
+  {
+    "bayer_name": "Alpha Gruis",
+    "proper_name": "Alnair",
+    "right_ascension": 332.0,
+    "declination": -47.0,
+    "spectral_type": "B7IV",
+    "apparent_magnitude": 1.74
+  },
+  {
+    "bayer_name": "Zeta Orionis",
+    "proper_name": "Alnitak",
+    "right_ascension": 85.25,
+    "declination": -1.9,
+    "spectral_type": "O9.5Ib+B0III",
+    "apparent_magnitude": 1.75
+  },
+  {
+    "bayer_name": "Epsilon Ursae Majoris",
+    "proper_name": "Alioth",
+    "right_ascension": 193.5,
+    "declination": 56.0,
+    "spectral_type": "A0IV",
+    "apparent_magnitude": 1.77
+  },
+  {
+    "bayer_name": "Alpha Persei",
+    "proper_name": "Mirfak",
+    "right_ascension": 51.0,
+    "declination": 49.9,
+    "spectral_type": "F5Ib",
+    "apparent_magnitude": 1.8
+  },
+  {
+    "bayer_name": "Alpha Ursae Majoris",
+    "proper_name": "Dubhe",
+    "right_ascension": 166.0,
+    "declination": 61.8,
+    "spectral_type": "K0III+F0V",
+    "apparent_magnitude": 1.8
+  },
+  {
+    "bayer_name": "Gamma Velorum",
+    "proper_name": "Regor",
+    "right_ascension": 122.5,
+    "declination": -47.3,
+    "spectral_type": "WC8+O9Ib",
+    "apparent_magnitude": 1.81
+  },
+  {
+    "bayer_name": "Delta Canis Majoris",
+    "proper_name": "Wezen",
+    "right_ascension": 107.0,
+    "declination": -26.4,
+    "spectral_type": "F8Ia",
+    "apparent_magnitude": 1.83
+  },
+  {
+    "bayer_name": "Epsilon Sagittarii",
+    "proper_name": "Kaus Australis",
+    "right_ascension": 276.0,
+    "declination": -34.4,
+    "spectral_type": "B9.5III",
+    "apparent_magnitude": 1.84
+  },
+  {
+    "bayer_name": "Eta Ursae Majoris",
+    "proper_name": "Alkaid",
+    "right_ascension": 207.0,
+    "declination": 49.3,
+    "spectral_type": "B3V",
+    "apparent_magnitude": 1.86
+  },
+  {
+    "bayer_name": "Theta Scorpii",
+    "proper_name": "Sargas",
+    "right_ascension": 264.25,
+    "declination": -43.0,
+    "spectral_type": "F1II",
+    "apparent_magnitude": 1.86
+  },
+  {
+    "bayer_name": "Epsilon Carinae",
+    "proper_name": "Avior",
+    "right_ascension": 125.75,
+    "declination": -59.5,
+    "spectral_type": "K3II+B2V",
+    "apparent_magnitude": 1.87
+  },
+  {
+    "bayer_name": "Beta Aurigae",
+    "proper_name": "Menkalinan",
+    "right_ascension": 90.0,
+    "declination": 44.9,
+    "spectral_type": "A2IV",
+    "apparent_magnitude": 1.9
+  },
+  {
+    "bayer_name": "Alpha Trianguli Australis",
+    "proper_name": "Atria",
+    "right_ascension": 252.25,
+    "declination": -69.0,
+    "spectral_type": "K2Ib-II",
+    "apparent_magnitude": 1.92
+  },
+  {
+    "bayer_name": "Gamma Geminorum",
+    "proper_name": "Alhena",
+    "right_ascension": 99.5,
+    "declination": 16.4,
+    "spectral_type": "A0IV",
+    "apparent_magnitude": 1.93
+  },
+  {
+    "bayer_name": "Alpha Pavonis",
+    "proper_name": "Peacock",
+    "right_ascension": 306.5,
+    "declination": -56.7,
+    "spectral_type": "B0.5V+B2V",
+    "apparent_magnitude": 1.93
+  },
+  {
+    "bayer_name": "Delta Velorum",
+    "proper_name": "Koo She",
+    "right_ascension": 131.25,
+    "declination": -54.7,
+    "spectral_type": "A0V",
+    "apparent_magnitude": 1.95
+  },
+  {
+    "bayer_name": "Beta Canis Majoris",
+    "proper_name": "Mirzam",
+    "right_ascension": 95.75,
+    "declination": -18.0,
+    "spectral_type": "B1III",
+    "apparent_magnitude": 1.98
+  },
+  {
+    "bayer_name": "Alpha Hydrae",
+    "proper_name": "Alphard",
+    "right_ascension": 142.0,
+    "declination": -8.7,
+    "spectral_type": "K3II",
+    "apparent_magnitude": 1.98
+  },
+  {
+    "bayer_name": "Alpha Ursae Minoris",
+    "proper_name": "Polaris",
+    "right_ascension": 38.0,
+    "declination": 89.3,
+    "spectral_type": "F7Ib-II",
+    "apparent_magnitude": 1.99
+  },
+  {
+    "bayer_name": "Gamma Leonis",
+    "proper_name": "Algieba",
+    "right_ascension": 155.0,
+    "declination": 19.8,
+    "spectral_type": "K0III+G7III",
+    "apparent_magnitude": 2.0
+  },
+  {
+    "bayer_name": "Alpha Arietis",
+    "proper_name": "Hamal",
+    "right_ascension": 31.75,
+    "declination": 23.5,
+    "spectral_type": "K2III",
+    "apparent_magnitude": 2.01
+  },
+  {
+    "bayer_name": "Beta Ceti",
+    "proper_name": "Diphda",
+    "right_ascension": 11.0,
+    "declination": -18.0,
+    "spectral_type": "K0III",
+    "apparent_magnitude": 2.04
+  },
+  {
+    "bayer_name": "Sigma Sagittarii",
+    "proper_name": "Nunki",
+    "right_ascension": 283.75,
+    "declination": -26.3,
+    "spectral_type": "B3V",
+    "apparent_magnitude": 2.05
+  },
+  {
+    "bayer_name": "Theta Centauri",
+    "proper_name": "Menkent",
+    "right_ascension": 211.75,
+    "declination": -36.4,
+    "spectral_type": "K0III",
+    "apparent_magnitude": 2.06
+  },
+  {
+    "bayer_name": "Alpha Andromedae",
+    "proper_name": "Alpheratz",
+    "right_ascension": 2.0,
+    "declination": 29.1,
+    "spectral_type": "B9IV",
+    "apparent_magnitude": 2.07
+  },
+  {
+    "bayer_name": "Beta Andromedae",
+    "proper_name": "Mirach",
+    "right_ascension": 17.5,
+    "declination": 35.6,
+    "spectral_type": "M0II",
+    "apparent_magnitude": 2.07
+  },
+  {
+    "bayer_name": "Kappa Orionis",
+    "proper_name": "Saiph",
+    "right_ascension": 87.0,
+    "declination": -9.7,
+    "spectral_type": "B0.5III",
+    "apparent_magnitude": 2.07
+  },
+  {
+    "bayer_name": "Beta Ursae Minoris",
+    "proper_name": "Kochab",
+    "right_ascension": 222.75,
+    "declination": 74.2,
+    "spectral_type": "K4III",
+    "apparent_magnitude": 2.07
+  },
+  {
+    "bayer_name": "Beta Gruis",
+    "proper_name": "Al Dhanab",
+    "right_ascension": 340.75,
+    "declination": -46.9,
+    "spectral_type": "M5III",
+    "apparent_magnitude": 2.07
+  },
+  {
+    "bayer_name": "Alpha Ophiuchi",
+    "proper_name": "Rasalhague",
+    "right_ascension": 263.75,
+    "declination": 12.6,
+    "spectral_type": "A5III-IV",
+    "apparent_magnitude": 2.08
+  },
+  {
+    "bayer_name": "Beta Persei",
+    "proper_name": "Algol",
+    "right_ascension": 47.0,
+    "declination": 41.0,
+    "spectral_type": "B8V+G5IV+A",
+    "apparent_magnitude": 2.09
+  },
+  {
+    "bayer_name": "Gamma Andromedae",
+    "proper_name": "Almach",
+    "right_ascension": 31.0,
+    "declination": 42.3,
+    "spectral_type": "K3II+B8V+A0V",
+    "apparent_magnitude": 2.1
+  },
+  {
+    "bayer_name": "Beta Leonis",
+    "proper_name": "Denebola",
+    "right_ascension": 177.25,
+    "declination": 14.6,
+    "spectral_type": "A3V",
+    "apparent_magnitude": 2.14
+  },
+  {
+    "bayer_name": "Gamma Cassiopeiae",
+    "proper_name": "Cih",
+    "right_ascension": 14.25,
+    "declination": 60.7,
+    "spectral_type": "B0IV",
+    "apparent_magnitude": 2.15
+  },
+  {
+    "bayer_name": "Gamma Centauri",
+    "proper_name": "Muhlifain",
+    "right_ascension": 190.5,
+    "declination": -49.0,
+    "spectral_type": "A0III+A0III",
+    "apparent_magnitude": 2.2
+  },
+  {
+    "bayer_name": "Zeta Puppis",
+    "proper_name": "Naos",
+    "right_ascension": 121.0,
+    "declination": -40.0,
+    "spectral_type": "O5Ia",
+    "apparent_magnitude": 2.21
+  },
+  {
+    "bayer_name": "Iota Carinae",
+    "proper_name": "Aspidiske",
+    "right_ascension": 139.25,
+    "declination": -59.3,
+    "spectral_type": "A8Ib",
+    "apparent_magnitude": 2.21
+  },
+  {
+    "bayer_name": "Alpha Coronae Borealis",
+    "proper_name": "Alphecca",
+    "right_ascension": 233.75,
+    "declination": 26.7,
+    "spectral_type": "A0V+G5V",
+    "apparent_magnitude": 2.22
+  },
+  {
+    "bayer_name": "Lambda Velorum",
+    "proper_name": "Suhail",
+    "right_ascension": 137.0,
+    "declination": -43.4,
+    "spectral_type": "K4Ib",
+    "apparent_magnitude": 2.23
+  },
+  {
+    "bayer_name": "Zeta Ursae Majoris",
+    "proper_name": "Mizar",
+    "right_ascension": 201.0,
+    "declination": 54.9,
+    "spectral_type": "A2V+A2V+A1V",
+    "apparent_magnitude": 2.23
+  },
+  {
+    "bayer_name": "Gamma Cygni",
+    "proper_name": "Sadr",
+    "right_ascension": 305.5,
+    "declination": 40.3,
+    "spectral_type": "F8Ib",
+    "apparent_magnitude": 2.23
+  },
+  {
+    "bayer_name": "Alpha Cassiopeiae",
+    "proper_name": "Schedar",
+    "right_ascension": 10.25,
+    "declination": 56.5,
+    "spectral_type": "K0II",
+    "apparent_magnitude": 2.24
+  },
+  {
+    "bayer_name": "Gamma Draconis",
+    "proper_name": "Eltanin",
+    "right_ascension": 269.25,
+    "declination": 51.5,
+    "spectral_type": "K5III",
+    "apparent_magnitude": 2.24
+  },
+  {
+    "bayer_name": "Delta Orionis",
+    "proper_name": "Mintaka",
+    "right_ascension": 83.0,
+    "declination": -0.3,
+    "spectral_type": "O9.5II+B2V",
+    "apparent_magnitude": 2.25
+  },
+  {
+    "bayer_name": "Beta Cassiopeiae",
+    "proper_name": "Caph",
+    "right_ascension": 2.25,
+    "declination": 59.2,
+    "spectral_type": "F2III",
+    "apparent_magnitude": 2.28
+  },
+  {
+    "bayer_name": "Epsilon Centauri",
+    "proper_name": "",
+    "right_ascension": 205.0,
+    "declination": -53.5,
+    "spectral_type": "B1III",
+    "apparent_magnitude": 2.29
+  },
+  {
+    "bayer_name": "Delta Scorpii",
+    "proper_name": "Dschubba",
+    "right_ascension": 240.0,
+    "declination": -22.6,
+    "spectral_type": "B0.5IV",
+    "apparent_magnitude": 2.29
+  },
+  {
+    "bayer_name": "Epsilon Scorpii",
+    "proper_name": "Wei",
+    "right_ascension": 252.5,
+    "declination": -34.3,
+    "spectral_type": "K2.5III",
+    "apparent_magnitude": 2.29
+  },
+  {
+    "bayer_name": "Alpha Lupi",
+    "proper_name": "Men",
+    "right_ascension": 220.5,
+    "declination": -47.4,
+    "spectral_type": "B1.5III",
+    "apparent_magnitude": 2.3
+  },
+  {
+    "bayer_name": "Eta Centauri",
+    "proper_name": "",
+    "right_ascension": 219.0,
+    "declination": -42.2,
+    "spectral_type": "B1.5V",
+    "apparent_magnitude": 2.33
+  },
+  {
+    "bayer_name": "Beta Ursae Majoris",
+    "proper_name": "Merak",
+    "right_ascension": 165.5,
+    "declination": 56.4,
+    "spectral_type": "A1V",
+    "apparent_magnitude": 2.34
+  },
+  {
+    "bayer_name": "Epsilon Bo\u00f6tis",
+    "proper_name": "Izar",
+    "right_ascension": 221.25,
+    "declination": 27.1,
+    "spectral_type": "K0II-III+A2V",
+    "apparent_magnitude": 2.35
+  },
+  {
+    "bayer_name": "Epsilon Pegasi",
+    "proper_name": "Enif",
+    "right_ascension": 326.0,
+    "declination": 9.9,
+    "spectral_type": "K2Ib",
+    "apparent_magnitude": 2.38
+  },
+  {
+    "bayer_name": "Kappa Scorpii",
+    "proper_name": "Girtab",
+    "right_ascension": 265.5,
+    "declination": -39.0,
+    "spectral_type": "B1.5III",
+    "apparent_magnitude": 2.39
+  },
+  {
+    "bayer_name": "Alpha Phoenicis",
+    "proper_name": "Ankaa",
+    "right_ascension": 6.5,
+    "declination": -42.3,
+    "spectral_type": "K0III",
+    "apparent_magnitude": 2.4
+  },
+  {
+    "bayer_name": "Gamma Ursae Majoris",
+    "proper_name": "Phecda",
+    "right_ascension": 178.5,
+    "declination": 53.7,
+    "spectral_type": "A0V",
+    "apparent_magnitude": 2.41
+  },
+  {
+    "bayer_name": "Eta Ophiuchi",
+    "proper_name": "Sabik",
+    "right_ascension": 257.5,
+    "declination": -15.7,
+    "spectral_type": "A1V+A3V",
+    "apparent_magnitude": 2.43
+  },
+  {
+    "bayer_name": "Beta Pegasi",
+    "proper_name": "Scheat",
+    "right_ascension": 346.0,
+    "declination": 28.1,
+    "spectral_type": "M2III",
+    "apparent_magnitude": 2.44
+  },
+  {
+    "bayer_name": "Eta Canis Majoris",
+    "proper_name": "Aludra",
+    "right_ascension": 111.0,
+    "declination": -29.3,
+    "spectral_type": "B5Ia",
+    "apparent_magnitude": 2.45
+  },
+  {
+    "bayer_name": "Alpha Cephei",
+    "proper_name": "Alderamin",
+    "right_ascension": 319.75,
+    "declination": 62.6,
+    "spectral_type": "A7IV",
+    "apparent_magnitude": 2.45
+  },
+  {
+    "bayer_name": "Kappa Velorum",
+    "proper_name": "Markeb",
+    "right_ascension": 140.5,
+    "declination": -55.0,
+    "spectral_type": "B2IV",
+    "apparent_magnitude": 2.47
+  },
+  {
+    "bayer_name": "Epsilon Cygni",
+    "proper_name": "Gienah",
+    "right_ascension": 311.5,
+    "declination": 34.0,
+    "spectral_type": "K0III",
+    "apparent_magnitude": 2.48
+  },
+  {
+    "bayer_name": "Alpha Pegasi",
+    "proper_name": "Markab",
+    "right_ascension": 346.25,
+    "declination": 15.2,
+    "spectral_type": "B9IV",
+    "apparent_magnitude": 2.49
+  },
+  {
+    "bayer_name": "Alpha Ceti",
+    "proper_name": "Menkar",
+    "right_ascension": 45.5,
+    "declination": 4.1,
+    "spectral_type": "M2III",
+    "apparent_magnitude": 2.54
+  },
+  {
+    "bayer_name": "Zeta Ophiuchi",
+    "proper_name": "Han",
+    "right_ascension": 249.25,
+    "declination": -10.6,
+    "spectral_type": "O9.5V",
+    "apparent_magnitude": 2.54
+  },
+  {
+    "bayer_name": "Zeta Centauri",
+    "proper_name": "Al Nair al Kent.",
+    "right_ascension": 209.0,
+    "declination": -47.3,
+    "spectral_type": "B2.5IV",
+    "apparent_magnitude": 2.55
+  },
+  {
+    "bayer_name": "Delta Leonis",
+    "proper_name": "Zosma",
+    "right_ascension": 168.5,
+    "declination": 20.5,
+    "spectral_type": "A4V",
+    "apparent_magnitude": 2.56
+  },
+  {
+    "bayer_name": "Beta Scorpii",
+    "proper_name": "Graffias",
+    "right_ascension": 241.25,
+    "declination": -19.8,
+    "spectral_type": "B1V+B2V",
+    "apparent_magnitude": 2.56
+  },
+  {
+    "bayer_name": "Alpha Leporis",
+    "proper_name": "Arneb",
+    "right_ascension": 83.25,
+    "declination": -17.8,
+    "spectral_type": "F0Ib",
+    "apparent_magnitude": 2.58
+  },
+  {
+    "bayer_name": "Delta Centauri",
+    "proper_name": "",
+    "right_ascension": 182.0,
+    "declination": -50.7,
+    "spectral_type": "B2IV",
+    "apparent_magnitude": 2.58
+  },
+  {
+    "bayer_name": "Gamma Corvi",
+    "proper_name": "Gienah Ghurab",
+    "right_ascension": 184.0,
+    "declination": -17.5,
+    "spectral_type": "B8III",
+    "apparent_magnitude": 2.58
+  },
+  {
+    "bayer_name": "Zeta Sagittarii",
+    "proper_name": "Ascella",
+    "right_ascension": 285.75,
+    "declination": -29.9,
+    "spectral_type": "A2IV+A4V",
+    "apparent_magnitude": 2.6
+  },
+  {
+    "bayer_name": "Beta Librae",
+    "proper_name": "Zubeneschamali",
+    "right_ascension": 229.25,
+    "declination": -9.4,
+    "spectral_type": "B8V",
+    "apparent_magnitude": 2.61
+  },
+  {
+    "bayer_name": "Alpha Serpentis",
+    "proper_name": "Unukalhai",
+    "right_ascension": 236.0,
+    "declination": 6.4,
+    "spectral_type": "K2III",
+    "apparent_magnitude": 2.63
+  },
+  {
+    "bayer_name": "Beta Arietis",
+    "proper_name": "Sheratan",
+    "right_ascension": 28.75,
+    "declination": 20.8,
+    "spectral_type": "A5V",
+    "apparent_magnitude": 2.64
+  },
+  {
+    "bayer_name": "Alpha Librae",
+    "proper_name": "Zubenelgenubi",
+    "right_ascension": 222.75,
+    "declination": -16.0,
+    "spectral_type": "A3IV+F4IV",
+    "apparent_magnitude": 2.64
+  },
+  {
+    "bayer_name": "Alpha Columbae",
+    "proper_name": "Phact",
+    "right_ascension": 85.0,
+    "declination": -34.1,
+    "spectral_type": "B7IV",
+    "apparent_magnitude": 2.65
+  },
+  {
+    "bayer_name": "Theta Aurigae",
+    "proper_name": "",
+    "right_ascension": 90.0,
+    "declination": 37.2,
+    "spectral_type": "A0III+G2V",
+    "apparent_magnitude": 2.65
+  },
+  {
+    "bayer_name": "Beta Corvi",
+    "proper_name": "Kraz",
+    "right_ascension": 188.5,
+    "declination": -23.4,
+    "spectral_type": "G5III",
+    "apparent_magnitude": 2.65
+  },
+  {
+    "bayer_name": "Delta Cassiopeiae",
+    "proper_name": "Ruchbah",
+    "right_ascension": 21.5,
+    "declination": 60.2,
+    "spectral_type": "A5III",
+    "apparent_magnitude": 2.66
+  },
+  {
+    "bayer_name": "Eta Bo\u00f6tis",
+    "proper_name": "Muphrid",
+    "right_ascension": 208.75,
+    "declination": 18.4,
+    "spectral_type": "G0IV",
+    "apparent_magnitude": 2.68
+  },
+  {
+    "bayer_name": "Beta Lupi",
+    "proper_name": "Ke Kouan",
+    "right_ascension": 224.75,
+    "declination": -43.1,
+    "spectral_type": "B2III",
+    "apparent_magnitude": 2.68
+  },
+  {
+    "bayer_name": "Iota Aurigae",
+    "proper_name": "Hassaleh",
+    "right_ascension": 74.25,
+    "declination": 33.2,
+    "spectral_type": "K3II",
+    "apparent_magnitude": 2.69
+  },
+  {
+    "bayer_name": "Mu Velorum",
+    "proper_name": "",
+    "right_ascension": 161.75,
+    "declination": -49.4,
+    "spectral_type": "G5III+G2V",
+    "apparent_magnitude": 2.69
+  },
+  {
+    "bayer_name": "Alpha Muscae",
+    "proper_name": "",
+    "right_ascension": 189.25,
+    "declination": -69.1,
+    "spectral_type": "B2V",
+    "apparent_magnitude": 2.69
+  },
+  {
+    "bayer_name": "Upsilon Scorpii",
+    "proper_name": "Lesath",
+    "right_ascension": 262.75,
+    "declination": -37.3,
+    "spectral_type": "B2IV",
+    "apparent_magnitude": 2.7
+  },
+  {
+    "bayer_name": "Pi Puppis",
+    "proper_name": "",
+    "right_ascension": 109.25,
+    "declination": -37.1,
+    "spectral_type": "K4Ib",
+    "apparent_magnitude": 2.71
+  },
+  {
+    "bayer_name": "Delta Sagittarii",
+    "proper_name": "Kaus Meridionalis",
+    "right_ascension": 275.25,
+    "declination": -29.8,
+    "spectral_type": "K2II",
+    "apparent_magnitude": 2.72
+  },
+  {
+    "bayer_name": "Gamma Aquilae",
+    "proper_name": "Tarazed",
+    "right_ascension": 296.5,
+    "declination": 10.6,
+    "spectral_type": "K3II",
+    "apparent_magnitude": 2.72
+  },
+  {
+    "bayer_name": "Delta Ophiuchi",
+    "proper_name": "Yed Prior",
+    "right_ascension": 243.5,
+    "declination": -3.7,
+    "spectral_type": "M1III",
+    "apparent_magnitude": 2.73
+  },
+  {
+    "bayer_name": "Eta Draconis",
+    "proper_name": "Aldhibain",
+    "right_ascension": 246.0,
+    "declination": 61.5,
+    "spectral_type": "G8III",
+    "apparent_magnitude": 2.73
+  },
+  {
+    "bayer_name": "Theta Carinae",
+    "proper_name": "",
+    "right_ascension": 160.75,
+    "declination": -64.4,
+    "spectral_type": "B0V",
+    "apparent_magnitude": 2.74
+  },
+  {
+    "bayer_name": "Gamma Virginis",
+    "proper_name": "Porrima",
+    "right_ascension": 190.5,
+    "declination": -1.5,
+    "spectral_type": "F0V+F0V",
+    "apparent_magnitude": 2.74
+  },
+  {
+    "bayer_name": "Iota Orionis",
+    "proper_name": "Hatysa",
+    "right_ascension": 83.75,
+    "declination": -5.9,
+    "spectral_type": "O9III",
+    "apparent_magnitude": 2.75
+  },
+  {
+    "bayer_name": "Iota Centauri",
+    "proper_name": "",
+    "right_ascension": 200.25,
+    "declination": -36.7,
+    "spectral_type": "A2V",
+    "apparent_magnitude": 2.75
+  },
+  {
+    "bayer_name": "Beta Ophiuchi",
+    "proper_name": "Cebalrai",
+    "right_ascension": 265.75,
+    "declination": 4.6,
+    "spectral_type": "K2III",
+    "apparent_magnitude": 2.76
+  },
+  {
+    "bayer_name": "Beta Eridani",
+    "proper_name": "Kursa",
+    "right_ascension": 77.0,
+    "declination": -5.1,
+    "spectral_type": "A3III",
+    "apparent_magnitude": 2.78
+  },
+  {
+    "bayer_name": "Beta Herculis",
+    "proper_name": "Kornephoros",
+    "right_ascension": 247.5,
+    "declination": 21.5,
+    "spectral_type": "G7III",
+    "apparent_magnitude": 2.78
+  },
+  {
+    "bayer_name": "Delta Crucis",
+    "proper_name": "",
+    "right_ascension": 183.75,
+    "declination": -58.7,
+    "spectral_type": "B2IV",
+    "apparent_magnitude": 2.79
+  },
+  {
+    "bayer_name": "Beta Draconis",
+    "proper_name": "Rastaban",
+    "right_ascension": 262.5,
+    "declination": 52.3,
+    "spectral_type": "G2II",
+    "apparent_magnitude": 2.79
+  },
+  {
+    "bayer_name": "Alpha Canum Venaticorum",
+    "proper_name": "Cor Caroli",
+    "right_ascension": 194.0,
+    "declination": 38.3,
+    "spectral_type": "A0IV+F0V",
+    "apparent_magnitude": 2.8
+  },
+  {
+    "bayer_name": "Gamma Lupi",
+    "proper_name": "",
+    "right_ascension": 233.75,
+    "declination": -41.2,
+    "spectral_type": "B2IV-V+B2IV-V",
+    "apparent_magnitude": 2.8
+  },
+  {
+    "bayer_name": "Beta Leporis",
+    "proper_name": "Nihal",
+    "right_ascension": 82.0,
+    "declination": -20.8,
+    "spectral_type": "G5III",
+    "apparent_magnitude": 2.81
+  },
+  {
+    "bayer_name": "Zeta Herculis",
+    "proper_name": "Rutilicus",
+    "right_ascension": 250.25,
+    "declination": 31.6,
+    "spectral_type": "F9IV+G7V",
+    "apparent_magnitude": 2.81
+  },
+  {
+    "bayer_name": "Beta Hydri",
+    "proper_name": "",
+    "right_ascension": 6.5,
+    "declination": -77.3,
+    "spectral_type": "G2IV",
+    "apparent_magnitude": 2.82
+  },
+  {
+    "bayer_name": "Tau Scorpii",
+    "proper_name": "",
+    "right_ascension": 249.0,
+    "declination": -28.2,
+    "spectral_type": "B0V",
+    "apparent_magnitude": 2.82
+  },
+  {
+    "bayer_name": "Lambda Sagittarii",
+    "proper_name": "Kaus Borealis",
+    "right_ascension": 277.0,
+    "declination": -25.4,
+    "spectral_type": "K1III",
+    "apparent_magnitude": 2.82
+  },
+  {
+    "bayer_name": "Gamma Pegasi",
+    "proper_name": "Algenib",
+    "right_ascension": 3.25,
+    "declination": 15.2,
+    "spectral_type": "B2IV",
+    "apparent_magnitude": 2.83
+  },
+  {
+    "bayer_name": "Rho Puppis",
+    "proper_name": "Turais",
+    "right_ascension": 122.0,
+    "declination": -24.3,
+    "spectral_type": "F6III",
+    "apparent_magnitude": 2.83
+  },
+  {
+    "bayer_name": "Beta Trianguli Australis",
+    "proper_name": "",
+    "right_ascension": 238.75,
+    "declination": -63.4,
+    "spectral_type": "F2IV",
+    "apparent_magnitude": 2.83
+  },
+  {
+    "bayer_name": "Zeta Persei",
+    "proper_name": "",
+    "right_ascension": 58.5,
+    "declination": 31.9,
+    "spectral_type": "B1II+B8IV+A2V",
+    "apparent_magnitude": 2.84
+  },
+  {
+    "bayer_name": "Beta Arae",
+    "proper_name": "",
+    "right_ascension": 261.25,
+    "declination": -55.5,
+    "spectral_type": "K3Ib-II",
+    "apparent_magnitude": 2.84
+  },
+  {
+    "bayer_name": "Alpha Arae",
+    "proper_name": "Choo",
+    "right_ascension": 263.0,
+    "declination": -49.9,
+    "spectral_type": "B2V",
+    "apparent_magnitude": 2.84
+  },
+  {
+    "bayer_name": "Eta Tauri",
+    "proper_name": "Alcyone",
+    "right_ascension": 56.75,
+    "declination": 24.1,
+    "spectral_type": "B7III",
+    "apparent_magnitude": 2.85
+  },
+  {
+    "bayer_name": "Epsilon Virginis",
+    "proper_name": "Vindemiatrix",
+    "right_ascension": 195.5,
+    "declination": 11.0,
+    "spectral_type": "G8III",
+    "apparent_magnitude": 2.85
+  },
+  {
+    "bayer_name": "Delta Capricorni",
+    "proper_name": "Deneb Algedi",
+    "right_ascension": 326.75,
+    "declination": -16.1,
+    "spectral_type": "A5V",
+    "apparent_magnitude": 2.85
+  },
+  {
+    "bayer_name": "Alpha Hydri",
+    "proper_name": "Head of Hydrus",
+    "right_ascension": 29.75,
+    "declination": -61.6,
+    "spectral_type": "F0III",
+    "apparent_magnitude": 2.86
+  },
+  {
+    "bayer_name": "Delta Cygni",
+    "proper_name": "",
+    "right_ascension": 296.25,
+    "declination": 45.1,
+    "spectral_type": "B9.5III+F1V",
+    "apparent_magnitude": 2.86
+  },
+  {
+    "bayer_name": "Mu Geminorum",
+    "proper_name": "Tejat",
+    "right_ascension": 95.75,
+    "declination": 22.5,
+    "spectral_type": "M3III",
+    "apparent_magnitude": 2.87
+  },
+  {
+    "bayer_name": "Gamma Trianguli Australis",
+    "proper_name": "",
+    "right_ascension": 229.75,
+    "declination": -68.7,
+    "spectral_type": "A1III",
+    "apparent_magnitude": 2.87
+  },
+  {
+    "bayer_name": "Alpha Tucanae",
+    "proper_name": "",
+    "right_ascension": 334.75,
+    "declination": -60.3,
+    "spectral_type": "K3III",
+    "apparent_magnitude": 2.87
+  },
+  {
+    "bayer_name": "Theta Eridani",
+    "proper_name": "Acamar",
+    "right_ascension": 44.5,
+    "declination": -40.3,
+    "spectral_type": "A4III+A1V",
+    "apparent_magnitude": 2.88
+  },
+  {
+    "bayer_name": "Pi Sagittarii",
+    "proper_name": "Albaldah",
+    "right_ascension": 287.5,
+    "declination": -21.0,
+    "spectral_type": "F2II",
+    "apparent_magnitude": 2.88
+  },
+  {
+    "bayer_name": "Beta Canis Minoris",
+    "proper_name": "Gomeisa",
+    "right_ascension": 111.75,
+    "declination": 8.3,
+    "spectral_type": "B8V",
+    "apparent_magnitude": 2.89
+  },
+  {
+    "bayer_name": "Pi Scorpii",
+    "proper_name": "",
+    "right_ascension": 239.75,
+    "declination": -26.1,
+    "spectral_type": "B1V+B2V",
+    "apparent_magnitude": 2.89
+  },
+  {
+    "bayer_name": "Epsilon Persei",
+    "proper_name": "",
+    "right_ascension": 59.5,
+    "declination": 40.0,
+    "spectral_type": "B0.5V+A2V",
+    "apparent_magnitude": 2.9
+  },
+  {
+    "bayer_name": "Sigma Scorpii",
+    "proper_name": "Alniyat",
+    "right_ascension": 245.25,
+    "declination": -25.6,
+    "spectral_type": "B1III",
+    "apparent_magnitude": 2.9
+  },
+  {
+    "bayer_name": "Beta Cygni",
+    "proper_name": "Albireo",
+    "right_ascension": 292.75,
+    "declination": 28.0,
+    "spectral_type": "K3II+B8V+B9V",
+    "apparent_magnitude": 2.9
+  },
+  {
+    "bayer_name": "Beta Aquarii",
+    "proper_name": "Sadalsuud",
+    "right_ascension": 323.0,
+    "declination": -5.6,
+    "spectral_type": "G0Ib",
+    "apparent_magnitude": 2.9
+  },
+  {
+    "bayer_name": "Gamma Persei",
+    "proper_name": "",
+    "right_ascension": 46.25,
+    "declination": 53.5,
+    "spectral_type": "G8III+A2V",
+    "apparent_magnitude": 2.91
+  },
+  {
+    "bayer_name": "Upsilon Carinae",
+    "proper_name": "",
+    "right_ascension": 146.75,
+    "declination": -65.1,
+    "spectral_type": "A7Ib+B7III",
+    "apparent_magnitude": 2.92
+  },
+  {
+    "bayer_name": "Eta Pegasi",
+    "proper_name": "Matar",
+    "right_ascension": 340.75,
+    "declination": 30.2,
+    "spectral_type": "G2II-III+F0V",
+    "apparent_magnitude": 2.93
+  },
+  {
+    "bayer_name": "Tau Puppis",
+    "proper_name": "",
+    "right_ascension": 102.5,
+    "declination": -50.6,
+    "spectral_type": "K1III",
+    "apparent_magnitude": 2.94
+  },
+  {
+    "bayer_name": "Delta Corvi",
+    "proper_name": "Algorel",
+    "right_ascension": 187.5,
+    "declination": -16.5,
+    "spectral_type": "B9.5V",
+    "apparent_magnitude": 2.94
+  },
+  {
+    "bayer_name": "Alpha Aquarii",
+    "proper_name": "Sadalmelik",
+    "right_ascension": 331.5,
+    "declination": -0.3,
+    "spectral_type": "G2Ib",
+    "apparent_magnitude": 2.95
+  },
+  {
+    "bayer_name": "Gamma Eridani",
+    "proper_name": "Zaurak",
+    "right_ascension": 59.5,
+    "declination": -13.5,
+    "spectral_type": "M1III",
+    "apparent_magnitude": 2.97
+  },
+  {
+    "bayer_name": "Zeta Tauri",
+    "proper_name": "Alheka",
+    "right_ascension": 84.5,
+    "declination": 21.1,
+    "spectral_type": "B4III",
+    "apparent_magnitude": 2.97
+  },
+  {
+    "bayer_name": "Epsilon Leonis",
+    "proper_name": "Ras Elased Austr.",
+    "right_ascension": 146.5,
+    "declination": 23.8,
+    "spectral_type": "G1II",
+    "apparent_magnitude": 2.97
+  },
+  {
+    "bayer_name": "Gamma\u00b2 Sagittarii",
+    "proper_name": "Alnasl",
+    "right_ascension": 271.5,
+    "declination": -30.4,
+    "spectral_type": "K0III",
+    "apparent_magnitude": 2.98
+  },
+  {
+    "bayer_name": "Gamma Hydrae",
+    "proper_name": "",
+    "right_ascension": 199.75,
+    "declination": -23.2,
+    "spectral_type": "G8III",
+    "apparent_magnitude": 2.99
+  },
+  {
+    "bayer_name": "Iota\u00b9 Scorpii",
+    "proper_name": "",
+    "right_ascension": 267.0,
+    "declination": -40.1,
+    "spectral_type": "F2Ia",
+    "apparent_magnitude": 2.99
+  },
+  {
+    "bayer_name": "Zeta Aquilae",
+    "proper_name": "Deneb el Okab",
+    "right_ascension": 286.25,
+    "declination": 13.9,
+    "spectral_type": "A0V",
+    "apparent_magnitude": 2.99
+  },
+  {
+    "bayer_name": "Beta Trianguli",
+    "proper_name": "",
+    "right_ascension": 32.5,
+    "declination": 35.0,
+    "spectral_type": "A5III",
+    "apparent_magnitude": 3.0
+  },
+  {
+    "bayer_name": "Psi Ursae Majoris",
+    "proper_name": "",
+    "right_ascension": 167.5,
+    "declination": 44.5,
+    "spectral_type": "K1III",
+    "apparent_magnitude": 3.0
+  },
+  {
+    "bayer_name": "Gamma Ursae Minoris",
+    "proper_name": "Pherkad Major",
+    "right_ascension": 230.25,
+    "declination": 71.8,
+    "spectral_type": "A3II",
+    "apparent_magnitude": 3.0
+  },
+  {
+    "bayer_name": "Mu\u00b9 Scorpii",
+    "proper_name": "",
+    "right_ascension": 253.0,
+    "declination": -38.0,
+    "spectral_type": "B1.5V+B6.5V",
+    "apparent_magnitude": 3.0
+  },
+  {
+    "bayer_name": "Gamma Gruis",
+    "proper_name": "",
+    "right_ascension": 328.5,
+    "declination": -37.4,
+    "spectral_type": "B8III",
+    "apparent_magnitude": 3.0
+  },
+  {
+    "bayer_name": "Delta Persei",
+    "proper_name": "",
+    "right_ascension": 55.75,
+    "declination": 47.8,
+    "spectral_type": "B5III",
+    "apparent_magnitude": 3.01
+  },
+  {
+    "bayer_name": "Zeta Canis Majoris",
+    "proper_name": "Phurad",
+    "right_ascension": 95.0,
+    "declination": -30.1,
+    "spectral_type": "B2.5V",
+    "apparent_magnitude": 3.02
+  },
+  {
+    "bayer_name": "Omicron\u00b2 Canis Majoris",
+    "proper_name": "",
+    "right_ascension": 105.75,
+    "declination": -23.8,
+    "spectral_type": "B3Ia",
+    "apparent_magnitude": 3.02
+  },
+  {
+    "bayer_name": "Epsilon Corvi",
+    "proper_name": "Minkar",
+    "right_ascension": 182.5,
+    "declination": -22.6,
+    "spectral_type": "K2II",
+    "apparent_magnitude": 3.02
+  },
+  {
+    "bayer_name": "Epsilon Aurigae",
+    "proper_name": "Almaaz",
+    "right_ascension": 75.5,
+    "declination": 43.8,
+    "spectral_type": "F0Ia",
+    "apparent_magnitude": 3.03
+  },
+  {
+    "bayer_name": "Beta Muscae",
+    "proper_name": "",
+    "right_ascension": 191.5,
+    "declination": -68.1,
+    "spectral_type": "B2V+B3V",
+    "apparent_magnitude": 3.04
+  },
+  {
+    "bayer_name": "Gamma Bo\u00f6tis",
+    "proper_name": "Seginus",
+    "right_ascension": 218.0,
+    "declination": 38.3,
+    "spectral_type": "A7III",
+    "apparent_magnitude": 3.04
+  },
+  {
+    "bayer_name": "Beta Capricorni",
+    "proper_name": "Dabih",
+    "right_ascension": 305.25,
+    "declination": -14.8,
+    "spectral_type": "G5II+A0V",
+    "apparent_magnitude": 3.05
+  },
+  {
+    "bayer_name": "Epsilon Geminorum",
+    "proper_name": "Mebsuta",
+    "right_ascension": 101.0,
+    "declination": 25.1,
+    "spectral_type": "G8Ib",
+    "apparent_magnitude": 3.06
+  },
+  {
+    "bayer_name": "Mu Ursae Majoris",
+    "proper_name": "Tania Australis",
+    "right_ascension": 155.5,
+    "declination": 41.5,
+    "spectral_type": "M0III",
+    "apparent_magnitude": 3.06
+  },
+  {
+    "bayer_name": "Delta Draconis",
+    "proper_name": "Tais",
+    "right_ascension": 288.25,
+    "declination": 67.7,
+    "spectral_type": "G9III",
+    "apparent_magnitude": 3.07
+  },
+  {
+    "bayer_name": "Eta Sagittarii",
+    "proper_name": "",
+    "right_ascension": 274.5,
+    "declination": -36.8,
+    "spectral_type": "M3.5III",
+    "apparent_magnitude": 3.1
+  },
+  {
+    "bayer_name": "Zeta Hydrae",
+    "proper_name": "",
+    "right_ascension": 133.75,
+    "declination": 5.9,
+    "spectral_type": "G9III",
+    "apparent_magnitude": 3.11
+  },
+  {
+    "bayer_name": "Nu Hydrae",
+    "proper_name": "",
+    "right_ascension": 162.5,
+    "declination": -16.2,
+    "spectral_type": "K2III",
+    "apparent_magnitude": 3.11
+  },
+  {
+    "bayer_name": "Lambda Centauri",
+    "proper_name": "",
+    "right_ascension": 174.0,
+    "declination": -63.0,
+    "spectral_type": "B9III",
+    "apparent_magnitude": 3.11
+  },
+  {
+    "bayer_name": "Alpha Indi",
+    "proper_name": "Persian",
+    "right_ascension": 309.5,
+    "declination": -47.3,
+    "spectral_type": "K0III",
+    "apparent_magnitude": 3.11
+  },
+  {
+    "bayer_name": "Beta Columbae",
+    "proper_name": "Wazn",
+    "right_ascension": 87.75,
+    "declination": -35.8,
+    "spectral_type": "K2III",
+    "apparent_magnitude": 3.12
+  },
+  {
+    "bayer_name": "Iota Ursae Majoris",
+    "proper_name": "Talita",
+    "right_ascension": 134.75,
+    "declination": 48.0,
+    "spectral_type": "A7IV",
+    "apparent_magnitude": 3.12
+  },
+  {
+    "bayer_name": "Zeta Arae",
+    "proper_name": "",
+    "right_ascension": 254.75,
+    "declination": -56.0,
+    "spectral_type": "K3II",
+    "apparent_magnitude": 3.12
+  },
+  {
+    "bayer_name": "Delta Herculis",
+    "proper_name": "Sarin",
+    "right_ascension": 258.75,
+    "declination": 24.8,
+    "spectral_type": "A3IV",
+    "apparent_magnitude": 3.12
+  },
+  {
+    "bayer_name": "Kappa Centauri",
+    "proper_name": "Ke Kwan",
+    "right_ascension": 224.75,
+    "declination": -42.1,
+    "spectral_type": "B2IV",
+    "apparent_magnitude": 3.13
+  },
+  {
+    "bayer_name": "Alpha Lyncis",
+    "proper_name": "",
+    "right_ascension": 140.25,
+    "declination": 34.4,
+    "spectral_type": "K7III",
+    "apparent_magnitude": 3.14
+  },
+  {
+    "bayer_name": "N Velorum",
+    "proper_name": "",
+    "right_ascension": 142.75,
+    "declination": -57.0,
+    "spectral_type": "K5III",
+    "apparent_magnitude": 3.16
+  },
+  {
+    "bayer_name": "Pi Herculis",
+    "proper_name": "",
+    "right_ascension": 258.75,
+    "declination": 36.8,
+    "spectral_type": "K3II",
+    "apparent_magnitude": 3.16
+  },
+  {
+    "bayer_name": "Nu Puppis",
+    "proper_name": "",
+    "right_ascension": 99.5,
+    "declination": -43.2,
+    "spectral_type": "B8III",
+    "apparent_magnitude": 3.17
+  },
+  {
+    "bayer_name": "Theta Ursae Majoris",
+    "proper_name": "Al Haud",
+    "right_ascension": 143.25,
+    "declination": 51.7,
+    "spectral_type": "F6IV",
+    "apparent_magnitude": 3.17
+  },
+  {
+    "bayer_name": "Zeta Draconis",
+    "proper_name": "Aldhibah",
+    "right_ascension": 257.25,
+    "declination": 65.7,
+    "spectral_type": "B6III",
+    "apparent_magnitude": 3.17
+  },
+  {
+    "bayer_name": "Phi Sagittarii",
+    "proper_name": "",
+    "right_ascension": 281.5,
+    "declination": -27.0,
+    "spectral_type": "B8III",
+    "apparent_magnitude": 3.17
+  },
+  {
+    "bayer_name": "Eta Aurigae",
+    "proper_name": "Hoedus II",
+    "right_ascension": 76.75,
+    "declination": 41.2,
+    "spectral_type": "B3V",
+    "apparent_magnitude": 3.18
+  },
+  {
+    "bayer_name": "Alpha Circini",
+    "proper_name": "",
+    "right_ascension": 220.75,
+    "declination": -65.0,
+    "spectral_type": "F0V+K5V",
+    "apparent_magnitude": 3.18
+  },
+  {
+    "bayer_name": "Pi\u00b3 Orionis",
+    "proper_name": "Tabit",
+    "right_ascension": 72.5,
+    "declination": 7.0,
+    "spectral_type": "F6V",
+    "apparent_magnitude": 3.19
+  },
+  {
+    "bayer_name": "Epsilon Leporis",
+    "proper_name": "",
+    "right_ascension": 76.25,
+    "declination": -22.4,
+    "spectral_type": "K5III",
+    "apparent_magnitude": 3.19
+  },
+  {
+    "bayer_name": "Kappa Ophiuchi",
+    "proper_name": "",
+    "right_ascension": 254.5,
+    "declination": 9.4,
+    "spectral_type": "K2III",
+    "apparent_magnitude": 3.19
+  },
+  {
+    "bayer_name": "G Scorpii",
+    "proper_name": "",
+    "right_ascension": 267.5,
+    "declination": -37.0,
+    "spectral_type": "K2III",
+    "apparent_magnitude": 3.19
+  },
+  {
+    "bayer_name": "Zeta Cygni",
+    "proper_name": "",
+    "right_ascension": 318.25,
+    "declination": 30.2,
+    "spectral_type": "G8III",
+    "apparent_magnitude": 3.21
+  },
+  {
+    "bayer_name": "Gamma Cephei",
+    "proper_name": "Errai",
+    "right_ascension": 354.75,
+    "declination": 77.6,
+    "spectral_type": "K1IV",
+    "apparent_magnitude": 3.21
+  },
+  {
+    "bayer_name": "Delta Lupi",
+    "proper_name": "",
+    "right_ascension": 230.25,
+    "declination": -40.6,
+    "spectral_type": "B1.5IV",
+    "apparent_magnitude": 3.22
+  },
+  {
+    "bayer_name": "Epsilon Ophiuchi",
+    "proper_name": "Yed Posterior",
+    "right_ascension": 244.5,
+    "declination": -4.7,
+    "spectral_type": "G9III",
+    "apparent_magnitude": 3.23
+  },
+  {
+    "bayer_name": "Eta Serpentis",
+    "proper_name": "Alava",
+    "right_ascension": 275.25,
+    "declination": -2.9,
+    "spectral_type": "K0III-IV",
+    "apparent_magnitude": 3.23
+  },
+  {
+    "bayer_name": "Beta Cephei",
+    "proper_name": "Alphirk",
+    "right_ascension": 322.25,
+    "declination": 70.6,
+    "spectral_type": "B2III",
+    "apparent_magnitude": 3.23
+  },
+  {
+    "bayer_name": "Alpha Pictoris",
+    "proper_name": "",
+    "right_ascension": 102.0,
+    "declination": -61.9,
+    "spectral_type": "A7III",
+    "apparent_magnitude": 3.24
+  },
+  {
+    "bayer_name": "Theta Aquilae",
+    "proper_name": "",
+    "right_ascension": 302.75,
+    "declination": -0.8,
+    "spectral_type": "B9.5III",
+    "apparent_magnitude": 3.24
+  },
+  {
+    "bayer_name": "Sigma Puppis",
+    "proper_name": "",
+    "right_ascension": 112.25,
+    "declination": -43.3,
+    "spectral_type": "K5III+G5V",
+    "apparent_magnitude": 3.25
+  },
+  {
+    "bayer_name": "Pi Hydrae",
+    "proper_name": "",
+    "right_ascension": 211.5,
+    "declination": -26.7,
+    "spectral_type": "K2III",
+    "apparent_magnitude": 3.25
+  },
+  {
+    "bayer_name": "Sigma Librae",
+    "proper_name": "Brachium",
+    "right_ascension": 226.0,
+    "declination": -25.3,
+    "spectral_type": "M3III",
+    "apparent_magnitude": 3.25
+  },
+  {
+    "bayer_name": "Gamma Lyrae",
+    "proper_name": "Sulaphat",
+    "right_ascension": 284.75,
+    "declination": 32.7,
+    "spectral_type": "B9II",
+    "apparent_magnitude": 3.25
+  },
+  {
+    "bayer_name": "Gamma Hydri",
+    "proper_name": "",
+    "right_ascension": 56.75,
+    "declination": -74.2,
+    "spectral_type": "M2III",
+    "apparent_magnitude": 3.26
+  },
+  {
+    "bayer_name": "Delta Andromedae",
+    "proper_name": "",
+    "right_ascension": 9.75,
+    "declination": 30.9,
+    "spectral_type": "K3III",
+    "apparent_magnitude": 3.27
+  },
+  {
+    "bayer_name": "Theta Ophiuchi",
+    "proper_name": "",
+    "right_ascension": 260.5,
+    "declination": -25.0,
+    "spectral_type": "B2IV",
+    "apparent_magnitude": 3.27
+  },
+  {
+    "bayer_name": "Delta Aquarii",
+    "proper_name": "Skat",
+    "right_ascension": 343.75,
+    "declination": -15.8,
+    "spectral_type": "A3III",
+    "apparent_magnitude": 3.27
+  },
+  {
+    "bayer_name": "Mu Leporis",
+    "proper_name": "",
+    "right_ascension": 78.25,
+    "declination": -16.2,
+    "spectral_type": "B9IV",
+    "apparent_magnitude": 3.29
+  },
+  {
+    "bayer_name": "Omega Carinae",
+    "proper_name": "",
+    "right_ascension": 153.5,
+    "declination": -70.0,
+    "spectral_type": "B8III",
+    "apparent_magnitude": 3.29
+  },
+  {
+    "bayer_name": "Iota Draconis",
+    "proper_name": "Edasich",
+    "right_ascension": 231.25,
+    "declination": 59.0,
+    "spectral_type": "K2III",
+    "apparent_magnitude": 3.29
+  },
+  {
+    "bayer_name": "Alpha Doradus",
+    "proper_name": "",
+    "right_ascension": 68.5,
+    "declination": -55.0,
+    "spectral_type": "A0IV+B9IV",
+    "apparent_magnitude": 3.3
+  },
+  {
+    "bayer_name": "p Carinae",
+    "proper_name": "",
+    "right_ascension": 158.0,
+    "declination": -61.7,
+    "spectral_type": "B4V",
+    "apparent_magnitude": 3.3
+  },
+  {
+    "bayer_name": "Mu Centauri",
+    "proper_name": "",
+    "right_ascension": 207.5,
+    "declination": -42.5,
+    "spectral_type": "B2IV-V",
+    "apparent_magnitude": 3.3
+  },
+  {
+    "bayer_name": "Eta Geminorum",
+    "proper_name": "Propus",
+    "right_ascension": 93.75,
+    "declination": 22.5,
+    "spectral_type": "M3III",
+    "apparent_magnitude": 3.31
+  },
+  {
+    "bayer_name": "Alpha Herculis",
+    "proper_name": "Rasalgethi",
+    "right_ascension": 258.75,
+    "declination": 14.4,
+    "spectral_type": "M5III+G5III",
+    "apparent_magnitude": 3.31
+  },
+  {
+    "bayer_name": "Gamma Arae",
+    "proper_name": "",
+    "right_ascension": 261.25,
+    "declination": -56.4,
+    "spectral_type": "B1III",
+    "apparent_magnitude": 3.31
+  },
+  {
+    "bayer_name": "Beta Phoenicis",
+    "proper_name": "",
+    "right_ascension": 16.5,
+    "declination": -46.7,
+    "spectral_type": "G8III",
+    "apparent_magnitude": 3.32
+  },
+  {
+    "bayer_name": "Rho Persei",
+    "proper_name": "Gorgonea Tertia",
+    "right_ascension": 46.25,
+    "declination": 38.8,
+    "spectral_type": "M3III",
+    "apparent_magnitude": 3.32
+  },
+  {
+    "bayer_name": "Delta Ursae Majoris",
+    "proper_name": "Megrez",
+    "right_ascension": 183.75,
+    "declination": 57.0,
+    "spectral_type": "A3V",
+    "apparent_magnitude": 3.32
+  },
+  {
+    "bayer_name": "Eta Scorpii",
+    "proper_name": "",
+    "right_ascension": 258.0,
+    "declination": -43.2,
+    "spectral_type": "F3III-IV",
+    "apparent_magnitude": 3.32
+  },
+  {
+    "bayer_name": "Nu Ophiuchi",
+    "proper_name": "",
+    "right_ascension": 269.75,
+    "declination": -9.8,
+    "spectral_type": "K0III",
+    "apparent_magnitude": 3.32
+  },
+  {
+    "bayer_name": "Tau Sagittarii",
+    "proper_name": "",
+    "right_ascension": 286.75,
+    "declination": -27.7,
+    "spectral_type": "K1III",
+    "apparent_magnitude": 3.32
+  },
+  {
+    "bayer_name": "Alpha Reticuli",
+    "proper_name": "",
+    "right_ascension": 63.5,
+    "declination": -62.5,
+    "spectral_type": "G8III",
+    "apparent_magnitude": 3.33
+  },
+  {
+    "bayer_name": "Theta Leonis",
+    "proper_name": "Chort",
+    "right_ascension": 168.5,
+    "declination": 15.4,
+    "spectral_type": "A2III",
+    "apparent_magnitude": 3.33
+  },
+  {
+    "bayer_name": "Xi Puppis",
+    "proper_name": "Asmidiske",
+    "right_ascension": 117.25,
+    "declination": -24.9,
+    "spectral_type": "G5Ib",
+    "apparent_magnitude": 3.34
+  },
+  {
+    "bayer_name": "Epsilon Cassiopeiae",
+    "proper_name": "Segin",
+    "right_ascension": 28.5,
+    "declination": 63.7,
+    "spectral_type": "B2III",
+    "apparent_magnitude": 3.35
+  },
+  {
+    "bayer_name": "Eta Orionis",
+    "proper_name": "Algjebbah",
+    "right_ascension": 81.0,
+    "declination": -2.4,
+    "spectral_type": "B1V+B2V",
+    "apparent_magnitude": 3.35
+  },
+  {
+    "bayer_name": "Xi Geminorum",
+    "proper_name": "Alzirr",
+    "right_ascension": 101.25,
+    "declination": 12.9,
+    "spectral_type": "F5IV",
+    "apparent_magnitude": 3.35
+  },
+  {
+    "bayer_name": "Omicron Ursae Majoris",
+    "proper_name": "Muscida",
+    "right_ascension": 127.5,
+    "declination": 60.7,
+    "spectral_type": "G5III",
+    "apparent_magnitude": 3.35
+  },
+  {
+    "bayer_name": "Delta Aquilae",
+    "proper_name": "",
+    "right_ascension": 291.25,
+    "declination": 3.1,
+    "spectral_type": "F2IV",
+    "apparent_magnitude": 3.36
+  },
+  {
+    "bayer_name": "Epsilon Lupi",
+    "proper_name": "",
+    "right_ascension": 230.75,
+    "declination": -44.7,
+    "spectral_type": "B2IV-V",
+    "apparent_magnitude": 3.37
+  },
+  {
+    "bayer_name": "Zeta Virginis",
+    "proper_name": "Heze",
+    "right_ascension": 203.75,
+    "declination": -0.6,
+    "spectral_type": "A3V",
+    "apparent_magnitude": 3.38
+  },
+  {
+    "bayer_name": "Epsilon Hydrae",
+    "proper_name": "",
+    "right_ascension": 131.75,
+    "declination": 6.4,
+    "spectral_type": "G5III+A8V+F7V",
+    "apparent_magnitude": 3.38
+  },
+  {
+    "bayer_name": "Lambda Orionis",
+    "proper_name": "Meissa",
+    "right_ascension": 83.75,
+    "declination": 9.9,
+    "spectral_type": "O8III",
+    "apparent_magnitude": 3.39
+  },
+  {
+    "bayer_name": "q Carinae",
+    "proper_name": "",
+    "right_ascension": 154.25,
+    "declination": -61.3,
+    "spectral_type": "K3II",
+    "apparent_magnitude": 3.39
+  },
+  {
+    "bayer_name": "Delta Virginis",
+    "proper_name": "Auva",
+    "right_ascension": 194.0,
+    "declination": 3.4,
+    "spectral_type": "M3III",
+    "apparent_magnitude": 3.39
+  },
+  {
+    "bayer_name": "Zeta Cephei",
+    "proper_name": "",
+    "right_ascension": 332.75,
+    "declination": 58.2,
+    "spectral_type": "K1II",
+    "apparent_magnitude": 3.39
+  },
+  {
+    "bayer_name": "Theta\u00b2 Tauri",
+    "proper_name": "",
+    "right_ascension": 67.25,
+    "declination": 15.9,
+    "spectral_type": "A7III",
+    "apparent_magnitude": 3.4
+  },
+  {
+    "bayer_name": "Gamma Phoenicis",
+    "proper_name": "",
+    "right_ascension": 22.0,
+    "declination": -43.3,
+    "spectral_type": "K5III",
+    "apparent_magnitude": 3.41
+  },
+  {
+    "bayer_name": "Lambda Tauri",
+    "proper_name": "",
+    "right_ascension": 60.25,
+    "declination": 12.5,
+    "spectral_type": "B3V+A4IV",
+    "apparent_magnitude": 3.41
+  },
+  {
+    "bayer_name": "Nu Centauri",
+    "proper_name": "",
+    "right_ascension": 207.5,
+    "declination": -41.7,
+    "spectral_type": "B2IV",
+    "apparent_magnitude": 3.41
+  },
+  {
+    "bayer_name": "Zeta Lupi",
+    "proper_name": "",
+    "right_ascension": 228.0,
+    "declination": -52.1,
+    "spectral_type": "G8III",
+    "apparent_magnitude": 3.41
+  },
+  {
+    "bayer_name": "Eta Cephei",
+    "proper_name": "",
+    "right_ascension": 311.25,
+    "declination": 61.8,
+    "spectral_type": "K0IV",
+    "apparent_magnitude": 3.41
+  },
+  {
+    "bayer_name": "Zeta Pegasi",
+    "proper_name": "Homam",
+    "right_ascension": 340.25,
+    "declination": 10.8,
+    "spectral_type": "B8.5V",
+    "apparent_magnitude": 3.41
+  },
+  {
+    "bayer_name": "Alpha Trianguli",
+    "proper_name": "Mothallah",
+    "right_ascension": 28.25,
+    "declination": 29.6,
+    "spectral_type": "F6IV",
+    "apparent_magnitude": 3.42
+  },
+  {
+    "bayer_name": "Eta Lupi",
+    "proper_name": "",
+    "right_ascension": 240.0,
+    "declination": -38.4,
+    "spectral_type": "B2.5IV+A5V",
+    "apparent_magnitude": 3.42
+  },
+  {
+    "bayer_name": "Mu Herculis",
+    "proper_name": "",
+    "right_ascension": 266.5,
+    "declination": 27.7,
+    "spectral_type": "G5IV",
+    "apparent_magnitude": 3.42
+  },
+  {
+    "bayer_name": "Beta Pavonis",
+    "proper_name": "",
+    "right_ascension": 311.25,
+    "declination": -66.2,
+    "spectral_type": "A7III",
+    "apparent_magnitude": 3.42
+  },
+  {
+    "bayer_name": "a Carinae",
+    "proper_name": "",
+    "right_ascension": 137.75,
+    "declination": -58.9,
+    "spectral_type": "B2IV",
+    "apparent_magnitude": 3.43
+  },
+  {
+    "bayer_name": "Zeta Leonis",
+    "proper_name": "Adhafera",
+    "right_ascension": 154.25,
+    "declination": 23.4,
+    "spectral_type": "F0II-III",
+    "apparent_magnitude": 3.43
+  },
+  {
+    "bayer_name": "Lambda Aquilae",
+    "proper_name": "Althalimain",
+    "right_ascension": 286.5,
+    "declination": -4.9,
+    "spectral_type": "B9V",
+    "apparent_magnitude": 3.43
+  },
+  {
+    "bayer_name": "Lambda Ursae Majoris",
+    "proper_name": "Tania Borealis",
+    "right_ascension": 154.25,
+    "declination": 42.9,
+    "spectral_type": "A2IV",
+    "apparent_magnitude": 3.45
+  },
+  {
+    "bayer_name": "Beta Lyrae",
+    "proper_name": "Sheliak",
+    "right_ascension": 282.5,
+    "declination": 33.4,
+    "spectral_type": "B8II",
+    "apparent_magnitude": 3.45
+  },
+  {
+    "bayer_name": "Eta Cassiopeiae",
+    "proper_name": "Achird",
+    "right_ascension": 12.25,
+    "declination": 57.8,
+    "spectral_type": "G0V+K7V",
+    "apparent_magnitude": 3.46
+  },
+  {
+    "bayer_name": "Eta Ceti",
+    "proper_name": "Dheneb",
+    "right_ascension": 17.25,
+    "declination": -10.2,
+    "spectral_type": "K2III",
+    "apparent_magnitude": 3.46
+  },
+  {
+    "bayer_name": "Chi Carinae",
+    "proper_name": "",
+    "right_ascension": 119.25,
+    "declination": -53.0,
+    "spectral_type": "B3IV",
+    "apparent_magnitude": 3.46
+  },
+  {
+    "bayer_name": "Delta Bootis",
+    "proper_name": "",
+    "right_ascension": 229.0,
+    "declination": 33.3,
+    "spectral_type": "G8III",
+    "apparent_magnitude": 3.46
+  },
+  {
+    "bayer_name": "Gamma Ceti",
+    "proper_name": "Kaffaljidhma",
+    "right_ascension": 40.75,
+    "declination": 3.2,
+    "spectral_type": "A3V+F3V+K5V",
+    "apparent_magnitude": 3.47
+  },
+  {
+    "bayer_name": "Eta Leonis",
+    "proper_name": "",
+    "right_ascension": 151.75,
+    "declination": 16.8,
+    "spectral_type": "A0Ib",
+    "apparent_magnitude": 3.48
+  },
+  {
+    "bayer_name": "Eta Herculis",
+    "proper_name": "",
+    "right_ascension": 250.75,
+    "declination": 38.9,
+    "spectral_type": "G8III",
+    "apparent_magnitude": 3.48
+  },
+  {
+    "bayer_name": "Tau Ceti",
+    "proper_name": "",
+    "right_ascension": 26.0,
+    "declination": -15.9,
+    "spectral_type": "G8V",
+    "apparent_magnitude": 3.49
+  },
+  {
+    "bayer_name": "Sigma Canis Majoris",
+    "proper_name": "",
+    "right_ascension": 105.5,
+    "declination": -27.9,
+    "spectral_type": "K7Ib",
+    "apparent_magnitude": 3.49
+  },
+  {
+    "bayer_name": "Nu Ursae Majoris",
+    "proper_name": "Alula Borealis",
+    "right_ascension": 169.5,
+    "declination": 33.1,
+    "spectral_type": "K3II",
+    "apparent_magnitude": 3.49
+  },
+  {
+    "bayer_name": "Beta Bootis",
+    "proper_name": "Nekkar",
+    "right_ascension": 225.5,
+    "declination": 40.4,
+    "spectral_type": "G8III",
+    "apparent_magnitude": 3.49
+  },
+  {
+    "bayer_name": "Alpha Telescopii",
+    "proper_name": "",
+    "right_ascension": 276.75,
+    "declination": -46.0,
+    "spectral_type": "B3IV",
+    "apparent_magnitude": 3.49
+  },
+  {
+    "bayer_name": "Epsilon Gruis",
+    "proper_name": "",
+    "right_ascension": 342.25,
+    "declination": -51.3,
+    "spectral_type": "A3V",
+    "apparent_magnitude": 3.49
+  },
+  {
+    "bayer_name": "Kappa Canis Majoris",
+    "proper_name": "",
+    "right_ascension": 102.5,
+    "declination": -32.5,
+    "spectral_type": "B1.5IV",
+    "apparent_magnitude": 3.5
+  },
+  {
+    "bayer_name": "Delta Geminorum",
+    "proper_name": "Wasat",
+    "right_ascension": 110.0,
+    "declination": 22.0,
+    "spectral_type": "F2IV+K3V",
+    "apparent_magnitude": 3.5
+  },
+  {
+    "bayer_name": "Iota Cephei",
+    "proper_name": "",
+    "right_ascension": 342.5,
+    "declination": 66.2,
+    "spectral_type": "K0III",
+    "apparent_magnitude": 3.5
+  },
+  {
+    "bayer_name": "Gamma Sagittae",
+    "proper_name": "",
+    "right_ascension": 299.75,
+    "declination": 19.5,
+    "spectral_type": "K5III",
+    "apparent_magnitude": 3.51
+  },
+  {
+    "bayer_name": "Mu Pegasi",
+    "proper_name": "Sadalbari",
+    "right_ascension": 342.5,
+    "declination": 24.6,
+    "spectral_type": "G8III",
+    "apparent_magnitude": 3.51
+  },
+  {
+    "bayer_name": "Delta Eridani",
+    "proper_name": "Rana",
+    "right_ascension": 55.75,
+    "declination": -9.8,
+    "spectral_type": "K0IV",
+    "apparent_magnitude": 3.52
+  },
+  {
+    "bayer_name": "Omicron Leonis",
+    "proper_name": "Subra",
+    "right_ascension": 145.25,
+    "declination": 9.9,
+    "spectral_type": "A9V+F6V",
+    "apparent_magnitude": 3.52
+  },
+  {
+    "bayer_name": "Phi Velorum",
+    "proper_name": "Tseen Ke",
+    "right_ascension": 149.25,
+    "declination": -54.6,
+    "spectral_type": "B5Ib",
+    "apparent_magnitude": 3.52
+  },
+  {
+    "bayer_name": "Xi\u00b2 Sagittarii",
+    "proper_name": "",
+    "right_ascension": 284.5,
+    "declination": -21.1,
+    "spectral_type": "K0II",
+    "apparent_magnitude": 3.52
+  },
+  {
+    "bayer_name": "Theta Pegasi",
+    "proper_name": "Baham",
+    "right_ascension": 332.5,
+    "declination": 6.2,
+    "spectral_type": "A2V",
+    "apparent_magnitude": 3.52
+  },
+  {
+    "bayer_name": "Epsilon Tauri",
+    "proper_name": "Ain",
+    "right_ascension": 67.25,
+    "declination": 19.2,
+    "spectral_type": "K0III",
+    "apparent_magnitude": 3.53
+  },
+  {
+    "bayer_name": "Beta Cancri",
+    "proper_name": "Tarf",
+    "right_ascension": 124.25,
+    "declination": 9.2,
+    "spectral_type": "K4III",
+    "apparent_magnitude": 3.53
+  },
+  {
+    "bayer_name": "Xi Hydrae",
+    "proper_name": "",
+    "right_ascension": 173.25,
+    "declination": -31.9,
+    "spectral_type": "G8III",
+    "apparent_magnitude": 3.54
+  },
+  {
+    "bayer_name": "Mu Serpentis",
+    "proper_name": "",
+    "right_ascension": 237.5,
+    "declination": -3.4,
+    "spectral_type": "A0V",
+    "apparent_magnitude": 3.54
+  },
+  {
+    "bayer_name": "Xi Serpentis",
+    "proper_name": "",
+    "right_ascension": 264.5,
+    "declination": -15.4,
+    "spectral_type": "F0III",
+    "apparent_magnitude": 3.54
+  }
+]

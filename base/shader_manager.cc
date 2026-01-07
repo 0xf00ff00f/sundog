@@ -36,7 +36,8 @@ bool ShaderManager::initialize()
          {"text.vert", "text.frag"},
          {"orbit.vert", "orbit.frag"},
          {"partial_orbit.vert", "partial_orbit.frag"},
-         {"planet.vert", "planet.frag"}}};
+         {"planet.vert", "planet.frag"},
+         {"starfield.vert", "starfield.frag"}}};
     for (size_t index = 0; const auto &[vsPath, fsPath] : shaders)
     {
         const auto vertexShader = readFile(shaderFilePath(vsPath));

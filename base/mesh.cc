@@ -26,6 +26,7 @@ void Mesh::setVertexAttributes(std::span<const VertexAttribute> attributes, std:
         glVertexAttribPointer(index, attribute.size, static_cast<GLenum>(attribute.type), GL_FALSE, stride,
                               reinterpret_cast<const void *>(attribute.offset));
     }
+    m_vertexArray.unbind();
 }
 
 void Mesh::setVertexData(std::span<const std::byte> vertexData, std::size_t vertexCount)
@@ -51,4 +52,5 @@ void Mesh::draw(Primitive primitive) const
         glDrawArrays(static_cast<GLenum>(primitive), 0, m_vertexCount);
     else
         glDrawElements(static_cast<GLenum>(primitive), m_indexCount, GL_UNSIGNED_INT, nullptr);
+    m_vertexArray.unbind();
 }

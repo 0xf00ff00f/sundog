@@ -16,6 +16,7 @@ public:
         Orbit,
         PartialOrbit,
         Planet,
+        Starfield,
         Count
     };
 

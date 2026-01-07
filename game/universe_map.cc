@@ -1,7 +1,9 @@
 #include "universe_map.h"
 
 #include "style_settings.h"
+#include "starfield.h"
 
+#include <base/asset_path.h>
 #include <base/system.h>
 #include <base/shader_manager.h>
 #include <base/painter.h>
@@ -44,6 +46,98 @@ glm::vec3 latLonToCartesian(float lat, float lon)
     const auto y = r * std::sin(lon);
     const auto z = std::sin(lat);
     return {x, y, z};
+}
+
+std::unique_ptr<Mesh> createStarfieldMesh(const Starfield *starfield)
+{
+    constexpr auto kDistance = 50.0f;
+
+    struct Vertex
+    {
+        glm::vec3 position;
+        glm::vec2 offs;
+        glm::vec4 color;
+    };
+
+    auto mesh = std::make_unique<Mesh>();
+
+    const auto &stars = starfield->stars;
+
+    constexpr auto kMinRadius = 0.04f;
+    constexpr auto kMaxRadius = 0.16f;
+
+    std::vector<Vertex> verts;
+    verts.reserve(stars.size() * 4);
+    for (const auto &star : stars)
+    {
+        const auto rightAscension = star.rightAscension;
+        const auto declination = star.declination;
+        const auto magnitude = std::clamp(star.apparentMagnitude, -1.5f, 10.0f);
+
+        const auto tint = [spectralClass = star.spectralClass]() -> glm::vec3 {
+            switch (spectralClass)
+            {
+            case Star::SpectralClass::O:
+                return glm::vec3{155, 176, 255}; // blue
+            case Star::SpectralClass::B:
+                return glm::vec3{170, 191, 255}; // blue-white
+            case Star::SpectralClass::A:
+                return glm::vec3{202, 215, 255}; // white
+            case Star::SpectralClass::F:
+                return glm::vec3{248, 247, 255}; // yellow-white
+            case Star::SpectralClass::G:
+                return glm::vec3{255, 244, 234}; // yellow
+            case Star::SpectralClass::K:
+                return glm::vec3{255, 210, 161}; // orange
+            case Star::SpectralClass::M:
+                return glm::vec3{255, 204, 111}; // red
+            }
+        }();
+        const auto color = glm::vec4{tint / 255.0f, 0.5f};
+
+        const auto x = std::cos(rightAscension) * std::cos(declination);
+        const auto y = std::sin(rightAscension) * std::cos(declination);
+        const auto z = std::sin(declination);
+        const auto direction = glm::vec3{x, y, z};
+
+        constexpr auto kUpVector = glm::vec3{0.0f, 0.0f, 1.0f};
+        const auto u = glm::normalize(glm::cross(direction, kUpVector));
+        const auto v = glm::normalize(glm::cross(u, direction));
+
+        const auto position = kDistance * direction;
+
+        const auto brightness = std::pow(10.0f, -0.4f * magnitude);
+        const auto brightnessNorm = brightness / std::pow(10.0f, -0.5f * -1.5f);
+        const auto radius = glm::mix(kMinRadius, kMaxRadius, brightnessNorm);
+
+        verts.push_back(Vertex{.position = position, .offs = glm::vec2{-radius, -radius}, .color = color});
+        verts.push_back(Vertex{.position = position, .offs = glm::vec2{-radius, radius}, .color = color});
+        verts.push_back(Vertex{.position = position, .offs = glm::vec2{radius, -radius}, .color = color});
+        verts.push_back(Vertex{.position = position, .offs = glm::vec2{radius, radius}, .color = color});
+    }
+    mesh->setVertexData(std::as_bytes(std::span{verts}), verts.size());
+
+    std::vector<uint32_t> indices;
+    indices.reserve(stars.size() * 6);
+    for (std::size_t i = 0; i < 4 * stars.size(); i += 4)
+    {
+        indices.push_back(i + 0);
+        indices.push_back(i + 1);
+        indices.push_back(i + 3);
+
+        indices.push_back(i + 3);
+        indices.push_back(i + 2);
+        indices.push_back(i + 0);
+    }
+    mesh->setIndexData(indices);
+
+    const std::array<Mesh::VertexAttribute, 3> attributes = {
+        Mesh::VertexAttribute{3, Mesh::Type::Float, offsetof(Vertex, position)},
+        Mesh::VertexAttribute{2, Mesh::Type::Float, offsetof(Vertex, offs)},
+        Mesh::VertexAttribute{4, Mesh::Type::Float, offsetof(Vertex, color)}};
+    mesh->setVertexAttributes(attributes, sizeof(Vertex));
+
+    return mesh;
 }
 
 std::unique_ptr<Mesh> createSphereMesh()
@@ -300,7 +394,9 @@ void ShipLabel::updatePosition()
 UniverseMap::UniverseMap(Universe *universe, Painter *overlayPainter)
     : m_universe(universe)
     , m_overlayPainter(overlayPainter)
+    , m_starfield(std::make_unique<Starfield>())
 {
+    initializeStarfield();
     initializeMeshes();
     initializeLabels();
 
@@ -335,6 +431,55 @@ void UniverseMap::render() const
     const auto worlds = m_universe->worlds();
     const auto ships = m_universe->ships();
 
+    // render starfield
+    glDisable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    {
+        constexpr auto kTiltAxis = glm::vec3{1.0, 0.0, 0.0};
+
+        shaderManager->setCurrent(ShaderManager::Shader::Starfield);
+        const auto viewRotationOnly = glm::transpose(glm::inverse(glm::mat3{viewMatrix}));
+        const auto eclipticRotation = glm::rotate(glm::mat4{1.0f}, glm::radians(-23.4f), kTiltAxis);
+        const auto mvp = m_projectionMatrix * glm::mat4{viewRotationOnly} * eclipticRotation;
+        shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjectionMatrix, mvp);
+        shaderManager->setUniform(ShaderManager::Uniform::AspectRatio, static_cast<float>(m_viewportSize.width()) /
+                                                                           static_cast<float>(m_viewportSize.height()));
+        m_starfieldMesh->draw(Mesh::Primitive::Triangles);
+
+#if 0
+        const auto &font = g_styleSettings.smallFont;
+        m_overlayPainter->setFont(font);
+
+        // star labels
+        const auto &stars = m_starfield->stars;
+        for (const auto &star : stars)
+        {
+            if (star.properName.empty())
+                continue;
+
+            const auto rightAscension = star.rightAscension;
+            const auto declination = star.declination;
+
+            const auto x = std::cos(rightAscension) * std::cos(declination);
+            const auto y = std::sin(rightAscension) * std::cos(declination);
+            const auto z = std::sin(declination);
+            const auto position = 50.0f * glm::vec3{x, y, z};
+
+            const auto projectedPosition = mvp * glm::vec4{position, 1.0f};
+            const auto clipSpacePosition = glm::vec3{projectedPosition} / projectedPosition.w;
+            if (clipSpacePosition.z > -1.0f && clipSpacePosition.z < 1.0f)
+            {
+                glm::vec2 screenPosition = (glm::vec2{clipSpacePosition} * glm::vec2{0.5f, -0.5f} + glm::vec2{0.5f}) *
+                                           glm::vec2{m_viewportSize.width(), m_viewportSize.height()};
+                m_overlayPainter->drawText(screenPosition, star.properName);
+            }
+        }
+#endif
+    }
+
     // render meshes
 
     glEnable(GL_DEPTH_TEST);
@@ -368,7 +513,7 @@ void UniverseMap::render() const
     shaderManager->setUniform(ShaderManager::Uniform::Shininess, 50.0);
     for (const auto *world : worlds)
     {
-        constexpr auto kTiltAxis = glm::vec3{0.0, 1.0, 0.0};
+        constexpr auto kTiltAxis = glm::vec3{1.0, 0.0, 0.0};
         constexpr auto kRollAxis = glm::vec3{0.0, 0.0, 1.0};
 
         const float tilt = world->axialTilt;
@@ -530,8 +675,14 @@ void UniverseMap::render() const
     }
 }
 
+void UniverseMap::initializeStarfield()
+{
+    m_starfield->load(dataFilePath("stars.json"));
+}
+
 void UniverseMap::initializeMeshes()
 {
+    m_starfieldMesh = createStarfieldMesh(m_starfield.get());
     m_sphereMesh = createSphereMesh();
     m_emptyVAO = std::make_unique<gl::VertexArray>();
 }
