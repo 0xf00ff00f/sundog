@@ -19,6 +19,9 @@
 namespace
 {
 
+constexpr auto kZNear = 0.1f;
+constexpr auto kZFar = 100.0f;
+
 double scaledRadius(double radius)
 {
     return 0.05 + 0.04 * std::log(std::max(0.001 * radius, 1.0));
@@ -50,7 +53,7 @@ glm::vec3 latLonToCartesian(float lat, float lon)
 
 std::unique_ptr<Mesh> createStarfieldMesh(const Starfield *starfield)
 {
-    constexpr auto kDistance = 50.0f;
+    constexpr auto kDistance = kZFar - 0.1f;
 
     struct Vertex
     {
@@ -417,7 +420,7 @@ void UniverseMap::setViewportSize(const SizeI &size)
 {
     m_viewportSize = size;
     m_projectionMatrix =
-        glm::perspective(glm::radians(45.0f), static_cast<float>(size.width()) / size.height(), 0.1f, 100.0f);
+        glm::perspective(glm::radians(45.0f), static_cast<float>(size.width()) / size.height(), kZNear, kZFar);
     m_cameraController.setViewportSize(size);
 }
 
